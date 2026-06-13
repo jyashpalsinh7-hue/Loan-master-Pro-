@@ -30,11 +30,24 @@ jobs:
         fi
         chmod +x gradlew
 
-    - name: Generate Debug Keystore
+    - name: Generate Debug Keystore in Expected Locations
       run: |
-        mkdir -p ~/.android
-        keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+        # Generate it in the root folder where your error log explicitly asked for it
+        keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+        
+        # Copy it into the app folder too, just in case
+        mkdir -p app
+        cp debug.keystore app/debug.keystore
 
+    - name: Build with Gradle
+      run: ./gradlew clean assembleDebug -Djava.awt.headless=true --stacktrace
+
+    - name: Upload APK file
+      uses: actions/upload-artifact@v4
+      with:
+        name: LoanMaster-Pro-APK
+        path: app/build/outputs/apk/debug/app-debug.apk
+        
     - name: Build with Gradle
       run: ./gradlew assembleDebug --no-daemon
 
