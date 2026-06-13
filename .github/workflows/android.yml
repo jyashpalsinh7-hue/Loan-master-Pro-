@@ -30,6 +30,10 @@ jobs:
         fi
         chmod +x gradlew
 
+    - name: Generate Debug Keystore
+      run: |
+        keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+
     - name: Build with Gradle
       run: ./gradlew assembleDebug --no-daemon
 
@@ -38,3 +42,4 @@ jobs:
       with:
         name: LoanMaster-Pro-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+        
