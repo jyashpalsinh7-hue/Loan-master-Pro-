@@ -47,12 +47,16 @@ class MainActivity : ComponentActivity() {
             MyApplicationTheme {
                 val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "home") {
-                    composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }) }
+                    composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }, onNavigateToFd = { navController.navigate("fd") }, onNavigateToCurrency = { navController.navigate("currency") }, onNavigateToEligibility = { navController.navigate("eligibility") }, onNavigateToPrepayment = { navController.navigate("prepayment") }) }
                     composable("emi") { EmiCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("compare") { LoanComparisonScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("sip") { SipCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("rd") { RdCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("fd") { FdCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("gst") { GstCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("currency") { CurrencyConverterScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("eligibility") { LoanEligibilityScreen() }
+                    composable("prepayment") { PrepaymentCalculatorScreen() }
                 }
             }
         }
@@ -60,7 +64,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit) {
+fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}) {
     Scaffold(
         topBar = { AppTopBar() },
         bottomBar = { AppBottomBar() },
@@ -76,7 +80,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
         ) {
             SearchAndPremiumRow()
             HeroBanner()
-            CalculatorsSection(onNavigateToEmi, onNavigateToCompare, onNavigateToSip, onNavigateToGst, onNavigateToRd)
+            CalculatorsSection(onNavigateToEmi, onNavigateToCompare, onNavigateToSip, onNavigateToGst, onNavigateToRd, onNavigateToFd, onNavigateToCurrency, onNavigateToEligibility, onNavigateToPrepayment)
             RecentCalculationsBanner()
             QuickToolsSection()
         }
@@ -283,7 +287,7 @@ fun HeroBanner() {
 }
 
 @Composable
-fun CalculatorsSection(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit) {
+fun CalculatorsSection(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
@@ -322,7 +326,7 @@ fun CalculatorsSection(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> U
                 EmiCalculatorCard(onNavigateToEmi)
                 StandardCalculatorCard("GST Calculator", "Add or remove GST easily for any amount", Icons.Rounded.Receipt, Color(0xFFE53935), onNavigateToGst)
                 StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit returns", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onNavigateToRd)
-                StandardCalculatorCard("Loan Eligibility Checker", "Check your loan eligibility in seconds", Icons.Rounded.PersonSearch, Color(0xFF1E88E5))
+                StandardCalculatorCard("Loan Eligibility Checker", "Check your loan eligibility in seconds", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), onNavigateToEligibility)
             }
             // Right Column
             Column(
@@ -331,9 +335,9 @@ fun CalculatorsSection(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> U
             ) {
                 StandardCalculatorCard("Loan Compare", "Compare 2-4 loans and find the best option", Icons.Rounded.Balance, Color(0xFF8E24AA), onNavigateToCompare)
                 StandardCalculatorCard("SIP Calculator", "Plan your SIP and grow your wealth", Icons.Rounded.TrendingUp, Color(0xFF43A047), onNavigateToSip)
-                StandardCalculatorCard("Currency Converter", "Live currency rates & easy conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1))
-                StandardCalculatorCard("FD Calculator", "Calculate returns on Fixed Deposits", Icons.Rounded.Savings, Color(0xFFD81B60))
-                StandardCalculatorCard("Loan Prepayment", "Check interest saved by prepaying your loan", Icons.Rounded.EditNote, Color(0xFF5E35B1))
+                StandardCalculatorCard("Currency Converter", "Live currency rates & easy conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onNavigateToCurrency)
+                StandardCalculatorCard("FD Calculator", "Calculate returns on Fixed Deposits", Icons.Rounded.Savings, Color(0xFFD81B60), onNavigateToFd)
+                StandardCalculatorCard("Loan Prepayment", "Check interest saved by prepaying your loan", Icons.Rounded.EditNote, Color(0xFF5E35B1), onNavigateToPrepayment)
             }
         }
     }
@@ -626,10 +630,10 @@ fun AppBottomBar(selectedRoute: String = "home") {
             modifier = Modifier.testTag("nav_gst")
         )
         NavigationBarItem(
-            selected = selectedRoute == "history",
+            selected = selectedRoute == "currency",
             onClick = { },
-            icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-            label = { Text("History", maxLines = 1) },
+            icon = { Icon(Icons.Rounded.AttachMoney, contentDescription = "Currency") },
+            label = { Text("Currency", maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = AccentYellow,
                 selectedTextColor = AccentYellow,
@@ -637,13 +641,13 @@ fun AppBottomBar(selectedRoute: String = "home") {
                 unselectedTextColor = TextSecondary,
                 indicatorColor = Color.Transparent
             ),
-            modifier = Modifier.testTag("nav_history")
+            modifier = Modifier.testTag("nav_currency")
         )
         NavigationBarItem(
-            selected = selectedRoute == "settings",
+            selected = selectedRoute == "more",
             onClick = { },
-            icon = { Icon(Icons.Rounded.Settings, contentDescription = "Settings") },
-            label = { Text("Settings", maxLines = 1) },
+            icon = { Icon(Icons.Rounded.GridView, contentDescription = "More") },
+            label = { Text("More", maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = AccentYellow,
                 selectedTextColor = AccentYellow,
@@ -651,7 +655,7 @@ fun AppBottomBar(selectedRoute: String = "home") {
                 unselectedTextColor = TextSecondary,
                 indicatorColor = Color.Transparent
             ),
-            modifier = Modifier.testTag("nav_settings")
+            modifier = Modifier.testTag("nav_more")
         )
     }
 }
