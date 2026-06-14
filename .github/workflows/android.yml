@@ -1,30 +1,31 @@
-name: Android Build
+name: Build Android APK
 
+# This allows you to trigger the build manually from the GitHub App
 on:
-  workflow_dispatch:
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup JDK
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          java-version: '17' # Standard for modern Jetpack Compose apps
+          distribution: 'temurin'
 
-      - name: Grant execute permission
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build APK
+      - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: LoanMasterPro-Debug-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
