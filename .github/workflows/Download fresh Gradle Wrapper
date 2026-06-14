@@ -1,1 +1,4 @@
-wget -O gradle/wrapper/gradle-wrapper.jar https://githubusercontent.com
+- name: Download Valid Gradle Wrapper
+  run: |
+    mkdir -p gradle/wrapper
+    wget -O gradle/wrapper/gradle-wrapper.jar https://githubusercontent.com
