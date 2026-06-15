@@ -148,6 +148,7 @@ fun PremiumInputField(
     }
 }
 
+// ==================== FULL AMORTIZATION DIALOG ====================
 @Composable
 fun FullAmortizationDialog(
     principal: Double,
@@ -377,7 +378,8 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     }
                 }
             }
-// ANIMATED RESULTS
+
+            // ANIMATED RESULTS
             AnimatedVisibility(
                 visible = hasValidInput,
                 enter = fadeIn(tween(400)) + scaleIn(initialScale = 0.95f, animationSpec = tween(400))
@@ -462,8 +464,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             }
                         }
                     }
-
-                    // SMART RECOMMENDATIONS
+// SMART RECOMMENDATIONS
                     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row {
