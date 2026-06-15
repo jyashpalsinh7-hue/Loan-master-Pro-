@@ -148,7 +148,6 @@ fun PremiumInputField(
     }
 }
 
-// ==================== FULL AMORTIZATION DIALOG ====================
 @Composable
 fun FullAmortizationDialog(
     principal: Double,
@@ -200,24 +199,24 @@ fun FullAmortizationDialog(
                 Spacer(Modifier.height(12.dp))
 
                 LazyColumn(modifier = Modifier.weight(1f)) {
-    items(
-        items = schedule,
-        key = { it.month }
-    ) { row ->
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("M${row.month}", color = Color(0xFFA8B3D1), fontSize = 12.sp)
-            Text(formatMoney(row.emi), color = Color.White, fontSize = 12.sp)
-            Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = 12.sp)
-            Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = 12.sp)
-            Text(formatMoney(row.remainingBalance), color = Color.White, fontSize = 12.sp)
-        }
-    }
-}
+                    items(
+                        items = schedule,
+                        key = { it.month }
+                    ) { row ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("M${row.month}", color = Color(0xFFA8B3D1), fontSize = 12.sp)
+                            Text(formatMoney(row.emi), color = Color.White, fontSize = 12.sp)
+                            Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = 12.sp)
+                            Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = 12.sp)
+                            Text(formatMoney(row.remainingBalance), color = Color.White, fontSize = 12.sp)
+                        }
+                    }
+                }
 
                 Spacer(Modifier.height(16.dp))
                 Button(
