@@ -33,6 +33,56 @@ import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
 
+// ==================== REUSABLE INPUT FIELD ====================
+@Composable
+fun PremiumInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    suffix: String = "",
+    inputBg: Color,
+    borderColor: Color,
+    secondaryText: Color
+) {
+    Column {
+        Text(label, color = secondaryText, fontSize = 12.sp)
+        Spacer(Modifier.height(6.dp))
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = inputBg,
+            border = BorderStroke(1.dp, borderColor)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                if (suffix.isNotEmpty()) {
+                    Text(suffix, color = Color(0xFF9AA6C8), fontSize = 13.sp)
+                }
+                trailingIcon?.let {
+                    Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+    }
+}
+
+// ==================== MAIN EMI CALCULATOR SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
@@ -48,7 +98,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    // Values matching your target screenshot
+    // Pre-filled values to match your target screenshot
     var loanAmountText by remember { mutableStateOf("1500000") }
     var interestRateText by remember { mutableStateOf("8.50") }
     var tenureYearsText by remember { mutableStateOf("20") }
@@ -63,13 +113,18 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     NavigationBarItem(
                         selected = index == 2,
                         onClick = {},
-                        icon = { Icon(imageVector = when (index) {
-                            0 -> Icons.Rounded.Home
-                            1 -> Icons.Rounded.History
-                            2 -> Icons.Rounded.Calculate
-                            3 -> Icons.Rounded.CompareArrows
-                            else -> Icons.Rounded.Settings
-                        }, contentDescription = label) },
+                        icon = {
+                            Icon(
+                                imageVector = when (index) {
+                                    0 -> Icons.Rounded.Home
+                                    1 -> Icons.Rounded.History
+                                    2 -> Icons.Rounded.Calculate
+                                    3 -> Icons.Rounded.CompareArrows
+                                    else -> Icons.Rounded.Settings
+                                },
+                                contentDescription = label
+                            )
+                        },
                         label = { Text(label, fontSize = 10.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = goldAccent,
@@ -86,10 +141,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // HEADER
+            // ========== HEADER ==========
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
@@ -107,7 +162,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(22.dp))
             }
 
-            // INPUT SECTION
+            // ========== INPUT SECTION ==========
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = primaryCard),
@@ -166,7 +221,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // HERO RESULT CARD (matches your screenshot)
+            // ========== HERO EMI RESULT CARD ==========
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(16.dp, spotColor = blueAccent.copy(0.4f)),
                 shape = RoundedCornerShape(18.dp),
@@ -174,7 +229,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             ) {
                 Box(modifier = Modifier.background(Brush.linearGradient(listOf(inputBg, Color(0xFF0A2150))))) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
                                 Text("Your Monthly EMI", color = secondaryText, fontSize = 13.sp)
                                 Text("₹23,754", color = blueAccent, fontSize = 32.sp, fontWeight = FontWeight.Bold)
@@ -186,7 +241,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                 Icon(imageVector = Icons.Rounded.BarChart, contentDescription = null, tint = greenAccent, modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).offset(x = 10.dp, y = 8.dp))
                             }
                         }
-
                         Spacer(Modifier.height(16.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
@@ -207,9 +261,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // PRINCIPAL VS INTEREST + RATE COMPARISON
+            // ========== PRINCIPAL VS INTEREST + RATE COMPARISON ==========
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Donut
+                // Donut Chart
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Principal vs Interest", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -238,7 +292,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     }
                 }
 
-                // Rate Comparison
+                // Interest Rate Comparison
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Interest Rate Comparison", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -273,7 +327,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // SMART RECOMMENDATIONS
+            // ========== SMART RECOMMENDATIONS ==========
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row {
@@ -302,10 +356,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Best Savings", "Fastest Closure", "Lowest EMI", "AI Recommended").forEach { title ->
                             Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
-                                    .padding(vertical = 10.dp),
+                                modifier = Modifier.weight(1f).background(Color(0xFF0F2744), RoundedCornerShape(12.dp)).padding(vertical = 10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color(0xFF888888), modifier = Modifier.size(20.dp))
@@ -317,7 +368,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // AMORTIZATION SCHEDULE
+            // ========== AMORTIZATION SCHEDULE ==========
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -335,4 +386,34 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             row.forEach { Text(it, color = if (i == 0) secondaryText else primaryText, fontSize = 11.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center) }
                         }
-                        if (i < rows.last
+                        if (i < rows.lastIndex) HorizontalDivider(color = borderColor.copy(alpha = 0.4f))
+                    }
+                }
+            }
+
+            // ========== PDF + SHARE BUTTONS ==========
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = {},
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, borderColor)
+                ) {
+                    Icon(Icons.Rounded.PictureAsPdf, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("PDF Report")
+                }
+                Button(
+                    onClick = {},
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
+                ) {
+                    Icon(Icons.Rounded.Share, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Share Result")
+                }
+            }
+        }
+    }
+}
