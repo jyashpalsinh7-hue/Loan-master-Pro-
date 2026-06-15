@@ -9,3 +9,5 @@ A comprehensive calculator application featuring:
 - SIP & Prepayment Calculators
 
 Built with Kotlin and Jetpack Compose.
+
+*Note: Gradle signing configurations have been successfully updated for GitHub Actions compatibility.*
