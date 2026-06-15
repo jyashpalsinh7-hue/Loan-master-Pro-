@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
 
-// ==================== INPUT FIELD ====================
 @Composable
 fun PremiumInputField(
     label: String,
@@ -80,7 +79,6 @@ fun PremiumInputField(
     }
 }
 
-// ==================== MAIN SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
@@ -96,7 +94,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    // Pre-filled to match your target screenshot
     var loanAmountText by remember { mutableStateOf("1500000") }
     var interestRateText by remember { mutableStateOf("8.50") }
     var tenureYearsText by remember { mutableStateOf("20") }
@@ -133,11 +130,11 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -170,49 +167,28 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         PremiumInputField(
-                            label = "Loan Amount",
-                            value = loanAmountText,
-                            onValueChange = { loanAmountText = it },
-                            icon = Icons.Rounded.AccountBalanceWallet,
-                            iconTint = blueAccent,
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
+                            label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
+                            icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
+                            inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText
                         )
                         PremiumInputField(
-                            label = "Interest Rate (p.a.)",
-                            value = interestRateText,
-                            onValueChange = { interestRateText = it },
-                            icon = Icons.Rounded.Percent,
-                            iconTint = blueAccent,
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
+                            label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
+                            icon = Icons.Rounded.Percent, iconTint = blueAccent,
+                            inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         PremiumInputField(
-                            label = "Tenure",
-                            value = tenureYearsText,
-                            onValueChange = { tenureYearsText = it },
-                            icon = Icons.Rounded.DateRange,
-                            iconTint = blueAccent,
-                            trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                            suffix = " Years",
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
+                            label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
+                            icon = Icons.Rounded.DateRange, iconTint = blueAccent,
+                            trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Years",
+                            inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText
                         )
                         PremiumInputField(
-                            label = "First EMI Date (Optional)",
-                            value = firstEmiDate,
-                            onValueChange = {},
-                            icon = Icons.Rounded.DateRange,
-                            iconTint = blueAccent,
+                            label = "First EMI Date (Optional)", value = firstEmiDate, onValueChange = {},
+                            icon = Icons.Rounded.DateRange, iconTint = blueAccent,
                             trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
+                            inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText
                         )
                     }
                     Text("Leave blank to use current month", color = secondaryText, fontSize = 9.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
@@ -261,7 +237,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
             // PRINCIPAL VS INTEREST + RATE COMPARISON
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Donut
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Principal vs Interest", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -290,7 +265,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     }
                 }
 
-                // Rate Comparison (Clean version)
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Interest Rate Comparison", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -302,13 +276,12 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Spacer(Modifier.height(6.dp))
                         HorizontalDivider(color = borderColor)
 
-                        val rates = listOf(
+                        listOf(
                             "8.0%" to "₹22,328",
                             "8.50% (Current)" to "₹23,754",
                             "9.0%" to "₹25,225",
                             "9.5%" to "₹26,719"
-                        )
-                        rates.forEach { (rate, emi) ->
+                        ).forEach { (rate, emi) ->
                             val isCurrent = rate.contains("Current")
                             Row(
                                 modifier = Modifier
@@ -322,7 +295,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                 Text(emi, color = if (isCurrent) goldAccent else primaryText, fontSize = 13.sp, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
                             }
                         }
-                        Text("View More Rates ›", color = blueAccent, fontSize = 12.sp, modifier = Modifier.align(Alignment.End).padding(top = 4.dp))
+                        Text("View More Rates ›", color = blueAccent, fontSize = 12.sp, modifier = Modifier.align(Alignment.End))
                     }
                 }
             }
@@ -340,12 +313,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     Text("Potential savings up to ₹6.4L", color = greenAccent, fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
                     Spacer(Modifier.height(10.dp))
-                    Button(
-                        onClick = {},
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B4EFF)),
-                        shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B4EFF)), shape = RoundedCornerShape(50.dp), modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Rounded.PlayArrow, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Watch Ad To Unlock")
@@ -355,8 +323,20 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Best Savings", "Fastest Closure", "Lowest EMI", "AI Recommended").forEach { title ->
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
-                                    .padding
+                            Column(modifier = Modifier.weight(1f).background(Color(0xFF0F2744), RoundedCornerShape(12.dp)).padding(vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color(0xFF888888), modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.height(6.dp))
+                                Text(title, color = primaryText, fontSize = 11.sp, textAlign = TextAlign.Center)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // AMORTIZATION SCHEDULE
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Amortization Schedule", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text("View Full Schedule ›", color = blueAccent, fontSize = 12.sp)
+             
