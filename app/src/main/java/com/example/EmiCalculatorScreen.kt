@@ -101,6 +101,53 @@ fun getYearWiseBreakdown(
     }
     return breakdown
 }
+// ==================== INPUT FIELD ====================
+@Composable
+fun PremiumInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    suffix: String = "",
+    inputBg: Color,
+    borderColor: Color,
+    secondaryText: Color
+) {
+    Column {
+        Text(label, color = secondaryText, fontSize = 12.sp)
+        Spacer(Modifier.height(6.dp))
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = inputBg,
+            border = BorderStroke(1.dp, borderColor)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                if (suffix.isNotEmpty()) Text(suffix, color = Color(0xFF9AA6C8), fontSize = 13.sp)
+                trailingIcon?.let {
+                    Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+    }
+}
+
 // ==================== FULL AMORTIZATION DIALOG ====================
 @Composable
 fun FullAmortizationDialog(
@@ -184,7 +231,6 @@ fun FullAmortizationDialog(
         }
     }
 }
-
 // ==================== MAIN SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -497,5 +543,4 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             onDismiss = { showFullSchedule = false }
         )
     }
-}
 }
