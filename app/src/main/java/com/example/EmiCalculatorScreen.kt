@@ -550,3 +550,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
         )
     }
 }
+// other functions above
+
+fun formatMoney(value: Double): String {
+    return NumberFormat.getCurrencyInstance(
+        Locale("en", "IN")
+    ).format(value)
+}
