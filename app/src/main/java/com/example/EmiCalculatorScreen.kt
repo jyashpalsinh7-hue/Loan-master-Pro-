@@ -458,7 +458,12 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                     val isCurrent = rate == 8.5
                                     val emiAtRate = if (hasValidInput) calculateEMI(loanAmount, rate, totalMonths) else 0.0
                                     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).background(if (isCurrent) Color(0xFF1A3A6E) else Color.Transparent, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text("\( {rate}% \){if (isCurrent) " (Current)" else ""}", color = if (isCurrent) goldAccent else primaryText, fontSize = 13.sp, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
+                                        Text(
+    "${rate}%${if (isCurrent) " (Current)" else ""}",
+    color = if (isCurrent) goldAccent else primaryText,
+    fontSize = 13.sp,
+    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
+)
                                         Text(formatMoney(emiAtRate), color = if (isCurrent) goldAccent else primaryText, fontSize = 13.sp, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
                                     }
                                 }
