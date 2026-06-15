@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
 
-// ==================== REUSABLE INPUT FIELD ====================
+// ==================== INPUT FIELD ====================
 @Composable
 fun PremiumInputField(
     label: String,
@@ -71,9 +71,7 @@ fun PremiumInputField(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-                if (suffix.isNotEmpty()) {
-                    Text(suffix, color = Color(0xFF9AA6C8), fontSize = 13.sp)
-                }
+                if (suffix.isNotEmpty()) Text(suffix, color = Color(0xFF9AA6C8), fontSize = 13.sp)
                 trailingIcon?.let {
                     Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(20.dp))
                 }
@@ -82,7 +80,7 @@ fun PremiumInputField(
     }
 }
 
-// ==================== MAIN EMI CALCULATOR SCREEN ====================
+// ==================== MAIN SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
@@ -98,7 +96,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    // Pre-filled values to match your target screenshot
+    // Pre-filled to match your target screenshot
     var loanAmountText by remember { mutableStateOf("1500000") }
     var interestRateText by remember { mutableStateOf("8.50") }
     var tenureYearsText by remember { mutableStateOf("20") }
@@ -144,7 +142,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // ========== HEADER ==========
+            // HEADER
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
@@ -162,7 +160,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(22.dp))
             }
 
-            // ========== INPUT SECTION ==========
+            // INPUT SECTION
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = primaryCard),
@@ -221,7 +219,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // ========== HERO EMI RESULT CARD ==========
+            // HERO EMI CARD
             Card(
                 modifier = Modifier.fillMaxWidth().shadow(16.dp, spotColor = blueAccent.copy(0.4f)),
                 shape = RoundedCornerShape(18.dp),
@@ -261,9 +259,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
 
-            // ========== PRINCIPAL VS INTEREST + RATE COMPARISON ==========
+            // PRINCIPAL VS INTEREST + RATE COMPARISON
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Donut Chart
+                // Donut
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Principal vs Interest", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -292,7 +290,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     }
                 }
 
-                // Interest Rate Comparison
+                // Rate Comparison (Clean version)
                 Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Interest Rate Comparison", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -303,12 +301,14 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         }
                         Spacer(Modifier.height(6.dp))
                         HorizontalDivider(color = borderColor)
-                        listOf(
+
+                        val rates = listOf(
                             "8.0%" to "₹22,328",
                             "8.50% (Current)" to "₹23,754",
                             "9.0%" to "₹25,225",
                             "9.5%" to "₹26,719"
-                        ).forEach { (rate, emi) ->
+                        )
+                        rates.forEach { (rate, emi) ->
                             val isCurrent = rate.contains("Current")
                             Row(
                                 modifier = Modifier
@@ -322,12 +322,12 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                 Text(emi, color = if (isCurrent) goldAccent else primaryText, fontSize = 13.sp, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
                             }
                         }
-                        Text("View More Rates ›", color = blueAccent, fontSize = 12.sp, modifier = Modifier.align(Alignment.End))
+                        Text("View More Rates ›", color = blueAccent, fontSize = 12.sp, modifier = Modifier.align(Alignment.End).padding(top = 4.dp))
                     }
                 }
             }
 
-            // ========== SMART RECOMMENDATIONS ==========
+            // SMART RECOMMENDATIONS
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row {
@@ -356,64 +356,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Best Savings", "Fastest Closure", "Lowest EMI", "AI Recommended").forEach { title ->
                             Column(
-                                modifier = Modifier.weight(1f).background(Color(0xFF0F2744), RoundedCornerShape(12.dp)).padding(vertical = 10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color(0xFF888888), modifier = Modifier.size(20.dp))
-                                Spacer(Modifier.height(6.dp))
-                                Text(title, color = primaryText, fontSize = 11.sp, textAlign = TextAlign.Center)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ========== AMORTIZATION SCHEDULE ==========
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = primaryCard), shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, borderColor)) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Amortization Schedule", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Text("View Full Schedule ›", color = blueAccent, fontSize = 12.sp)
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    val rows = listOf(
-                        listOf("Year", "EMI (₹)", "Principal (₹)", "Interest (₹)", "Balance (₹)"),
-                        listOf("1", "23,754", "1,25,054", "1,12,700", "13,74,946"),
-                        listOf("2", "23,754", "1,34,613", "1,09,141", "12,40,333"),
-                        listOf("240", "23,754", "23,430", "324", "0")
-                    )
-                    rows.forEachIndexed { i, row ->
-                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            row.forEach { Text(it, color = if (i == 0) secondaryText else primaryText, fontSize = 11.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center) }
-                        }
-                        if (i < rows.lastIndex) HorizontalDivider(color = borderColor.copy(alpha = 0.4f))
-                    }
-                }
-            }
-
-            // ========== PDF + SHARE BUTTONS ==========
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = {},
-                    modifier = Modifier.weight(1f).height(50.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, borderColor)
-                ) {
-                    Icon(Icons.Rounded.PictureAsPdf, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("PDF Report")
-                }
-                Button(
-                    onClick = {},
-                    modifier = Modifier.weight(1f).height(50.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
-                ) {
-                    Icon(Icons.Rounded.Share, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Share Result")
-                }
-            }
-        }
-    }
-}
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
+                                    .padding
