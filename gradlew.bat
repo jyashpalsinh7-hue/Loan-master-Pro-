@@ -73,17 +73,6 @@ goto fail
 
 
 @rem Execute Gradle
-if not exist "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" (
-    echo Downloading gradle-wrapper.jar...
-    powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar' -OutFile '%APP_HOME%\gradle\wrapper\gradle-wrapper.jar'"
-) else (
-    for %%F in ("%APP_HOME%\gradle\wrapper\gradle-wrapper.jar") do if %%~zF lss 50000 (
-        echo gradle-wrapper.jar is corrupt. Downloading a fresh copy...
-        del "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar"
-        powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar' -OutFile '%APP_HOME%\gradle\wrapper\gradle-wrapper.jar'"
-    )
-)
-
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
 
 :end
