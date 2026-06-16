@@ -32,10 +32,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
@@ -60,16 +62,22 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val inactiveNav = Color(0xFF9AA6C8)
 
     // === START WITH ZEROS ===
+    val configuration = LocalConfiguration.current
+    val isCompact = configuration.screenWidthDp < 400
+
     var loanAmountText by remember { mutableStateOf("0") }
     var interestRateText by remember { mutableStateOf("0") }
-    var tenureYearsText by remember { mutableStateOf("0") }
+    var tenureText by remember { mutableStateOf("0") }
+    var isTenureMonths by remember { mutableStateOf(false) }
     var firstEmiDate by remember { mutableStateOf("Select Date") }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
 
     val loanAmount = loanAmountText.toDoubleOrNull() ?: 0.0
     val interestRate = interestRateText.toDoubleOrNull() ?: 0.0
-    val tenureYears = tenureYearsText.toIntOrNull() ?: 0
+    val tenure = tenureText.toIntOrNull() ?: 0
 
-    val totalMonths = tenureYears * 12
+    val totalMonths = if (isTenureMonths) tenure else tenure * 12
     val r = if (interestRate > 0) (interestRate / 12) / 100 else 0.0
 
     val monthlyEmi = if (loanAmount > 0 && r > 0 && totalMonths > 0) {
@@ -80,12 +88,46 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val totalInterest = totalPayment - loanAmount
     val totalPrincipal = loanAmount
 
-    val hasValidInput = loanAmount > 0 && interestRate > 0 && tenureYears > 0
+    val isLoanAmountInvalid = loanAmountText.isNotEmpty() && loanAmountText != "0" && loanAmountText.toDoubleOrNull() == null
+    val loanAmountErrorMsg = when {
+        isLoanAmountInvalid -> "Invalid number"
+        loanAmountText.isNotEmpty() && loanAmountText != "0" && loanAmount <= 0 -> "Must be > 0"
+        loanAmountText.isNotEmpty() && loanAmountText != "0" && loanAmount > 100000000000000.0 -> "Too large"
+        else -> ""
+    }
+    val isLoanAmountError = loanAmountErrorMsg.isNotEmpty()
+
+    val isInterestRateInvalid = interestRateText.isNotEmpty() && interestRateText != "0" && interestRateText.toDoubleOrNull() == null
+    val interestRateErrorMsg = when {
+        isInterestRateInvalid -> "Invalid number"
+        interestRateText.isNotEmpty() && interestRateText != "0" && interestRate <= 0 -> "Must be > 0"
+        interestRateText.isNotEmpty() && interestRateText != "0" && interestRate > 100 -> "Max 100%"
+        else -> ""
+    }
+    val isInterestRateError = interestRateErrorMsg.isNotEmpty()
+
+    val isTenureInvalid = tenureText.isNotEmpty() && tenureText != "0" && tenureText.toIntOrNull() == null
+    val tenureErrorMsg = when {
+        isTenureInvalid -> "Invalid number"
+        tenureText.isNotEmpty() && tenureText != "0" && tenure <= 0 -> "Must be > 0"
+        isTenureMonths && tenureText.isNotEmpty() && tenureText != "0" && tenure > 600 -> "Max 600 mos"
+        !isTenureMonths && tenureText.isNotEmpty() && tenureText != "0" && tenure > 50 -> "Max 50 yrs"
+        else -> ""
+    }
+    val isTenureError = tenureErrorMsg.isNotEmpty()
+
+    val hasValidInput = !isLoanAmountError && !isInterestRateError && !isTenureError && loanAmount > 0 && interestRate > 0 && tenure > 0
 
     val formatMoney = { amt: Double ->
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-        format.maximumFractionDigits = 0
-        format.format(amt)
+        if (amt >= 10000000) {
+            "₹" + String.format(Locale.US, "%.2fCr", amt / 10000000)
+        } else if (amt >= 100000) {
+            "₹" + String.format(Locale.US, "%.2fL", amt / 100000)
+        } else {
+            val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+            format.maximumFractionDigits = 0
+            format.format(amt)
+        }
     }
 
     Scaffold(
@@ -121,10 +163,38 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             }
         }
     ) { paddingValues ->
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDatePicker = false
+                        val sel = datePickerState.selectedDateMillis
+                        if (sel != null) {
+                            val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                            cal.timeInMillis = sel
+                            val sdf = java.text.SimpleDateFormat("MMM yyyy", Locale.getDefault())
+                            firstEmiDate = sdf.format(cal.time)
+                        }
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -166,7 +236,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             onValueChange = { loanAmountText = it },
                             placeholder = "0",
                             icon = Icons.Rounded.AccountBalanceWallet,
-                            iconTint = blueAccent
+                            iconTint = blueAccent,
+                            isError = isLoanAmountError,
+                            errorMessage = loanAmountErrorMsg
                         )
                         PremiumInputFieldEmi(
                             modifier = Modifier.weight(1f),
@@ -175,30 +247,53 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             onValueChange = { interestRateText = it },
                             placeholder = "0",
                             icon = Icons.Rounded.Percent,
-                            iconTint = blueAccent
+                            iconTint = blueAccent,
+                            isError = isInterestRateError,
+                            errorMessage = interestRateErrorMsg
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
                         PremiumInputFieldEmi(
                             modifier = Modifier.weight(1f),
                             label = "Tenure",
-                            value = tenureYearsText,
-                            onValueChange = { tenureYearsText = it },
+                            value = tenureText,
+                            onValueChange = { tenureText = it },
                             placeholder = "0",
                             icon = Icons.Rounded.DateRange,
                             iconTint = blueAccent,
-                            trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                            textSuffix = " Years"
+                            trailingContent = {
+                                Surface(
+                                    color = Color.Transparent, 
+                                    border = BorderStroke(1.dp, blueAccent), 
+                                    shape = RoundedCornerShape(6.dp),
+                                    modifier = Modifier.clickable { isTenureMonths = !isTenureMonths }
+                                ) {
+                                    Text(
+                                        text = if (isTenureMonths) "Mo" else "Yr",
+                                        color = blueAccent,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            },
+                            isError = isTenureError,
+                            errorMessage = tenureErrorMsg
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             PremiumInputFieldEmi(
                                 label = "First EMI Date (Optional)",
-                                value = firstEmiDate,
+                                value = if (firstEmiDate == "Select Date") "" else firstEmiDate,
                                 placeholder = "Select Date",
                                 onValueChange = {},
                                 icon = Icons.Rounded.DateRange,
                                 iconTint = blueAccent,
-                                trailingIcon = Icons.Rounded.KeyboardArrowDown
+                                trailingContent = {
+                                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                                },
+                                readOnly = true,
+                                onClick = { showDatePicker = true },
+                                fontSize = 14.sp
                             )
                             Text("Leave blank to use current month", color = secondaryText, fontSize = 9.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                         }
@@ -234,20 +329,50 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                         Icon(Icons.Rounded.Info, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
                                     }
                                     Spacer(Modifier.height(6.dp))
-                                    Text(
+                                    AutoResizeHeroTextEmi(
                                         text = formatMoney(monthlyEmi),
-                                        color = blueAccent,
-                                        fontSize = 32.sp,
-                                        fontWeight = FontWeight.Bold
+                                        color = blueAccent
                                     )
                                 }
 
-                                // Nice illustration
+                                // Premium financial visual (Compact Donut Chart)
                                 Box(modifier = Modifier.size(78.dp), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = blueAccent, modifier = Modifier.size(62.dp))
-                                    Icon(Icons.Rounded.CurrencyRupee, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp).offset(y = 3.dp))
-                                    Icon(Icons.Rounded.MonetizationOn, contentDescription = null, tint = goldAccent, modifier = Modifier.size(26.dp).align(Alignment.BottomStart).offset(x = (-6).dp, y = 6.dp))
-                                    Icon(Icons.Rounded.BarChart, contentDescription = null, tint = greenAccent, modifier = Modifier.size(30.dp).align(Alignment.BottomEnd).offset(x = 10.dp, y = 8.dp))
+                                    val prinPct = if (totalPayment > 0) (totalPrincipal / totalPayment).toFloat() else 0f
+                                    
+                                    // Subtle dark background
+                                    Box(modifier = Modifier.size(64.dp).background(Color(0xFF071833), CircleShape))
+                                    
+                                    Canvas(modifier = Modifier.size(54.dp)) {
+                                        // Track background
+                                        drawArc(
+                                            color = Color(0xFF1E3A8A).copy(alpha = 0.4f), 
+                                            startAngle = 0f, 
+                                            sweepAngle = 360f, 
+                                            useCenter = false, 
+                                            style = Stroke(width = 14f, cap = StrokeCap.Round)
+                                        )
+                                        
+                                        // Principal arc (Blue)
+                                        drawArc(
+                                            color = blueAccent, 
+                                            startAngle = -90f + 5f, 
+                                            sweepAngle = Math.max(0f, 360f * prinPct - 10f), 
+                                            useCenter = false, 
+                                            style = Stroke(width = 14f, cap = StrokeCap.Round)
+                                        )
+                                        
+                                        // Interest arc (Gold)
+                                        drawArc(
+                                            color = goldAccent, 
+                                            startAngle = -90f + (360f * prinPct) + 5f, 
+                                            sweepAngle = Math.max(0f, 360f * (1f - prinPct) - 10f), 
+                                            useCenter = false, 
+                                            style = Stroke(width = 14f, cap = StrokeCap.Round)
+                                        )
+                                    }
+                                    
+                                    // Center Rupee symbol
+                                    Icon(Icons.Rounded.CurrencyRupee, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                                 }
                             }
 
@@ -257,15 +382,30 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                HeroMetricEmi("Total Interest Payable", formatMoney(totalInterest), greenAccent)
-                                VerticalDivider(thickness = 1.dp, color = borderColor, modifier = Modifier.height(32.dp))
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("Total Payment", color = secondaryText, fontSize = 10.sp)
-                                    Text(formatMoney(totalPayment), color = primaryText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                    Text("(Principal + Interest)", color = secondaryText, fontSize = 9.sp)
+                                HeroMetricEmi(Modifier.weight(1f), "Total Interest", formatMoney(totalInterest), greenAccent)
+                                VerticalDivider(thickness = 1.dp, color = borderColor, modifier = Modifier.height(32.dp).padding(horizontal = 2.dp))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1.2f)) {
+                                    Text("Total Payment", color = secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    val totalPaymentStr = formatMoney(totalPayment)
+                                    var ptScaledFontSize by remember(totalPaymentStr) { mutableStateOf(14.sp) }
+                                    Text(
+                                        text = totalPaymentStr, 
+                                        color = primaryText, 
+                                        fontSize = ptScaledFontSize, 
+                                        fontWeight = FontWeight.Bold, 
+                                        maxLines = 1, 
+                                        overflow = TextOverflow.Visible, 
+                                        softWrap = false,
+                                        onTextLayout = { result ->
+                                            if (result.hasVisualOverflow && ptScaledFontSize > 8.sp) {
+                                                ptScaledFontSize = (ptScaledFontSize.value - 1f).sp
+                                            }
+                                        }
+                                    )
+                                    Text("(Principal+Interest)", color = secondaryText, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
-                                VerticalDivider(thickness = 1.dp, color = borderColor, modifier = Modifier.height(32.dp))
-                                HeroMetricEmi("Total Principal", formatMoney(totalPrincipal), purpleAccent)
+                                VerticalDivider(thickness = 1.dp, color = borderColor, modifier = Modifier.height(32.dp).padding(horizontal = 2.dp))
+                                HeroMetricEmi(Modifier.weight(1f), "Total Principal", formatMoney(totalPrincipal), purpleAccent)
                             }
                         }
                     }
@@ -293,99 +433,21 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
             // PRINCIPAL VS INTEREST + RATE COMPARISON
             if (hasValidInput) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Principal vs Interest Donut
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.dp, borderColor)
+                if (isCompact) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Principal vs Interest", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.width(6.dp))
-                                Icon(Icons.Rounded.Info, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
-                            }
-                            Spacer(Modifier.height(12.dp))
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.weight(0.42f), contentAlignment = Alignment.Center) {
-                                    val prinPct = if (totalPayment > 0) (totalPrincipal / totalPayment).toFloat() else 0f
-                                    Canvas(modifier = Modifier.size(92.dp)) {
-                                        drawArc(color = blueAccent, startAngle = -90f, sweepAngle = 360f * prinPct, useCenter = false, style = Stroke(width = 34f, cap = StrokeCap.Butt))
-                                        drawArc(color = goldAccent, startAngle = -90f + (360f * prinPct), sweepAngle = 360f * (1f - prinPct), useCenter = false, style = Stroke(width = 34f, cap = StrokeCap.Butt))
-                                    }
-                                    // Center text
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("${(prinPct * 100).toInt()}%", color = primaryText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                        Text("Principal", color = secondaryText, fontSize = 10.sp)
-                                    }
-                                }
-                                Column(modifier = Modifier.weight(0.58f).padding(start = 8.dp)) {
-                                    val prinPctStr = String.format(Locale.US, "%.1f", (totalPrincipal / totalPayment) * 100)
-                                    val intPctStr = String.format(Locale.US, "%.1f", (totalInterest / totalPayment) * 100)
-                                    LegendItemDonutEmi(blueAccent, "Principal", formatMoney(totalPrincipal), "($prinPctStr%)")
-                                    Spacer(Modifier.height(14.dp))
-                                    LegendItemDonutEmi(goldAccent, "Interest", formatMoney(totalInterest), "($intPctStr%)")
-                                }
-                            }
-                        }
+                        PrincipalCardEmi(Modifier.fillMaxWidth(), totalPrincipal, totalPayment, totalInterest, { formatMoney(it) })
+                        RateImpactAnalysisCardEmi(Modifier.fillMaxWidth(), loanAmount, totalMonths, interestRate, { formatMoney(it) }, monthlyEmi)
                     }
-
-                    // Interest Rate Comparison
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.dp, borderColor)
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Interest Rate Comparison", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.width(6.dp))
-                                Icon(Icons.Rounded.Info, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
-                            }
-                            Spacer(Modifier.height(10.dp))
-
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Interest Rate (p.a.)", color = secondaryText, fontSize = 11.sp)
-                                Text("Monthly EMI", color = secondaryText, fontSize = 11.sp)
-                            }
-                            Spacer(Modifier.height(6.dp))
-                            HorizontalDivider(color = borderColor)
-
-                            val rates = listOf(8.0, 8.5, 9.0, 9.5)
-                            rates.forEach { rate ->
-                                val isCurrent = rate == 8.5
-                                val emiAtRate = if (loanAmount > 0 && rate > 0) {
-                                    val mr = rate / 12 / 100
-                                    loanAmount * (mr * (1 + mr).pow(totalMonths)) / ((1 + mr).pow(totalMonths) - 1)
-                                } else 0.0
-                                
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 6.dp)
-                                        .background(if (isCurrent) Color(0xFF1A3A6E) else Color.Transparent, RoundedCornerShape(6.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val textColor = if (isCurrent) goldAccent else primaryText
-                                    Text(if(isCurrent) "${"%.2f".format(Locale.US, rate)}% (Current)" else "${"%.1f".format(Locale.US, rate)}%", color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                    Text(formatMoney(emiAtRate), color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                }
-                                HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
-                            }
-                            Row(modifier = Modifier.fillMaxWidth().padding(top=12.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                                Text("View More Rates", color = blueAccent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = blueAccent, modifier = Modifier.size(16.dp))
-                            }
-                        }
+                        PrincipalCardEmi(Modifier.weight(1f), totalPrincipal, totalPayment, totalInterest, { formatMoney(it) })
+                        RateImpactAnalysisCardEmi(Modifier.weight(1f), loanAmount, totalMonths, interestRate, { formatMoney(it) }, monthlyEmi)
                     }
                 }
 
@@ -408,35 +470,70 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Column(modifier = Modifier.weight(0.35f).height(110.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                                Text("Unlock personalized strategies to save more and repay faster.", color = secondaryText, fontSize = 11.sp, lineHeight = 16.sp)
-                                Column {
-                                    Button(
-                                        onClick = { },
-                                        colors = ButtonDefaults.buttonColors(containerColor = purpleAccent, contentColor = Color.White),
-                                        shape = RoundedCornerShape(8.dp),
-                                        modifier = Modifier.fillMaxWidth().height(36.dp),
-                                        contentPadding = PaddingValues(0.dp)
-                                    ) {
-                                        Icon(Icons.Rounded.PlayCircle, contentDescription=null, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                                    }
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Rounded.Lock, contentDescription=null, tint=secondaryText, modifier = Modifier.size(10.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Takes 15 seconds", color = secondaryText, fontSize = 10.sp)
+                        if (isCompact) {
+                            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Unlock personalized strategies to save more and repay faster.", color = secondaryText, fontSize = 11.sp, lineHeight = 16.sp)
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Column {
+                                        Button(
+                                            onClick = { },
+                                            colors = ButtonDefaults.buttonColors(containerColor = purpleAccent, contentColor = Color.White),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.fillMaxWidth().height(36.dp),
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
+                                            Icon(Icons.Rounded.PlayCircle, contentDescription=null, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                        }
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Rounded.Lock, contentDescription=null, tint=secondaryText, modifier = Modifier.size(10.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Takes 15 seconds", color = secondaryText, fontSize = 10.sp)
+                                        }
                                     }
                                 }
+                                
+                                LazyRow(modifier = Modifier.fillMaxWidth().height(110.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    item { LockedStrategyCardEmi("Best Savings", Icons.Rounded.EmojiEvents, greenAccent) }
+                                    item { LockedStrategyCardEmi("Fastest Closure", Icons.Rounded.FlashOn, purpleAccent) }
+                                    item { LockedStrategyCardEmi("Lowest EMI", Icons.Rounded.ArrowDownward, goldAccent) } 
+                                    item { LockedStrategyCardEmi("AI Recommended", Icons.Rounded.SmartToy, blueAccent) }
+                                }
                             }
-                            
-                            LazyRow(modifier = Modifier.weight(0.65f).height(110.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                item { LockedStrategyCardEmi("Best Savings", Icons.Rounded.EmojiEvents, greenAccent) }
-                                item { LockedStrategyCardEmi("Fastest Closure", Icons.Rounded.FlashOn, purpleAccent) }
-                                item { LockedStrategyCardEmi("Lowest EMI", Icons.Rounded.ArrowDownward, goldAccent) } 
-                                item { LockedStrategyCardEmi("AI Recommended", Icons.Rounded.SmartToy, blueAccent) }
+                        } else {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Column(modifier = Modifier.weight(0.35f).height(110.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Unlock personalized strategies to save more and repay faster.", color = secondaryText, fontSize = 11.sp, lineHeight = 16.sp)
+                                    Column {
+                                        Button(
+                                            onClick = { },
+                                            colors = ButtonDefaults.buttonColors(containerColor = purpleAccent, contentColor = Color.White),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.fillMaxWidth().height(36.dp),
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
+                                            Icon(Icons.Rounded.PlayCircle, contentDescription=null, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                        }
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Rounded.Lock, contentDescription=null, tint=secondaryText, modifier = Modifier.size(10.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Takes 15 seconds", color = secondaryText, fontSize = 10.sp)
+                                        }
+                                    }
+                                }
+                                
+                                LazyRow(modifier = Modifier.weight(0.65f).height(110.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    item { LockedStrategyCardEmi("Best Savings", Icons.Rounded.EmojiEvents, greenAccent) }
+                                    item { LockedStrategyCardEmi("Fastest Closure", Icons.Rounded.FlashOn, purpleAccent) }
+                                    item { LockedStrategyCardEmi("Lowest EMI", Icons.Rounded.ArrowDownward, goldAccent) } 
+                                    item { LockedStrategyCardEmi("AI Recommended", Icons.Rounded.SmartToy, blueAccent) }
+                                }
                             }
                         }
                     }
@@ -464,11 +561,11 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         Row(modifier = Modifier.fillMaxWidth().padding(horizontal=14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Year", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(0.5f))
-                            Text("EMI (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("Principal (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("Interest (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("Balance (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                            Text("Year", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("EMI (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Principal (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Interest (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Balance (₹)", color = secondaryText, fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         HorizontalDivider(color = borderColor)
@@ -480,7 +577,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             ScheduleRowEmi("2", "23,754", "1,34,613", "1,09,141", "12,40,333", primaryText)
                             ScheduleRowEmi("3", "23,754", "1,44,923", "98,831", "10,95,410", primaryText)
                             ScheduleRowEmi("...", "...", "...", "...", "...", blueAccent)
-                            ScheduleRowEmi("${tenureYears}", "23,754", "23,430", "324", "0", blueAccent)
+                            ScheduleRowEmi("${if (totalMonths >= 12) totalMonths / 12 else 1}", "23,754", "23,430", "324", "0", blueAccent)
                         }
                     }
                 }
@@ -521,62 +618,95 @@ fun PremiumInputFieldEmi(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconTint: Color,
     modifier: Modifier = Modifier,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    textSuffix: String = ""
+    isError: Boolean = false,
+    errorMessage: String = "",
+    trailingContent: @Composable (() -> Unit)? = null,
+    readOnly: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    fontSize: androidx.compose.ui.unit.TextUnit = 18.sp
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, color = Color(0xFFA8B3D1), fontSize = 12.sp, maxLines = 1)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp)
-                .background(Color(0xFF071833), RoundedCornerShape(12.dp))
-                .border(1.dp, Color(0xFF183C8A), RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
-                Spacer(modifier = Modifier.width(10.dp))
-                BasicTextField(
-                    value = if(value == "0") "" else value,
-                    onValueChange = onValueChange,
-                    textStyle = TextStyle(color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f),
-                    decorationBox = { innerTextField ->
-                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(label, color = Color(0xFFA8B3D1), fontSize = 12.sp, maxLines = 1)
+            if (isError && errorMessage.isNotEmpty()) {
+                Text(errorMessage, color = Color(0xFFEF4444), fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        val textFieldModifier = Modifier
+            .fillMaxWidth()
+            .height(58.dp)
+            .let { if (onClick != null) it.clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) { onClick() } else it }
+            
+        BasicTextField(
+            value = if(value == "0") "" else value,
+            onValueChange = onValueChange,
+            readOnly = readOnly,
+            enabled = onClick == null,
+            textStyle = androidx.compose.material3.LocalTextStyle.current.copy(
+                textAlign = androidx.compose.ui.text.style.TextAlign.Start,
+                color = Color.White,
+                fontSize = fontSize,
+                fontWeight = FontWeight.SemiBold
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            maxLines = 1,
+            modifier = textFieldModifier,
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF071833), RoundedCornerShape(12.dp))
+                        .border(1.dp, if (isError) Color(0xFFEF4444) else Color(0xFF183C8A), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                             if (label == "Loan Amount" && value.isNotEmpty() && value != "0") {
                                 Text("₹", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                             }
-                            Box(modifier = Modifier.weight(1f)) {
-                                if (value.isEmpty() || value == "0") Text(placeholder, color = Color.Gray, fontSize = 18.sp)
-                                innerTextField()
-                            }
-                            if (textSuffix.isNotEmpty()) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(textSuffix, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.wrapContentWidth())
+                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                                if (value.isEmpty() || value == "0") Text(placeholder, color = Color.Gray, fontSize = fontSize)
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    innerTextField()
+                                }
                             }
                         }
+                        if (trailingContent != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            trailingContent()
+                        }
                     }
-                )
-                if (trailingIcon != null) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(trailingIcon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
                 }
             }
-        }
+        )
     }
 }
 
 @Composable
-fun HeroMetricEmi(title: String, value: String, color: Color) {
-    Column {
-        Text(title, color = Color(0xFFA8B3D1), fontSize = 9.sp)
+fun HeroMetricEmi(modifier: Modifier = Modifier, title: String, value: String, color: Color) {
+    Column(modifier = modifier) {
+        Text(title, color = Color(0xFFA8B3D1), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        var scaledFontSize by remember(value) { mutableStateOf(13.sp) }
+        Text(
+            text = value,
+            color = color,
+            fontSize = scaledFontSize,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Visible,
+            softWrap = false,
+            onTextLayout = { result ->
+                if (result.hasVisualOverflow && scaledFontSize > 8.sp) {
+                    scaledFontSize = (scaledFontSize.value - 1f).sp
+                }
+            }
+        )
     }
 }
 
@@ -586,9 +716,22 @@ fun LegendItemDonutEmi(color: Color, title: String, value: String, percent: Stri
         Box(modifier = Modifier.padding(top=4.dp).size(8.dp).background(color, CircleShape))
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(title, color = Color.White, fontSize = 12.sp)
-            Text(value, color = Color(0xFFA8B3D1), fontSize = 12.sp)
-            Text(percent, color = Color(0xFFA8B3D1), fontSize = 11.sp)
+            Text(title, color = Color.White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            var scaledFontSize by remember(value) { mutableStateOf(12.sp) }
+            Text(
+                text = value,
+                color = Color(0xFFA8B3D1),
+                fontSize = scaledFontSize,
+                maxLines = 1,
+                overflow = TextOverflow.Visible,
+                softWrap = false,
+                onTextLayout = { result ->
+                    if (result.hasVisualOverflow && scaledFontSize > 8.sp) {
+                        scaledFontSize = (scaledFontSize.value - 1f).sp
+                    }
+                }
+            )
+            Text(percent, color = Color(0xFFA8B3D1), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -618,11 +761,11 @@ fun LockedStrategyCardEmi(title: String, icon: androidx.compose.ui.graphics.vect
 @Composable
 fun ScheduleRowEmi(col1: String, col2: String, col3: String, col4: String, col5: String, color: Color) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(col1, color = color, fontSize = 12.sp, modifier = Modifier.weight(0.5f))
-        Text(col2, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        Text(col3, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        Text(col4, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        Text(col5, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+        Text(col1, color = color, fontSize = 12.sp, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(col2, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(col3, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(col4, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(col5, color = color, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -640,10 +783,144 @@ fun ActionCardEmi(modifier: Modifier = Modifier, title: String, subtitle: String
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, color = Color(0xFFA8B3D1), fontSize = 9.sp, lineHeight = 12.sp)
+                Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle, color = Color(0xFFA8B3D1), fontSize = 9.sp, lineHeight = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+@Composable
+fun PrincipalCardEmi(
+    modifier: Modifier,
+    totalPrincipal: Double,
+    totalPayment: Double,
+    totalInterest: Double,
+    formatMoney: (Double) -> String
+) {
+    val primaryCard = Color(0xFF061633)
+    val borderColor = Color(0xFF183C8A)
+    val primaryText = Color(0xFFFFFFFF)
+    val secondaryText = Color(0xFFA8B3D1)
+    val blueAccent = Color(0xFF2D7DFF)
+    val goldAccent = Color(0xFFFFC328)
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = primaryCard),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Principal vs Interest", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(6.dp))
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
+            }
+            Spacer(Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.weight(0.42f), contentAlignment = Alignment.Center) {
+                    val prinPct = if (totalPayment > 0) (totalPrincipal / totalPayment).toFloat() else 0f
+                    Canvas(modifier = Modifier.size(92.dp)) {
+                        drawArc(color = blueAccent, startAngle = -90f, sweepAngle = 360f * prinPct, useCenter = false, style = Stroke(width = 34f, cap = StrokeCap.Butt))
+                        drawArc(color = goldAccent, startAngle = -90f + (360f * prinPct), sweepAngle = 360f * (1f - prinPct), useCenter = false, style = Stroke(width = 34f, cap = StrokeCap.Butt))
+                    }
+                    // Center text
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("${(prinPct * 100).toInt()}%", color = primaryText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Principal", color = secondaryText, fontSize = 10.sp)
+                    }
+                }
+                Column(modifier = Modifier.weight(0.58f).padding(start = 8.dp)) {
+                    val prinPctStr = String.format(Locale.US, "%.1f", if (totalPayment > 0) (totalPrincipal / totalPayment) * 100 else 0.0)
+                    val intPctStr = String.format(Locale.US, "%.1f", if (totalPayment > 0) (totalInterest / totalPayment) * 100 else 0.0)
+                    LegendItemDonutEmi(blueAccent, "Principal", formatMoney(totalPrincipal), "($prinPctStr%)")
+                    Spacer(Modifier.height(14.dp))
+                    LegendItemDonutEmi(goldAccent, "Interest", formatMoney(totalInterest), "($intPctStr%)")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RateImpactAnalysisCardEmi(
+    modifier: Modifier,
+    loanAmount: Double,
+    totalMonths: Int,
+    currentRate: Double,
+    formatMoney: (Double) -> String,
+    currentMonthlyEmi: Double
+) {
+    val primaryCard = Color(0xFF061633)
+    val borderColor = Color(0xFF183C8A)
+    val primaryText = Color(0xFFFFFFFF)
+    val secondaryText = Color(0xFFA8B3D1)
+    val blueAccent = Color(0xFF2D7DFF)
+    val greenAccent = Color(0xFF22C55E)
+    val orangeAccent = Color(0xFFF97316)
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = primaryCard),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Rate Impact Analysis", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(6.dp))
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
+            }
+            Spacer(Modifier.height(10.dp))
+
+            val rates = listOf(
+                currentRate - 0.5 to "Lower Rate",
+                currentRate to "Current Rate",
+                currentRate + 0.5 to "Higher Rate",
+                currentRate + 1.0 to "Higher Rate"
+            ).filter { it.first > 0 }
+
+            rates.forEachIndexed { index, (rate, label) ->
+                val isCurrent = rate == currentRate
+                val emiAtRate = if (loanAmount > 0 && rate > 0) {
+                    val mr = rate / 12 / 100
+                    loanAmount * (mr * (1 + mr).pow(totalMonths)) / ((1 + mr).pow(totalMonths) - 1)
+                } else 0.0
+                val diff = emiAtRate - currentMonthlyEmi
+
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${"%.2f".format(Locale.US, rate)}%", color = primaryText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            if (isCurrent) {
+                                Spacer(Modifier.width(6.dp))
+                                Surface(color = blueAccent.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp), border = BorderStroke(0.5.dp, blueAccent)) {
+                                    Text("Current", color = blueAccent, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                                }
+                            }
+                        }
+                        Text(formatMoney(emiAtRate), color = primaryText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    if (!isCurrent) {
+                        val diffStr = formatMoney(Math.abs(diff))
+                        if (diff < 0) {
+                            Text("Save $diffStr/mo", color = greenAccent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        } else {
+                            Text("Cost $diffStr/mo more", color = orangeAccent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+                if (index < rates.lastIndex) {
+                    HorizontalDivider(color = borderColor.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 4.dp))
+                }
+            }
         }
     }
 }
@@ -657,6 +934,7 @@ fun AutoResizeHeroTextEmi(text: String, color: Color) {
         fontSize = scaledFontSize,
         fontWeight = FontWeight.Bold,
         maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         softWrap = false,
         onTextLayout = { result ->
             if (result.hasVisualOverflow && scaledFontSize > 16.sp) {
