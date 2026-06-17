@@ -1131,6 +1131,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                 }
             }
         }
+    }
 }  // closes EmiCalculatorScreen function
 
 // ==================== REUSABLE BOTTOM SHEET CONTENT ====================
