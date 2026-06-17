@@ -929,3 +929,4 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
         )
     }
 }
+}
