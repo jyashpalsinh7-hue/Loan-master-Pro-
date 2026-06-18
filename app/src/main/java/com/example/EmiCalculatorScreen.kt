@@ -48,6 +48,7 @@ import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.min
 
 // ==================== DATA CLASSES ====================
 data class YearBreakdown(
