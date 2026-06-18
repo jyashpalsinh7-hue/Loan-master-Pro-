@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -556,10 +557,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     var selectedRecommendation by remember { mutableStateOf<String?>(null) }
 
     // Recommendation Bottom Sheet States (restored)
-    var showPremiumRecommendationSheet by remember { mutableStateOf(false) }
-    var selectedRecommendationDetail by remember { mutableStateOf<RecommendationDetail?>(null) }
-
-    // Recommendation Bottom Sheet State (restored)
     var showPremiumRecommendationSheet by remember { mutableStateOf(false) }
     var selectedRecommendationDetail by remember { mutableStateOf<RecommendationDetail?>(null) }
 
@@ -1369,23 +1366,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
         )
     }
 }  // closes EmiCalculatorScreen function
-
-// Old AlertDialog-based RecommendationBottomSheet removed. Rich ModalBottomSheet version is at the bottom of the file.
-                if (detail.interestSaved > 0) {
-                    Text("Interest Saved: ₹${formatMoney(detail.interestSaved)}")
-                }
-                if (detail.yearsSaved > 0) {
-                    Text("Years Saved: ${"%.1f".format(detail.yearsSaved)}")
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Close")
-            }
-        }
-    )
-}
 
 // ==================== CSV EXPORT HELPER ====================
 fun exportScheduleToCsv(
