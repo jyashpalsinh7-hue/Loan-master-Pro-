@@ -50,7 +50,8 @@ import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.min
-
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 // ==================== DATA CLASSES ====================
 data class YearBreakdown(
     val year: Int,
