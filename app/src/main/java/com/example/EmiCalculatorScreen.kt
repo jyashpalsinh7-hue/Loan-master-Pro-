@@ -49,6 +49,9 @@ import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.min
+import com.example.loanmasterpro.LoanInsights
+import com.example.loanmasterpro.LoanInsightsEngine
+import com.example.loanmasterpro.LoanType
 
 // ==================== DATA CLASSES ====================
 data class YearBreakdown(
@@ -1094,7 +1097,45 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             }
                         }
                     }
+// ==================== LIVE LOAN INSIGHTS (Integrated) ====================
 
+val loanInsights by remember(
+    loanAmount, interestRate, tenureYears, monthlyEmi, totalInterest, totalPayment, loanType
+) {
+    derivedStateOf {
+        val loanTypeEnum = when (loanType.lowercase()) {
+            "home loan" -> LoanType.HOME_LOAN
+            "personal loan" -> LoanType.PERSONAL_LOAN
+            "car loan" -> LoanType.CAR_LOAN
+            else -> LoanType.OTHER
+        }
+
+        val interestBurden = LoanInsightsEngine.calculateInterestBurden(loanAmount, totalInterest)
+        val efficiency = LoanInsightsEngine.calculateLoanEfficiency(loanTypeEnum, interestBurden.percentage)
+        val affordability = LoanInsightsEngine.calculateAffordability(monthlyEmi, loanAmount, tenureYears)
+        val tenureAnalysis = LoanInsightsEngine.calculateTenureAnalysis(tenureYears, interestRate, loanAmount)
+        val transparency = LoanInsightsEngine.calculateTransparencyCheck(interestRate)
+        val healthScore = LoanInsightsEngine.calculateLoanHealthScore(
+            interestBurden = interestBurden.percentage,
+            efficiencyLevel = efficiency.level,
+            affordabilityLevel = affordability.level,
+            isTransparent = transparency.isTransparent
+        )
+
+        LoanInsights(
+            interestBurden = interestBurden,
+            loanEfficiency = efficiency,
+            affordability = affordability,
+            tenureAnalysis = tenureAnalysis,
+            transparencyCheck = transparency,
+            loanHealthScore = healthScore
+        )
+    }
+}
+
+// Display the new Loan Insights card
+Spacer(Modifier.height(24.dp))
+LoanInsightsCard(insights = loanInsights)
                     // ==================== SMART RECOMMENDATIONS (Updated) ====================
                     Card(
                         modifier = Modifier.fillMaxWidth(),
