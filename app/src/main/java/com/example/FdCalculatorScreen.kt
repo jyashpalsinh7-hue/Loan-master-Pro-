@@ -39,6 +39,13 @@ import kotlin.math.pow
 
 @Composable
 fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var depositAmount by remember { mutableDoubleStateOf(100000.0) }
     var interestRatePa by remember { mutableDoubleStateOf(7.5) }
     var tenureYears by remember { mutableDoubleStateOf(5.0) }
@@ -53,7 +60,8 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
     }
     
     val formatDec = { value: Double ->
-        String.format(Locale.US, "%.2f", value)
+        val s = String.format(Locale.US, "%.2f", value)
+        if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
     val p = depositAmount
@@ -137,34 +145,59 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Inputs
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        FdInputField("Deposit Amount", formatInr(depositAmount), Icons.Rounded.AccountBalanceWallet, AccentBlue) {
-                            editingField = "Deposit"
-                            editValue = depositAmount.toLong().toString()
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+                if (sizeClass == WindowWidthSizeClass.Compact) {
+                    PremiumInputField(
+                        label = "Deposit Amount", value = formatDec(depositAmount).removeSuffix(".00"), onValueChange = { depositAmount = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Tenure (Years)", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Compounding", value = "Quarterly", onValueChange = {}, 
+                        icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Deposit Amount", value = formatDec(depositAmount).removeSuffix(".00"), onValueChange = { depositAmount = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass
+                            )
                         }
                     }
-                    Box(modifier = Modifier.weight(1f)) {
-                        FdInputField("Interest Rate (p.a.)", "${formatDec(interestRatePa)}%", Icons.Rounded.Percent, AccentBlue) {
-                            editingField = "Interest Rate"
-                            editValue = interestRatePa.toString()
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Tenure (Years)", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
+                            )
                         }
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        FdInputField("Tenure", "${tenureYears.toInt()} Years", Icons.Rounded.DateRange, AccentBlue, hasDropdown = true) {
-                            editingField = "Tenure"
-                            editValue = tenureYears.toInt().toString()
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Compounding", value = "Quarterly", onValueChange = {}, 
+                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass
+                            )
                         }
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        FdInputField("Compounding Frequency", "Quarterly", Icons.Rounded.BarChart, AccentBlue, hasDropdown = true) {}
                     }
                 }
             }

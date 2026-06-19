@@ -37,7 +37,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrepaymentCalculatorScreen() {
+fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact) {
     val bgColor = Color(0xFF0B132B)
     val surfaceColor = Color(0xFF152238)
     val accentBlue = Color(0xFF3B82F6)
@@ -163,8 +163,11 @@ fun PrepaymentCalculatorScreen() {
                 .background(bgColor)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // A. Top App Bar
             Row(
@@ -188,13 +191,15 @@ fun PrepaymentCalculatorScreen() {
             }
 
             // B. Top Split Dashboard
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Left Card
-                Card(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(containerColor = surfaceColor),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+            PrepayDashboardCards(
+                sizeClass = sizeClass,
+                leftCard = { cardModifier ->
+                    // Left Card
+                    Card(
+                        modifier = cardModifier,
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Description, contentDescription = null, tint = accentBlue, modifier = Modifier.size(16.dp))
@@ -248,15 +253,16 @@ fun PrepaymentCalculatorScreen() {
                             trailingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = textSecondary, modifier = Modifier.size(16.dp)) }
                         )
                     }
-                }
-
-                // Right Card (Hero)
-                Card(
-                    modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(containerColor = heroCardTint),
-                    shape = RoundedCornerShape(12.dp),
-                    border = borderIf(true, accentGreen.copy(alpha=0.3f))
-                ) {
+                    }
+                },
+                rightCard = { cardModifier ->
+                    // Right Card (Hero)
+                    Card(
+                        modifier = cardModifier,
+                        colors = CardDefaults.cardColors(containerColor = heroCardTint),
+                        shape = RoundedCornerShape(12.dp),
+                        border = borderIf(true, accentGreen.copy(alpha=0.3f))
+                    ) {
                     Column(
                         modifier = Modifier.padding(16.dp).fillMaxHeight(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -294,138 +300,157 @@ fun PrepaymentCalculatorScreen() {
                         }
                     }
                 }
-            }
+                } // close rightCard
+            )
 
             // C. Comparison Section
             Text("Without Prepayment vs With Prepayment", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Without Prepayment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(originalTotalPayment), valueColor = textColor)
-                            ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(originalTotalInterest), valueColor = accentOrange)
-                            ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(n), valueColor = accentBlue)
-                            ComparisonRow(icon = Icons.Rounded.Money, label = "EMI", value = formatMoney(emi), valueColor = textColor)
+                PrepayDashboardCards(
+                    sizeClass = sizeClass,
+                    leftCard = { cardModifier ->
+                        Card(modifier = cardModifier, colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Without Prepayment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(originalTotalPayment), valueColor = textColor)
+                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(originalTotalInterest), valueColor = accentOrange)
+                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(n), valueColor = accentBlue)
+                                ComparisonRow(icon = Icons.Rounded.Money, label = "EMI", value = formatMoney(emi), valueColor = textColor)
+                            }
+                        }
+                    },
+                    rightCard = { cardModifier ->
+                        Card(modifier = cardModifier, colors = CardDefaults.cardColors(containerColor = heroCardTint.copy(alpha=0.5f)), shape = RoundedCornerShape(12.dp), border = borderIf(true, accentGreen.copy(alpha=0.3f))) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("With Prepayment", color = accentGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(p + newTotalInterest), valueColor = accentGreen)
+                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(newTotalInterest), valueColor = accentGreen)
+                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(newTenureMonths), valueColor = accentGreen)
+                                ComparisonRow(icon = Icons.Rounded.Money, label = "EMI (After Prepayment)", value = formatMoney(emi), valueColor = textColor)
+                            }
                         }
                     }
-                    Card(modifier = Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = heroCardTint.copy(alpha=0.5f)), shape = RoundedCornerShape(12.dp), border = borderIf(true, accentGreen.copy(alpha=0.3f))) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("With Prepayment", color = accentGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(p + newTotalInterest), valueColor = accentGreen)
-                            ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(newTotalInterest), valueColor = accentGreen)
-                            ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(newTenureMonths), valueColor = accentGreen)
-                            ComparisonRow(icon = Icons.Rounded.Money, label = "EMI (After Prepayment)", value = formatMoney(emi), valueColor = textColor)
-                        }
+                )
+                if (sizeClass != WindowWidthSizeClass.Compact) {
+                    Box(
+                        modifier = Modifier.size(32.dp).clip(CircleShape).background(Color(0xFF1E1B4B)).border(1.dp, accentPurple.copy(alpha=0.5f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("VS", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
-                }
-                Box(
-                    modifier = Modifier.size(32.dp).clip(CircleShape).background(Color(0xFF1E1B4B)).border(1.dp, accentPurple.copy(alpha=0.5f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("VS", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
             // D. 3 Metric Cards
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Event, iconTint = accentBlue, title = "Tenure Reduced", value = formatMonths(tenureReducedMonths), valueColor = accentBlue, subtext = String.format(Locale.US, "%.1f%% reduction", if(n>0) (tenureReducedMonths/n)*100 else 0.0))
-                MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Savings, iconTint = Color(0xFFFBBF24), title = "Interest Saved", value = formatMoney(interestSaved), valueColor = accentGreen, subtext = String.format(Locale.US, "%.1f%% of total interest", if(originalTotalInterest>0) (interestSaved/originalTotalInterest)*100 else 0.0))
-                MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.PieChart, iconTint = accentPurple, title = "ROI on Prepayment", value = String.format(Locale.US, "%.0f%%", roiPercentage), valueColor = accentPurple, subtext = "High return on prepayment")
+            if (sizeClass == WindowWidthSizeClass.Compact) {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.Event, iconTint = accentBlue, title = "Tenure Reduced", value = formatMonths(tenureReducedMonths), valueColor = accentBlue, subtext = String.format(Locale.US, "%.1f%% reduction", if(n>0) (tenureReducedMonths/n)*100 else 0.0))
+                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.Savings, iconTint = Color(0xFFFBBF24), title = "Interest Saved", value = formatMoney(interestSaved), valueColor = accentGreen, subtext = String.format(Locale.US, "%.1f%% of total interest", if(originalTotalInterest>0) (interestSaved/originalTotalInterest)*100 else 0.0))
+                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.PieChart, iconTint = accentPurple, title = "ROI on Prepayment", value = String.format(Locale.US, "%.0f%%", roiPercentage), valueColor = accentPurple, subtext = "High return on prepayment")
+                }
+            } else {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Event, iconTint = accentBlue, title = "Tenure Reduced", value = formatMonths(tenureReducedMonths), valueColor = accentBlue, subtext = String.format(Locale.US, "%.1f%% reduction", if(n>0) (tenureReducedMonths/n)*100 else 0.0))
+                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Savings, iconTint = Color(0xFFFBBF24), title = "Interest Saved", value = formatMoney(interestSaved), valueColor = accentGreen, subtext = String.format(Locale.US, "%.1f%% of total interest", if(originalTotalInterest>0) (interestSaved/originalTotalInterest)*100 else 0.0))
+                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.PieChart, iconTint = accentPurple, title = "ROI on Prepayment", value = String.format(Locale.US, "%.0f%%", roiPercentage), valueColor = accentPurple, subtext = "High return on prepayment")
+                }
             }
 
             // E. Charts Section
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Card(modifier = Modifier.weight(1f).height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Break-up of Total Payment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+            PrepayDashboardCards(
+                sizeClass = sizeClass,
+                leftCard = { cardMod ->
+                    Card(modifier = cardMod.height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Break-up of Total Payment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(12.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Principal", color = textSecondary, fontSize = 10.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Principal", color = textSecondary, fontSize = 10.sp)
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentOrange))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Interest", color = textSecondary, fontSize = 10.sp)
+                                }
                             }
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentOrange))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Interest", color = textSecondary, fontSize = 10.sp)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                                val ogPrinPct = if(originalTotalPayment>0) (p / originalTotalPayment).toFloat() else 0f
+                                val newPrinPct = if(p + newTotalInterest > 0) (p / (p + newTotalInterest)).toFloat() else 0f
+                                
+                                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * ogPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
+                                        drawArc(color = accentOrange, startAngle = -90f + (360f * ogPrinPct), sweepAngle = 360f * (1-ogPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", originalTotalPayment/100000)}L", color = textColor)
+                                        Text("${(ogPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    Text("Without Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
+                                }
+                                
+                                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = textSecondary, modifier = Modifier.size(24.dp))
+                                
+                                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * newPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
+                                        drawArc(color = accentOrange.copy(alpha=0.5f), startAngle = -90f + (360f * newPrinPct), sweepAngle = 360f * (1-newPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", (p+newTotalInterest)/100000)}L", color = textColor)
+                                        Text("${(newPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    Text("With Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
+                                }
                             }
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                            val ogPrinPct = if(originalTotalPayment>0) (p / originalTotalPayment).toFloat() else 0f
-                            val newPrinPct = if(p + newTotalInterest > 0) (p / (p + newTotalInterest)).toFloat() else 0f
-                            
-                            Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * ogPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                    drawArc(color = accentOrange, startAngle = -90f + (360f * ogPrinPct), sweepAngle = 360f * (1-ogPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", originalTotalPayment/100000)}L", color = textColor)
-                                    Text("${(ogPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                }
-                                Text("Without Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
-                            }
-                            
-                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = textSecondary, modifier = Modifier.size(24.dp))
-                            
-                            Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * newPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                    drawArc(color = accentOrange.copy(alpha=0.5f), startAngle = -90f + (360f * newPrinPct), sweepAngle = 360f * (1-newPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", (p+newTotalInterest)/100000)}L", color = textColor)
-                                    Text("${(newPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                }
-                                Text("With Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                }
-                
-                Card(modifier = Modifier.weight(1f).height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Loan Balance Over Time", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                },
+                rightCard = { cardMod ->
+                    Card(modifier = cardMod.height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Loan Balance Over Time", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(12.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Original Loan", color = textSecondary, fontSize = 10.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Original Loan", color = textSecondary, fontSize = 10.sp)
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentGreen))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("With Prepayment", color = textSecondary, fontSize = 10.sp)
+                                }
                             }
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentGreen))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("With Prepayment", color = textSecondary, fontSize = 10.sp)
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                val w = size.width
-                                val h = size.height
-                                
-                                val p1 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.5f, h*0.2f, w, h) }
-                                drawPath(p1, color = accentBlue, style = Stroke(width = 4f))
-                                
-                                val prepayX = w * (newTenureMonths.toFloat() / n.toFloat())
-                                val p2 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.2f, h*0.4f, prepayX, h) }
-                                drawPath(p2, color = accentGreen, style = Stroke(width = 6f))
-                                
-                                drawLine(color = textSecondary.copy(alpha=0.5f), start=Offset(prepayX, 0f), end=Offset(prepayX, h), strokeWidth=2f, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
-                            }
-                            // Axis labels
-                            Text("₹${(p/100000).toInt()}L", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopStart).offset(y=(-4).dp, x=(-4).dp))
-                            //Text("₹0", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomStart))
-                            Row(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).offset(y=16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    val w = size.width
+                                    val h = size.height
+                                    
+                                    val p1 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.5f, h*0.2f, w, h) }
+                                    drawPath(p1, color = accentBlue, style = Stroke(width = 4f))
+                                    
+                                    val prepayX = w * (newTenureMonths.toFloat() / n.toFloat())
+                                    val p2 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.2f, h*0.4f, prepayX, h) }
+                                    drawPath(p2, color = accentGreen, style = Stroke(width = 6f))
+                                    
+                                    drawLine(color = textSecondary.copy(alpha=0.5f), start=Offset(prepayX, 0f), end=Offset(prepayX, h), strokeWidth=2f, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
+                                }
+                                // Axis labels
+                                Text("₹${(p/100000).toInt()}L", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopStart).offset(y=(-4).dp, x=(-4).dp))
+                                //Text("₹0", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomStart))
+                                Row(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).offset(y=16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("0 Yr", color = textSecondary, fontSize = 8.sp)
                                 Text("5 Yr", color = textSecondary, fontSize = 8.sp)
                                 Text("10 Yr", color = textSecondary, fontSize = 8.sp)
@@ -441,9 +466,10 @@ fun PrepaymentCalculatorScreen() {
                                 }
                             }
                         }
-                    }
-                }
-            }
+                    } // close Column
+                } // close Card
+                } // close rightCard lambda
+            ) // close PrepayDashboardCards
 
             // F. Scenarios & Recommendations
             Row(verticalAlignment = Alignment.Bottom) {
@@ -686,3 +712,26 @@ fun AutoResizeChartText(
         modifier = modifier
     )
 }
+
+fun Modifier.borderIf(condition: Boolean, color: Color): Modifier = 
+    if (condition) this.border(1.dp, color, RoundedCornerShape(12.dp)) else this
+
+@Composable
+fun PrepayDashboardCards(
+    sizeClass: WindowWidthSizeClass,
+    leftCard: @Composable (Modifier) -> Unit,
+    rightCard: @Composable (Modifier) -> Unit
+) {
+    if (sizeClass == WindowWidthSizeClass.Compact) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+            leftCard(Modifier.fillMaxWidth())
+            rightCard(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            leftCard(Modifier.weight(1f))
+            rightCard(Modifier.weight(1f))
+        }
+    }
+}
+

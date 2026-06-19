@@ -48,6 +48,13 @@ val CurrCardStrokeColor = Color(0xFF263238)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var baseAmount by remember { mutableStateOf("10000") }
     var baseCurrency by remember { mutableStateOf("INR") }
     var targetCurrency by remember { mutableStateOf("USD") }
@@ -110,8 +117,11 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Main Conversion Card
             MainConversionCard(

@@ -32,6 +32,13 @@ import kotlin.math.pow
 
 @Composable
 fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var principalA by remember { mutableDoubleStateOf(1500000.0) }
     var rateA by remember { mutableDoubleStateOf(8.75) }
     var tenureA by remember { mutableDoubleStateOf(20.0) }
@@ -219,8 +226,11 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Hero Section (Row with 2 cards)
             Box(modifier = Modifier.fillMaxWidth()) {

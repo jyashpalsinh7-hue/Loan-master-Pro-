@@ -6,6 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
@@ -84,6 +89,53 @@ fun ScrollingTitleText(
         fontWeight = fontWeight,
         maxLines = 1
     )
+}
+
+@Composable
+fun PremiumInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    suffix: String = "",
+    sizeClass: com.example.WindowWidthSizeClass = com.example.WindowWidthSizeClass.Compact,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.layout.Column(modifier = modifier) {
+        Text(label, color = com.example.ui.theme.TextSecondary, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+        androidx.compose.foundation.layout.Spacer(Modifier.height(6.dp))
+        androidx.compose.material3.Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = com.example.ui.theme.SurfaceDark,
+            border = androidx.compose.foundation.BorderStroke(1.dp, com.example.ui.theme.CardStroke)
+        ) {
+            androidx.compose.foundation.layout.Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                androidx.compose.material3.Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(com.example.ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
+                androidx.compose.foundation.text.BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    textStyle = TextStyle(color = Color.White, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass)),
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                )
+                if (suffix.isNotEmpty()) {
+                    Text(suffix, color = com.example.ui.theme.TextSecondary, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
+                }
+                trailingIcon?.let {
+                    androidx.compose.material3.Icon(imageVector = it, contentDescription = null, tint = com.example.ui.theme.TextSecondary, modifier = Modifier.size(com.example.ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                }
+            }
+        }
+    }
 }
 
 @Composable

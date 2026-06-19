@@ -241,56 +241,7 @@ fun generateRecommendations(
     )
 }
 
-// ==================== REUSABLE INPUT FIELD ====================
-@Composable
-fun PremiumInputField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconTint: Color,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    suffix: String = "",
-    inputBg: Color,
-    borderColor: Color,
-    secondaryText: Color,
-    sizeClass: WindowWidthSizeClass,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(label, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
-        Spacer(Modifier.height(6.dp))
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = inputBg,
-            border = BorderStroke(1.dp, borderColor)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
-                Spacer(Modifier.width(10.dp))
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    textStyle = TextStyle(color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                if (suffix.isNotEmpty()) {
-                    Text(suffix, color = Color(0xFF9AA6C8), fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
-                }
-                trailingIcon?.let {
-                    Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
-                }
-            }
-        }
-    }
-}
+
 
 // ==================== LOAN TYPE SELECTOR ====================
 @Composable
@@ -608,19 +559,19 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             PremiumInputField(
                                 label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
-                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
-                                icon = Icons.Rounded.Percent, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.Percent, iconTint = blueAccent,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             PremiumInputField(
                                 label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs",
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             LoanTypeSelector(
@@ -633,19 +584,19 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             PremiumInputField(
                                 label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
-                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             PremiumInputField(
                                 label = "Interest", value = interestRateText, onValueChange = { interestRateText = it },
-                                icon = Icons.Rounded.Percent, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.Percent, iconTint = blueAccent,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             PremiumInputField(
                                 label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs",
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             LoanTypeSelector(

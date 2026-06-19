@@ -39,6 +39,13 @@ import kotlin.math.pow
 
 @Composable
 fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var monthlyDeposit by remember { mutableDoubleStateOf(5000.0) }
     var interestRatePa by remember { mutableDoubleStateOf(6.5) }
     var tenureYears by remember { mutableDoubleStateOf(5.0) }
@@ -53,7 +60,8 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
     }
     
     val formatDec = { value: Double ->
-        String.format(Locale.US, "%.2f", value)
+        val s = String.format(Locale.US, "%.2f", value)
+        if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
     val p = monthlyDeposit
@@ -135,25 +143,53 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Inputs
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                RdInputCard("Monthly Deposit", formatInr(monthlyDeposit), null, Icons.Rounded.CurrencyRupee, AccentBlue) {
-                    editingField = "Monthly Deposit"
-                    editValue = monthlyDeposit.toLong().toString()
-                }
-                RdInputCard("Interest Rate (p.a.)", "${formatDec(interestRatePa)}%", null, Icons.Rounded.Percent, Color(0xFF7C4DFF)) {
-                    editingField = "Interest Rate"
-                    editValue = interestRatePa.toString()
-                }
-                RdInputCard("Tenure", "${tenureYears.toInt()} Years", "(${tenureYears.toInt() * 12} Months)", Icons.Rounded.DateRange, AccentGreen) {
-                    editingField = "Tenure"
-                    editValue = tenureYears.toInt().toString()
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+                if (sizeClass == WindowWidthSizeClass.Compact) {
+                    PremiumInputField(
+                        label = "Monthly Deposit", value = formatDec(monthlyDeposit).removeSuffix(".00"), onValueChange = { monthlyDeposit = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Tenure", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Monthly Deposit", value = formatDec(monthlyDeposit).removeSuffix(".00"), onValueChange = { monthlyDeposit = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Tenure", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            // Empty box to align grid
+                        }
+                    }
                 }
             }
 

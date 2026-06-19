@@ -39,6 +39,13 @@ import kotlin.math.pow
 
 @Composable
 fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var monthlySip by remember { mutableDoubleStateOf(10000.0) }
     var expectedReturnPa by remember { mutableDoubleStateOf(12.0) }
     var investmentPeriodYears by remember { mutableDoubleStateOf(20.0) }
@@ -54,7 +61,8 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
     }
     
     val formatDec = { value: Double ->
-        String.format(Locale.US, "%.2f", value)
+        val s = String.format(Locale.US, "%.2f", value)
+        if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
     val p = monthlySip
@@ -137,29 +145,60 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Inputs
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                SipInputCard("Monthly SIP", formatInr(monthlySip), null, Icons.Rounded.CurrencyRupee, AccentBlue) {
-                    editingField = "Monthly SIP"
-                    editValue = monthlySip.toLong().toString()
-                }
-                SipInputCard("Expected Return (p.a.)", "${formatDec(expectedReturnPa)}%", null, Icons.Rounded.Percent, Color(0xFF7C4DFF)) {
-                    editingField = "Expected Return"
-                    editValue = expectedReturnPa.toString()
-                }
-                SipInputCard("Investment Period", "${investmentPeriodYears.toInt()} Years", "(${investmentPeriodYears.toInt() * 12} Months)", Icons.Rounded.DateRange, AccentGreen) {
-                    editingField = "Investment Period"
-                    editValue = investmentPeriodYears.toInt().toString()
-                }
-                SipInputCard("Step-up (Annual)", "${formatDec(stepUpAnnual)}%", null, Icons.Rounded.TrendingUp, Color(0xFFFFa000)) {
-                    editingField = "Step-up"
-                    editValue = stepUpAnnual.toString()
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+                if (sizeClass == WindowWidthSizeClass.Compact) {
+                    PremiumInputField(
+                        label = "Monthly SIP", value = formatDec(monthlySip).removeSuffix(".00"), onValueChange = { monthlySip = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Expected Return (p.a.)", value = formatDec(expectedReturnPa).removeSuffix(".00"), onValueChange = { expectedReturnPa = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.Percent, iconTint = AccentPurple, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Investment Period", value = formatDec(investmentPeriodYears).removeSuffix(".00"), onValueChange = { investmentPeriodYears = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                    PremiumInputField(
+                        label = "Step-up (Annual)", value = formatDec(stepUpAnnual).removeSuffix(".00"), onValueChange = { stepUpAnnual = it.toDoubleOrNull() ?: 0.0 },
+                        icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Monthly SIP", value = formatDec(monthlySip).removeSuffix(".00"), onValueChange = { monthlySip = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Expected Return (p.a.)", value = formatDec(expectedReturnPa).removeSuffix(".00"), onValueChange = { expectedReturnPa = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.Percent, iconTint = AccentPurple, sizeClass = sizeClass
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Investment Period", value = formatDec(investmentPeriodYears).removeSuffix(".00"), onValueChange = { investmentPeriodYears = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField(
+                                label = "Step-up (Annual)", value = formatDec(stepUpAnnual).removeSuffix(".00"), onValueChange = { stepUpAnnual = it.toDoubleOrNull() ?: 0.0 },
+                                icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass
+                            )
+                        }
+                    }
                 }
             }
 

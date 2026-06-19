@@ -48,6 +48,13 @@ val loanProfiles = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanEligibilityScreen() {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     val bgColor = Color(0xFF0B132B)
     val surfaceColor = Color(0xFF152238)
     val neonGreen = Color(0xFF4ADE80)
@@ -184,8 +191,11 @@ fun LoanEligibilityScreen() {
                 .background(bgColor)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // 1. Top App Bar
             Row(
@@ -252,22 +262,28 @@ fun LoanEligibilityScreen() {
             }
 
             // 3. Main Input Section
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                AutoResizeTextField(
-                    value = monthlyIncome,
-                    onValueChange = { monthlyIncome = it },
-                    label = "Monthly Income (₹)",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = { Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = brightBlue) }
-                )
-                AutoResizeTextField(
-                    value = existingEMIs,
-                    onValueChange = { existingEMIs = it },
-                    label = "Existing EMIs (₹)",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
-                )
-            }
+            ResponsiveRowCol(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    AutoResizeTextField(
+                        value = monthlyIncome,
+                        onValueChange = { monthlyIncome = it },
+                        label = "Monthly Income (₹)",
+                        modifier = mod,
+                        leadingIcon = { Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = brightBlue) }
+                    )
+                },
+                content2 = { mod ->
+                    AutoResizeTextField(
+                        value = existingEMIs,
+                        onValueChange = { existingEMIs = it },
+                        label = "Existing EMIs (₹)",
+                        modifier = mod,
+                        leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
+                    )
+                }
+            )
 
             // 4. Co-Borrower Section (Animated)
             Row(
@@ -287,102 +303,120 @@ fun LoanEligibilityScreen() {
             }
 
             AnimatedVisibility(visible = isCoBorrowerEnabled) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    AutoResizeTextField(
-                        value = coBorrowerIncome,
-                        onValueChange = { coBorrowerIncome = it },
-                        label = "Co-Borrower Income (₹)",
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = { Icon(Icons.Rounded.Group, contentDescription = null, tint = brightBlue) }
-                    )
-                    AutoResizeTextField(
-                        value = coBorrowerEMIs,
-                        onValueChange = { coBorrowerEMIs = it },
-                        label = "Co-Borrower EMIs (₹)",
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
-                    )
-                }
+                ResponsiveRowCol(
+                    sizeClass = sizeClass,
+                    modifier = Modifier.fillMaxWidth(),
+                    content1 = { mod ->
+                        AutoResizeTextField(
+                            value = coBorrowerIncome,
+                            onValueChange = { coBorrowerIncome = it },
+                            label = "Co-Borrower Income (₹)",
+                            modifier = mod,
+                            leadingIcon = { Icon(Icons.Rounded.Group, contentDescription = null, tint = brightBlue) }
+                        )
+                    },
+                    content2 = { mod ->
+                        AutoResizeTextField(
+                            value = coBorrowerEMIs,
+                            onValueChange = { coBorrowerEMIs = it },
+                            label = "Co-Borrower EMIs (₹)",
+                            modifier = mod,
+                            leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
+                        )
+                    }
+                )
             }
 
             // 5. Loan Details & Credit Score
             var loanDropdownExpanded by remember { mutableStateOf(false) }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ExposedDropdownMenuBox(
-                    expanded = loanDropdownExpanded,
-                    onExpandedChange = { loanDropdownExpanded = it },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    AutoResizeTextField(
-                        value = selectedLoanProfile.name,
-                        onValueChange = {},
-                        label = "Loan Type",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true),
-                        readOnly = true,
-                        leadingIcon = { Icon(Icons.Rounded.HomeWork, contentDescription = null, tint = brightBlue) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = loanDropdownExpanded) }
-                    )
-                    ExposedDropdownMenu(
+            ResponsiveRowCol(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    ExposedDropdownMenuBox(
                         expanded = loanDropdownExpanded,
-                        onDismissRequest = { loanDropdownExpanded = false },
-                        containerColor = surfaceColor
+                        onExpandedChange = { loanDropdownExpanded = it },
+                        modifier = mod
                     ) {
-                        loanProfiles.forEach { profile ->
-                            DropdownMenuItem(
-                                text = { Text(profile.name, color = textColor) },
-                                onClick = {
-                                    selectedLoanProfile = profile
-                                    loanDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-                AutoResizeTextField(
-                    value = tenureYears,
-                    onValueChange = { tenureYears = it },
-                    label = "Loan Tenure (Years)",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = { Icon(Icons.Rounded.Event, contentDescription = null, tint = brightBlue) }
-                )
-            }
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Credit Score Range", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, surfaceColor, RoundedCornerShape(12.dp))
-                    ) {
-                        listOf(Triple("Excellent", "750+", brightBlue), Triple("Good", "650 - 740", surfaceColor), Triple("Fair", "< 650", surfaceColor)).forEach { (title, range, color) ->
-                            val isSelected = creditScoreRange == title
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .background(if (isSelected) brightBlue else surfaceColor.copy(alpha = 0.3f))
-                                    .clickable { creditScoreRange = title },
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(title, color = textColor, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
-                                Text(range, color = if (isSelected) textColor else textSecondary, fontSize = 10.sp)
+                        AutoResizeTextField(
+                            value = selectedLoanProfile.name,
+                            onValueChange = {},
+                            label = "Loan Type",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true),
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.Rounded.HomeWork, contentDescription = null, tint = brightBlue) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = loanDropdownExpanded) }
+                        )
+                        ExposedDropdownMenu(
+                            expanded = loanDropdownExpanded,
+                            onDismissRequest = { loanDropdownExpanded = false },
+                            containerColor = surfaceColor
+                        ) {
+                            loanProfiles.forEach { profile ->
+                                DropdownMenuItem(
+                                    text = { Text(profile.name, color = textColor) },
+                                    onClick = {
+                                        selectedLoanProfile = profile
+                                        loanDropdownExpanded = false
+                                    }
+                                )
                             }
                         }
                     }
-                }
-                Column(modifier = Modifier.weight(0.5f)) {
+                },
+                content2 = { mod ->
                     AutoResizeTextField(
-                        value = interestRate,
-                        onValueChange = { interestRate = it },
-                        label = "Interest Rate (%)",
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = { Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue) }
+                        value = tenureYears,
+                        onValueChange = { tenureYears = it },
+                        label = "Loan Tenure (Years)",
+                        modifier = mod,
+                        leadingIcon = { Icon(Icons.Rounded.Event, contentDescription = null, tint = brightBlue) }
                     )
-                    Text("Avg. rate for ${selectedLoanProfile.name}", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 }
-            }
+            )
+
+            ResponsiveRowCol(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    Column(modifier = mod) {
+                        Text("Credit Score Range", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, surfaceColor, RoundedCornerShape(12.dp))
+                        ) {
+                            listOf(Triple("Excellent", "750+", brightBlue), Triple("Good", "650 - 740", surfaceColor), Triple("Fair", "< 650", surfaceColor)).forEach { (title, range, color) ->
+                                val isSelected = creditScoreRange == title
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .background(if (isSelected) brightBlue else surfaceColor.copy(alpha = 0.3f))
+                                        .clickable { creditScoreRange = title },
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(title, color = textColor, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                                    Text(range, color = if (isSelected) textColor else textSecondary, fontSize = 10.sp)
+                                }
+                            }
+                        }
+                    }
+                },
+                content2 = { mod ->
+                    Column(modifier = mod) {
+                        AutoResizeTextField(
+                            value = interestRate,
+                            onValueChange = { interestRate = it },
+                            label = "Interest Rate (%)",
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = { Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue) }
+                        )
+                        Text("Avg. rate for ${selectedLoanProfile.name}", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            )
 
             // 6. FOIR Visual Gauge
             Card(
@@ -512,70 +546,76 @@ fun LoanEligibilityScreen() {
             }
 
             // 8. The Three Metric Cards
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Card(
-                    modifier = Modifier.weight(1f).height(110.dp),
-                    colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Approval Probability", color = textColor, fontSize = 10.sp)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(10.dp))
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            val approvalProb = (1.0f - (currentFoir.toFloat() / 100f)).coerceIn(0f, 1f)
-                            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(progress = { approvalProb }, color = neonGreen, trackColor = bgColor, gapSize = 0.dp, modifier = Modifier.size(40.dp))
-                                Text("${(approvalProb * 100).toInt()}%", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            ResponsiveRowCol3(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    Card(
+                        modifier = mod.height(110.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Approval Probability", color = textColor, fontSize = 10.sp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(10.dp))
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(if(approvalProb > 0.6) "High Chance" else "Low Chance", color = if(approvalProb > 0.6) neonGreen else dangerRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text(if(approvalProb > 0.6) "Excellent" else "Poor", color = textColor, fontSize = 10.sp)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val approvalProb = (1.0f - (currentFoir.toFloat() / 100f)).coerceIn(0f, 1f)
+                                Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(progress = { approvalProb }, color = neonGreen, trackColor = bgColor, gapSize = 0.dp, modifier = Modifier.size(40.dp))
+                                    Text("${(approvalProb * 100).toInt()}%", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(if(approvalProb > 0.6) "High Chance" else "Low Chance", color = if(approvalProb > 0.6) neonGreen else dangerRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text(if(approvalProb > 0.6) "Excellent" else "Poor", color = textColor, fontSize = 10.sp)
+                                }
                             }
                         }
                     }
-                }
-
-                Card(
-                    modifier = Modifier.weight(1f).height(110.dp),
-                    colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Recommended Loan Amount", color = textColor, fontSize = 10.sp, maxLines = 1)
+                },
+                content2 = { mod ->
+                    Card(
+                        modifier = mod.height(110.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Recommended Loan Amount", color = textColor, fontSize = 10.sp, maxLines = 1)
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(formatMoney(recommendedLoanAmount), color = brightBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                            Text("For better financial stability", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(formatMoney(recommendedLoanAmount), color = brightBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                        Text("For better financial stability", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
+                    }
+                },
+                content3 = { mod ->
+                    Card(
+                        modifier = mod.height(110.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Max Affordable EMI", color = textColor, fontSize = 10.sp)
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(formatMoney(maxAllowedEmi), color = warningYellow, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("/month", color = textColor, fontSize = 10.sp, modifier = Modifier.padding(bottom = 2.dp))
+                            }
+                            Text("Keep your FOIR under ${(foirLimit * 100).toInt()}%", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
+                        }
                     }
                 }
-
-                Card(
-                    modifier = Modifier.weight(1f).height(110.dp),
-                    colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Max Affordable EMI", color = textColor, fontSize = 10.sp)
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(formatMoney(maxAllowedEmi), color = warningYellow, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("/month", color = textColor, fontSize = 10.sp, modifier = Modifier.padding(bottom = 2.dp))
-                        }
-                        Text("Keep your FOIR under ${(foirLimit * 100).toInt()}%", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
-                    }
-                }
-            }
+            )
 
             // 9. Interactive "What If?" Section
             Column {
@@ -585,100 +625,124 @@ fun LoanEligibilityScreen() {
                     Text("Adjust values and see impact on your eligibility", color = textSecondary, fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Card(modifier = Modifier.weight(1f).clickable { 
-                        monthlyIncome = ((monthlyIncome.toDoubleOrNull() ?: 0.0) + 10000).toInt().toString()
-                    }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column { Text("+ ₹10,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, fontSize = 10.sp) }
+                ResponsiveRowCol(
+                    sizeClass = sizeClass,
+                    modifier = Modifier.fillMaxWidth(),
+                    content1 = { mod ->
+                        Card(modifier = mod.clickable { 
+                            monthlyIncome = ((monthlyIncome.toDoubleOrNull() ?: 0.0) + 10000).toInt().toString()
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column { Text("+ ₹10,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, fontSize = 10.sp) }
+                            }
+                        }
+                    },
+                    content2 = { mod ->
+                        Card(modifier = mod.clickable { 
+                            val newEmi = ((existingEMIs.toDoubleOrNull() ?: 0.0) - 5000)
+                            existingEMIs = (if (newEmi > 0) newEmi else 0.0).toInt().toString()
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column { Text("- ₹5,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, fontSize = 10.sp) }
+                            }
                         }
                     }
-                    Card(modifier = Modifier.weight(1f).clickable { 
-                        val newEmi = ((existingEMIs.toDoubleOrNull() ?: 0.0) - 5000)
-                        existingEMIs = (if (newEmi > 0) newEmi else 0.0).toInt().toString()
-                    }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column { Text("- ₹5,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, fontSize = 10.sp) }
-                        }
-                    }
-                }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Card(modifier = Modifier.weight(1f).clickable { 
-                        tenureYears = ((tenureYears.toIntOrNull() ?: 0) + 5).toString()
-                    }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column { Text("+5 Years", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Tenure", color = textSecondary, fontSize = 10.sp) }
+                ResponsiveRowCol(
+                    sizeClass = sizeClass,
+                    modifier = Modifier.fillMaxWidth(),
+                    content1 = { mod ->
+                        Card(modifier = mod.clickable { 
+                            tenureYears = ((tenureYears.toIntOrNull() ?: 0) + 5).toString()
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column { Text("+5 Years", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Tenure", color = textSecondary, fontSize = 10.sp) }
+                            }
+                        }
+                    },
+                    content2 = { mod ->
+                        Card(modifier = mod.clickable { 
+                            creditScoreRange = "Excellent" // just switch to Excellent to simulate drop
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column { Text("Best Interest", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Rate", color = textSecondary, fontSize = 10.sp) }
+                            }
                         }
                     }
-                    Card(modifier = Modifier.weight(1f).clickable { 
-                        creditScoreRange = "Excellent" // just switch to Excellent to simulate drop
-                    }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column { Text("Best Interest", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Rate", color = textSecondary, fontSize = 10.sp) }
-                        }
-                    }
-                }
+                )
             }
 
             // 10. Bottom Action Buttons
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = brightBlue),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, brightBlue),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(Icons.Rounded.Description, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Detailed Report", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            ResponsiveRowCol(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    OutlinedButton(
+                        onClick = { },
+                        modifier = mod.height(48.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = brightBlue),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, brightBlue),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(Icons.Rounded.Description, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Detailed Report", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                },
+                content2 = { mod ->
+                    Button(
+                        onClick = { },
+                        modifier = mod.height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = textColor),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Compare Banks", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
-                Button(
-                    onClick = { },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = textColor),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Compare Banks", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            )
+            ResponsiveRowCol(
+                sizeClass = sizeClass,
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod ->
+                    Button(
+                        onClick = { },
+                        modifier = mod.height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32), contentColor = textColor),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(Icons.Rounded.Bookmark, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Save Calculation", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                },
+                content2 = { mod ->
+                    Button(
+                        onClick = { },
+                        modifier = mod.height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100), contentColor = textColor),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Share", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32), contentColor = textColor),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(Icons.Rounded.Bookmark, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Save Calculation", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-                Button(
-                    onClick = { },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100), contentColor = textColor),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Share", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-            }
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -723,6 +787,44 @@ fun AutoResizeTextField(
         trailingIcon = trailingIcon,
         shape = RoundedCornerShape(12.dp)
     )
+}
+
+@Composable
+fun ResponsiveRowCol3(
+    sizeClass: WindowWidthSizeClass,
+    modifier: Modifier = Modifier,
+    content1: @Composable (Modifier) -> Unit,
+    content2: @Composable (Modifier) -> Unit,
+    content3: @Composable (Modifier) -> Unit
+) {
+    if (sizeClass == WindowWidthSizeClass.Compact) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            content1(Modifier.fillMaxWidth())
+            content2(Modifier.fillMaxWidth())
+            content3(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            content1(Modifier.weight(1f))
+            content2(Modifier.weight(1f))
+            content3(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+fun ResponsiveRowCol(sizeClass: WindowWidthSizeClass, modifier: Modifier = Modifier, content1: @Composable (Modifier) -> Unit, content2: @Composable (Modifier) -> Unit) {
+    if (sizeClass == WindowWidthSizeClass.Compact) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            content1(Modifier.fillMaxWidth())
+            content2(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            content1(Modifier.weight(1f))
+            content2(Modifier.weight(1f))
+        }
+    }
 }
 
 @Composable

@@ -35,6 +35,13 @@ import java.util.Locale
 
 @Composable
 fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
     var amountText by remember { mutableStateOf("100000") }
     var gstRate by remember { mutableDoubleStateOf(18.0) }
     var cessRate by remember { mutableDoubleStateOf(0.0) }
@@ -86,8 +93,11 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(
+                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                ),
+            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
             // Top Tab Row
             Row(
