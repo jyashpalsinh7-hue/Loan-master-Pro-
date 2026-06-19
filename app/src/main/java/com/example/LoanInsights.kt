@@ -1,4 +1,4 @@
-package com.example.loanmasterpro
+package com.aistudio.loanmaster.xklzmw
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
