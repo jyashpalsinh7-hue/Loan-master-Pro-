@@ -1,4 +1,4 @@
-package com.example
+package com.aistudio.loanmaster.xklzmw
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
