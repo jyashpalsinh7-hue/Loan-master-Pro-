@@ -1,9 +1,12 @@
-package com.example.loanmasterpro
+package com.aistudio.loanmaster.xklzmw
 
-import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+object ResponsiveUtils {
+    // ...
+}
 
 /**
  * Centralized responsive utilities for consistent adaptive layouts across the app.
