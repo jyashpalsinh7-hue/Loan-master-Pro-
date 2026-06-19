@@ -1,4 +1,4 @@
-package com.aistudio.loanmaster.xklzmw
+package com.example
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,32 +29,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import java.text.NumberFormat
 import java.util.Locale
+import kotlin.math.log
 import kotlin.math.pow
-import kotlin.math.roundToInt
-import kotlin.math.min
 
 // ==================== DATA CLASSES ====================
 data class YearBreakdown(
@@ -72,33 +65,6 @@ data class MonthlyAmortization(
     val remainingBalance: Double
 )
 
-data class RecommendationPlan(
-    val monthlyEmi: Double,
-    val tenureMonths: Int,
-    val totalInterest: Double,
-    val totalPayment: Double
-)
-
-data class RecommendationDetail(
-    val title: String,
-    val valueProposition: String,
-    val currentPlan: RecommendationPlan,
-    val recommendedPlan: RecommendationPlan,
-    val interestSaved: Double = 0.0,
-    val yearsSaved: Double = 0.0,
-    val emiReduction: Double = 0.0,
-    val additionalInterest: Double = 0.0,
-    val whyRecommended: String = ""
-)
-
-data class Recommendation(
-    val title: String,
-    val benefit: String,
-    val accent: Color,
-    val description: String,
-    val score: Double = 0.0
-)
-
 // ==================== HELPER FUNCTIONS ====================
 fun formatMoney(amt: Double): String {
     if (amt <= 0) return "₹0"
@@ -111,123 +77,6 @@ fun calculateEMI(principal: Double, annualRate: Double, months: Int): Double {
     if (principal <= 0 || annualRate <= 0 || months <= 0) return 0.0
     val r = annualRate / 12 / 100
     return principal * r * (1 + r).pow(months) / ((1 + r).pow(months) - 1)
-}
-
-// Helper: Calculate how many months are needed with a higher EMI
-fun calculateReducedTenure(principal: Double, annualRate: Double, newEmi: Double): Int {
-    if (principal <= 0 || annualRate <= 0 || newEmi <= 0) return 0
-    val monthlyRate = annualRate / 12 / 100
-    var balance = principal
-    var months = 0
-    while (balance > 0 && months < 600) {
-        val interest = balance * monthlyRate
-        val principalPaid = newEmi - interest
-        balance -= principalPaid
-        months++
-    }
-    return months
-}
-
-// Helper: Calculate total interest paid over a given tenure
-fun calculateTotalInterest(principal: Double, annualRate: Double, months: Int): Double {
-    val emi = calculateEMI(principal, annualRate, months)
-    return (emi * months) - principal
-}
-
-// ==================== PHASE 2: Generate Recommendation Detail ====================
-fun generateRecommendationDetail(
-    title: String,
-    loanAmount: Double,
-    interestRate: Double,
-    monthlyEmi: Double,
-    totalMonths: Int,
-    totalInterest: Double,
-    totalPayment: Double
-): RecommendationDetail {
-    val currentPlan = RecommendationPlan(
-        monthlyEmi = monthlyEmi,
-        tenureMonths = totalMonths,
-        totalInterest = totalInterest,
-        totalPayment = totalPayment
-    )
-
-    return when (title) {
-        "Best Savings" -> {
-            val newEmi = monthlyEmi * 1.15
-            val newMonths = calculateReducedTenure(loanAmount, interestRate, newEmi)
-            val newInterest = calculateTotalInterest(loanAmount, interestRate, newMonths)
-            val interestSaved = (totalInterest - newInterest).coerceAtLeast(0.0)
-            val yearsSaved = (totalMonths - newMonths) / 12.0
-
-            RecommendationDetail(
-                title = "Best Savings",
-                valueProposition = "Save maximum interest over loan lifetime",
-                currentPlan = currentPlan,
-                recommendedPlan = RecommendationPlan(
-                    monthlyEmi = newEmi,
-                    tenureMonths = newMonths,
-                    totalInterest = newInterest,
-                    totalPayment = loanAmount + newInterest
-                ),
-                interestSaved = interestSaved,
-                yearsSaved = yearsSaved
-            )
-        }
-
-        "Fastest Closure" -> {
-            val newEmi = monthlyEmi * 1.25
-            val newMonths = calculateReducedTenure(loanAmount, interestRate, newEmi)
-            val newInterest = calculateTotalInterest(loanAmount, interestRate, newMonths)
-            val interestSaved = (totalInterest - newInterest).coerceAtLeast(0.0)
-            val yearsSaved = (totalMonths - newMonths) / 12.0
-
-            RecommendationDetail(
-                title = "Fastest Closure",
-                valueProposition = "Become debt-free sooner",
-                currentPlan = currentPlan,
-                recommendedPlan = RecommendationPlan(
-                    monthlyEmi = newEmi,
-                    tenureMonths = newMonths,
-                    totalInterest = newInterest,
-                    totalPayment = loanAmount + newInterest
-                ),
-                interestSaved = interestSaved,
-                yearsSaved = yearsSaved
-            )
-        }
-
-        "Lowest EMI" -> {
-            val extendedMonths = min(totalMonths + 60, 360)
-            val newEmi = calculateEMI(loanAmount, interestRate, extendedMonths)
-            val newInterest = calculateTotalInterest(loanAmount, interestRate, extendedMonths)
-            val emiReduction = (monthlyEmi - newEmi).coerceAtLeast(0.0)
-            val additionalInterest = (newInterest - totalInterest).coerceAtLeast(0.0)
-
-            RecommendationDetail(
-                title = "Lowest EMI",
-                valueProposition = "Reduce monthly financial pressure",
-                currentPlan = currentPlan,
-                recommendedPlan = RecommendationPlan(
-                    monthlyEmi = newEmi,
-                    tenureMonths = extendedMonths,
-                    totalInterest = newInterest,
-                    totalPayment = loanAmount + newInterest
-                ),
-                emiReduction = emiReduction,
-                additionalInterest = additionalInterest
-            )
-        }
-
-        else -> { // AI Recommended
-            RecommendationDetail(
-                title = "AI Recommended",
-                valueProposition = "Best balance of savings and affordability",
-                currentPlan = currentPlan,
-                recommendedPlan = currentPlan,
-                whyRecommended = "Selected based on the best overall balance for your profile."
-            )
-        }
-    }
 }
 
 fun getYearWiseBreakdown(
@@ -293,6 +142,105 @@ fun getYearWiseBreakdown(
     return breakdown
 }
 
+fun generateRecommendations(
+    principal: Double,
+    annualRate: Double,
+    totalMonths: Int,
+    baseEmi: Double,
+    baseInterest: Double
+): List<SmartRecommendation> {
+    if (principal <= 0 || annualRate <= 0 || totalMonths <= 0) return emptyList()
+    
+    val r = annualRate / 12 / 100
+    
+    fun calc(emi: Double): Pair<Int, Double> {
+        var bal = principal
+        var m = 0
+        var totInt = 0.0
+        while (bal > 0 && m < totalMonths * 3) {
+            m++
+            val int = bal * r
+            val prin = emi - int
+            if (prin <= 0) return Pair(totalMonths * 2, Double.MAX_VALUE)
+            totInt += int
+            bal -= prin
+        }
+        return Pair(m, totInt)
+    }
+
+    val emi1 = baseEmi * 1.15
+    val (m1, int1) = calc(emi1)
+    
+    val emi2 = baseEmi * 1.25
+    val (m2, int2) = calc(emi2)
+    
+    val m3 = totalMonths + 60
+    val emi3 = calculateEMI(principal, annualRate, m3)
+    val (_, int3) = calc(emi3)
+    
+    val emi4 = baseEmi * 1.10
+    val (m4, int4) = calc(emi4)
+
+    return listOf(
+        SmartRecommendation(
+            id = "best_savings",
+            title = "Best Savings",
+            description = "Save up to ${formatMoney(baseInterest - int1)}",
+            icon = Icons.Rounded.Savings,
+            accentColor = Color(0xFF22C55E),
+            currentEmi = baseEmi,
+            targetEmi = emi1,
+            currentTotalInterest = baseInterest,
+            targetTotalInterest = int1,
+            currentTenureMonths = totalMonths,
+            targetTenureMonths = m1,
+            isRecommended = false
+        ),
+        SmartRecommendation(
+            id = "fastest_closure",
+            title = "Fast Closure",
+            description = "Finish ${(totalMonths - m2) / 12} years early",
+            icon = Icons.Rounded.Speed,
+            accentColor = Color(0xFF2D7DFF),
+            currentEmi = baseEmi,
+            targetEmi = emi2,
+            currentTotalInterest = baseInterest,
+            targetTotalInterest = int2,
+            currentTenureMonths = totalMonths,
+            targetTenureMonths = m2,
+            isRecommended = false
+        ),
+        SmartRecommendation(
+            id = "lowest_emi",
+            title = "Low EMI",
+            description = "Reduce EMI to ${formatMoney(emi3)}",
+            icon = Icons.Rounded.TrendingDown,
+            accentColor = Color(0xFFFFC328),
+            currentEmi = baseEmi,
+            targetEmi = emi3,
+            currentTotalInterest = baseInterest,
+            targetTotalInterest = int3,
+            currentTenureMonths = totalMonths,
+            targetTenureMonths = m3,
+            isRecommended = false
+        ),
+        SmartRecommendation(
+            id = "ai_recommended",
+            title = "AI Peak Plan",
+            description = "Top Score: Optimal Balance",
+            icon = Icons.Rounded.AutoAwesome,
+            accentColor = Color(0xFF7C4DFF),
+            currentEmi = baseEmi,
+            targetEmi = emi4,
+            currentTotalInterest = baseInterest,
+            targetTotalInterest = int4,
+            currentTenureMonths = totalMonths,
+            targetTenureMonths = m4,
+            isRecommended = true
+        )
+    )
+}
+
 // ==================== REUSABLE INPUT FIELD ====================
 @Composable
 fun PremiumInputField(
@@ -305,11 +253,13 @@ fun PremiumInputField(
     suffix: String = "",
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color
+    secondaryText: Color,
+    sizeClass: WindowWidthSizeClass,
+    modifier: Modifier = Modifier
 ) {
-    Column {
-        Text(label, color = secondaryText, fontSize = 11.sp)
-        Spacer(Modifier.height(4.dp))
+    Column(modifier = modifier) {
+        Text(label, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+        Spacer(Modifier.height(6.dp))
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = inputBg,
@@ -318,24 +268,24 @@ fun PremiumInputField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
                 Spacer(Modifier.width(10.dp))
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
+                    textStyle = TextStyle(color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 if (suffix.isNotEmpty()) {
-                    Text(suffix, color = Color(0xFF9AA6C8), fontSize = 13.sp)
+                    Text(suffix, color = Color(0xFF9AA6C8), fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
                 }
                 trailingIcon?.let {
-                    Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(20.dp))
+                    Icon(imageVector = it, contentDescription = null, tint = Color(0xFF9AA6C8), modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
                 }
             }
         }
@@ -349,10 +299,12 @@ fun LoanTypeSelector(
     onTypeSelected: (String) -> Unit,
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color
+    secondaryText: Color,
+    sizeClass: WindowWidthSizeClass,
+    modifier: Modifier = Modifier
 ) {
-    Column {
-        Text("Loan Type", color = secondaryText, fontSize = 12.sp)
+    Column(modifier = modifier) {
+        Text("Loan Type", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
         Spacer(Modifier.height(6.dp))
         Surface(
             shape = RoundedCornerShape(12.dp),
@@ -365,25 +317,22 @@ fun LoanTypeSelector(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 11.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Home,
                     contentDescription = null,
                     tint = Color(0xFF22C55E),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
                 )
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(selectedType, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    Text("Required for accurate insights", color = Color(0xFF9AA6C8), fontSize = 11.sp)
-                }
+                Spacer(Modifier.width(10.dp))
+                Text(selectedType, color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.Rounded.KeyboardArrowDown,
                     contentDescription = null,
                     tint = Color(0xFF9AA6C8),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
                 )
             }
         }
@@ -396,10 +345,7 @@ fun FullAmortizationDialog(
     principal: Double,
     annualRate: Double,
     totalMonths: Int,
-    schedule: List<YearBreakdown>,
-    monthlyEmi: Double,
-    onDismiss: () -> Unit,
-    onExportCsv: () -> Unit
+    onDismiss: () -> Unit
 ) {
     val monthlyRate = annualRate / 12 / 100
     val emi = calculateEMI(principal, annualRate, totalMonths)
@@ -457,11 +403,11 @@ fun FullAmortizationDialog(
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Month", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.9f))
+                    Text("Mo.", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.9f))
                     Text("EMI", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                    Text("Principal", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
-                    Text("Interest", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                    Text("Balance", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                    Text("Prin", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                    Text("Int", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
+                    Text("Bal", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
                 }
 
                 Spacer(Modifier.height(4.dp))
@@ -499,14 +445,14 @@ fun FullAmortizationDialog(
                         Text("Close", color = Color.White)
                     }
                     Button(
-                        onClick = onExportCsv,
+                        onClick = { /* TODO: Export CSV */ },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7DFF)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Rounded.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Export CSV")
+                        Text("Export")
                     }
                 }
             }
@@ -518,6 +464,21 @@ fun FullAmortizationDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    
+    val sizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+    
+    val isExpanded = sizeClass == WindowWidthSizeClass.Expanded
+    val isMedium = sizeClass == WindowWidthSizeClass.Medium
+
+    val horizPadding = ResponsiveUtils.horizontalPadding(sizeClass)
+    val cardSpacing = ResponsiveUtils.cardSpacing(sizeClass)
+    
     val bgColor = Color(0xFF020B1F)
     val primaryCard = Color(0xFF061633)
     val inputBg = Color(0xFF071833)
@@ -530,47 +491,15 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    // ==================== RESPONSIVE BREAKPOINTS (Phase 1) ====================
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-
-    val isCompact = screenWidth < 360
-    val isMedium = screenWidth in 360..599
-    val isTablet = screenWidth >= 600
-
-    // ==================== WINDOW SIZE CLASS (Modern Adaptive Layout) ====================
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-    val windowSizeClass = calculateWindowSizeClass(LocalContext.current as android.app.Activity)
-    val windowWidthSizeClass = windowSizeClass.widthSizeClass
-
-    val isCompactWidth = windowWidthSizeClass == WindowWidthSizeClass.Compact
-    val isMediumWidth = windowWidthSizeClass == WindowWidthSizeClass.Medium
-    val isExpandedWidth = windowWidthSizeClass == WindowWidthSizeClass.Expanded
-
-    // ==================== CSV EXPORT LAUNCHER ====================
-    val context = LocalContext.current
-    val csvLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/csv")
-    ) { uri ->
-        uri?.let {
-            // We'll call the export function when dialog requests it
-        }
-    }
-
-    // State with new defaults as per approved design
-    var loanAmountText by remember { mutableStateOf("") }
-    var interestRateText by remember { mutableStateOf("") }
-    var tenureYearsText by remember { mutableStateOf("") }
+    // State
+    var loanAmountText by remember { mutableStateOf("0") }
+    var interestRateText by remember { mutableStateOf("0") }
+    var tenureYearsText by remember { mutableStateOf("0") }
     var loanType by remember { mutableStateOf("Home Loan") }
     var showFullSchedule by remember { mutableStateOf(false) }
-
-    // ==================== BOTTOM SHEET STATE ====================
-    var showRecommendationSheet by remember { mutableStateOf(false) }
-    var selectedRecommendation by remember { mutableStateOf<String?>(null) }
-
-    // Recommendation Bottom Sheet States (restored)
-    var showPremiumRecommendationSheet by remember { mutableStateOf(false) }
-    var selectedRecommendationDetail by remember { mutableStateOf<RecommendationDetail?>(null) }
+    
+    // Bottom Sheet State
+    var selectedRecommendation by remember { mutableStateOf<SmartRecommendation?>(null) }
 
     val loanAmount = loanAmountText.toDoubleOrNull() ?: 0.0
     val interestRate = interestRateText.toDoubleOrNull() ?: 0.0
@@ -596,17 +525,17 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val yearBreakdown = remember(loanAmount, interestRate, totalMonths) {
         getYearWiseBreakdown(loanAmount, interestRate, totalMonths)
     }
+    
+    val recommendations = remember(hasValidInput, loanAmount, interestRate, totalMonths, monthlyEmi, totalInterest) {
+        if (hasValidInput) {
+            generateRecommendations(loanAmount, interestRate, totalMonths, monthlyEmi, totalInterest)
+        } else {
+            emptyList()
+        }
+    }
 
-    val principalPercent = if (totalPayment > 0) {
-        ((totalPrincipal / totalPayment) * 100).roundToInt()
-    } else 0
-
-    val interestPercent = if (totalPayment > 0) {
-        100 - principalPercent
-    } else 0
-
-    val prinPct = principalPercent.toDouble()
-    val intPct = interestPercent.toDouble()
+    val prinPct = if (totalPayment > 0) (totalPrincipal / totalPayment) * 100 else 0.0
+    val intPct = if (totalPayment > 0) (totalInterest / totalPayment) * 100 else 0.0
 
     Scaffold(
         containerColor = bgColor,
@@ -640,167 +569,95 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             }
         }
     ) { paddingValues ->
-        // ==================== TABLET-FRIENDLY WRAPPER (Phase 1) ====================
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = horizPadding, vertical = ResponsiveUtils.verticalPadding(sizeClass)),
+            verticalArrangement = Arrangement.spacedBy(cardSpacing)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .widthIn(max = 700.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
             // HEADER
-            item {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = primaryText,
-                    modifier = Modifier.clickable { onNavigateBack() }
+                    modifier = Modifier.clickable { onNavigateBack() }.size(ResponsiveUtils.iconSize(sizeClass))
                 )
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("EMI Calculator", color = primaryText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = 11.sp)
+                    Text("EMI Calculator", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass), fontWeight = FontWeight.Bold)
+                    Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
                 }
-                Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(24.dp))
+                Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                Spacer(Modifier.width(16.dp))
+                Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
             }
-            }   // end item Header
 
             // INPUT SECTION
-            item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = primaryCard),
                 shape = RoundedCornerShape(18.dp),
                 border = BorderStroke(1.dp, borderColor)
             ) {
-                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-                    // ==================== RESPONSIVE INPUT SECTION ====================
-                    val inputSpacing = ResponsiveUtils.cardSpacing(windowWidthSizeClass)
-
-                    if (isCompactWidth) {
-                        // Compact phones: 1 column (stacked)
-                        PremiumInputField(
-                            label = "Loan Amount",
-                            value = loanAmountText,
-                            onValueChange = { loanAmountText = it },
-                            icon = Icons.Rounded.AccountBalanceWallet,
-                            iconTint = blueAccent,
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
-                        )
-                        Spacer(Modifier.height(inputSpacing))
-                        PremiumInputField(
-                            label = "Interest Rate (p.a.)",
-                            value = interestRateText,
-                            onValueChange = { interestRateText = it },
-                            icon = Icons.Rounded.Percent,
-                            iconTint = blueAccent,
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
-                        )
-                        Spacer(Modifier.height(inputSpacing))
-                        PremiumInputField(
-                            label = "Tenure",
-                            value = tenureYearsText,
-                            onValueChange = { tenureYearsText = it },
-                            icon = Icons.Rounded.DateRange,
-                            iconTint = blueAccent,
-                            trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                            suffix = " Years",
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
-                        )
-                        Spacer(Modifier.height(inputSpacing))
-                        LoanTypeSelector(
-                            selectedType = loanType,
-                            onTypeSelected = { loanType = it },
-                            inputBg = inputBg,
-                            borderColor = borderColor,
-                            secondaryText = secondaryText
-                        )
-                    } else {
-                        // Medium + Expanded: 2×2 grid
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(inputSpacing)
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField(
-                                    label = "Loan Amount",
-                                    value = loanAmountText,
-                                    onValueChange = { loanAmountText = it },
-                                    icon = Icons.Rounded.AccountBalanceWallet,
-                                    iconTint = blueAccent,
-                                    inputBg = inputBg,
-                                    borderColor = borderColor,
-                                    secondaryText = secondaryText
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField(
-                                    label = "Interest Rate (p.a.)",
-                                    value = interestRateText,
-                                    onValueChange = { interestRateText = it },
-                                    icon = Icons.Rounded.Percent,
-                                    iconTint = blueAccent,
-                                    inputBg = inputBg,
-                                    borderColor = borderColor,
-                                    secondaryText = secondaryText
-                                )
-                            }
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (isExpanded) {
+                        // 2x2 Grid for Wide Screens
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            PremiumInputField(
+                                label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                            PremiumInputField(
+                                label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
+                                icon = Icons.Rounded.Percent, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
                         }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField(
-                                    label = "Tenure",
-                                    value = tenureYearsText,
-                                    onValueChange = { tenureYearsText = it },
-                                    icon = Icons.Rounded.DateRange,
-                                    iconTint = blueAccent,
-                                    trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                                    suffix = " Years",
-                                    inputBg = inputBg,
-                                    borderColor = borderColor,
-                                    secondaryText = secondaryText
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                LoanTypeSelector(
-                                    selectedType = loanType,
-                                    onTypeSelected = { loanType = it },
-                                    inputBg = inputBg,
-                                    borderColor = borderColor,
-                                    secondaryText = secondaryText
-                                )
-                            }
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            PremiumInputField(
+                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                            LoanTypeSelector(
+                                selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                        }
+                    } else {
+                        // Stacked or 1x2 then 2x2 depending on medium vs compact
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            PremiumInputField(
+                                label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                            PremiumInputField(
+                                label = "Interest", value = interestRateText, onValueChange = { interestRateText = it },
+                                icon = Icons.Rounded.Percent, iconTint = blueAccent, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            PremiumInputField(
+                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
+                            LoanTypeSelector(
+                                selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                            )
                         }
                     }
-                    Text(
-                        "Loan type helps us provide accurate insights and better recommendations.",
-                        color = secondaryText,
-                        fontSize = 9.sp,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
-            }   // end item Input Section
 
-            // PLACEHOLDER (smaller + "Load Example" button)
-            item {
+            // PLACEHOLDER
             if (!hasValidInput) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -809,329 +666,144 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     border = BorderStroke(1.dp, borderColor)
                 ) {
                     Column(
-                        modifier = Modifier.padding(18.dp).fillMaxWidth(),
+                        modifier = Modifier.padding(32.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Rounded.Calculate, contentDescription = null, tint = secondaryText.copy(0.6f), modifier = Modifier.size(32.dp))
-                        Spacer(Modifier.height(8.dp))
-                        Text("Enter loan amount, rate & tenure to see results", color = secondaryText, fontSize = 13.sp, textAlign = TextAlign.Center)
-                        Spacer(Modifier.height(10.dp))
-                        Button(
-                            onClick = {
-                                loanAmountText = "5000000"
-                                interestRateText = "7"
-                                tenureYearsText = "14"
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7DFF)),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Load Example Values", fontSize = 12.sp)
-                        }
+                        Icon(Icons.Rounded.Calculate, contentDescription = null, tint = secondaryText.copy(0.5f), modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass) * 2f))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Enter loan amount, rate & tenure to see results", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), textAlign = TextAlign.Center)
                     }
                 }
             }
-            }   // end item Placeholder
 
             // ANIMATED RESULTS
-            item {
             AnimatedVisibility(
                 visible = hasValidInput,
                 enter = fadeIn(tween(400)) + scaleIn(initialScale = 0.95f, animationSpec = tween(400))
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
 
-                    // ==================== HERO EMI CARD (Responsive) ====================
-                    val heroPadding = ResponsiveUtils.horizontalPadding(windowWidthSizeClass)
-                    val donutSize = when {
-                        isExpandedWidth -> 130.dp
-                        isMediumWidth -> 115.dp
-                        else -> 100.dp
-                    }
-                    val donutStroke = when {
-                        isExpandedWidth -> 26f
-                        else -> 22f
-                    }
-                    val emiFontSize = when {
-                        isExpandedWidth -> 36.sp
-                        isMediumWidth -> 34.sp
-                        else -> 32.sp
-                    }
-
+                    // ==================== HERO EMI CARD ====================
                     Card(
                         modifier = Modifier.fillMaxWidth().shadow(16.dp, spotColor = blueAccent.copy(0.4f)),
                         shape = RoundedCornerShape(20.dp),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
                         Box(modifier = Modifier.background(Brush.linearGradient(listOf(inputBg, Color(0xFF0A2150))))) {
-                            Column(modifier = Modifier.padding(heroPadding)) {
-
-                                if (isCompactWidth) {
-                                    // ==================== COMPACT: Vertical Layout ====================
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("Your Monthly EMI", color = secondaryText, fontSize = 13.sp)
-                                        Text(
-                                            formatMoney(animatedEmi.toDouble()),
-                                            color = blueAccent,
-                                            fontSize = emiFontSize,
-                                            fontWeight = FontWeight.Bold
-                                        )
-
-                                        Spacer(Modifier.height(16.dp))
-
-                                        // Donut
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Canvas(modifier = Modifier.size(donutSize)) {
-                                                val sweepPrincipal = (prinPct / 100f * 360f).toFloat()
-                                                drawArc(color = blueAccent, startAngle = -90f, sweepAngle = sweepPrincipal, useCenter = false, style = Stroke(width = donutStroke, cap = StrokeCap.Round))
-                                                drawArc(color = goldAccent, startAngle = -90f + sweepPrincipal, sweepAngle = (360f - sweepPrincipal), useCenter = false, style = Stroke(width = donutStroke, cap = StrokeCap.Round))
-                                            }
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("${prinPct.toInt()}%", color = blueAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                                Text("Principal", color = secondaryText, fontSize = 10.sp)
-                                            }
-                                        }
-
-                                        Spacer(Modifier.height(16.dp))
-
-                                        // ==================== TOTALS INSIDE HERO CARD ====================
-                                        Column(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text("Principal", color = secondaryText, fontSize = 14.sp)
-                                                Text(formatMoney(totalPrincipal), color = purpleAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text("Interest", color = secondaryText, fontSize = 14.sp)
-                                                Text(formatMoney(totalInterest), color = greenAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                            HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text("Total Payment", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                                Text(formatMoney(totalPayment), color = primaryText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-
-                                } else {
-                                    // ==================== MEDIUM + TABLET: Current Layout ====================
-                                    // EMI Header
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column {
-                                            Text("Your Monthly EMI", color = secondaryText, fontSize = 13.sp)
-                                            Text(
-                                                formatMoney(animatedEmi.toDouble()),
-                                                color = blueAccent,
-                                                fontSize = 34.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                        Icon(
-                                            imageVector = Icons.Rounded.CalendarMonth,
-                                            contentDescription = null,
-                                            tint = blueAccent.copy(alpha = 0.3f),
-                                            modifier = Modifier.size(42.dp)
-                                        )
-                                    }
-
-                                    Spacer(Modifier.height(20.dp))
-
-                                    // Donut
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        val donutSize = 110.dp
-                                        val strokeWidth = 22f
-
-                                        Canvas(modifier = Modifier.size(donutSize)) {
-                                            val sweepPrincipal = (prinPct / 100f * 360f).toFloat()
-                                            drawArc(color = blueAccent, startAngle = -90f, sweepAngle = sweepPrincipal, useCenter = false, style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
-                                            drawArc(color = goldAccent, startAngle = -90f + sweepPrincipal, sweepAngle = (360f - sweepPrincipal), useCenter = false, style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
-                                        }
-
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text("${prinPct.toInt()}%", color = blueAccent, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                                            Text("Principal", color = secondaryText, fontSize = 11.sp)
-                                        }
-                                    }
-
-                                    Spacer(Modifier.height(8.dp))
-
-                                    // Legend
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Box(Modifier.size(8.dp).background(blueAccent, CircleShape))
-                                            Spacer(Modifier.width(6.dp))
-                                            Text("Principal ${prinPct.toInt()}%", color = primaryText, fontSize = 13.sp)
-                                        }
-                                        Spacer(Modifier.width(20.dp))
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Box(Modifier.size(8.dp).background(goldAccent, CircleShape))
-                                            Spacer(Modifier.width(6.dp))
-                                            Text("Interest ${intPct.toInt()}%", color = primaryText, fontSize = 13.sp)
-                                        }
-                                    }
-
-                                    Spacer(Modifier.height(20.dp))
-
-                                    // ==================== HERO CARD - 3 STATISTIC CARDS ====================
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        // Principal Card
-                                        Column(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
-                                                .padding(vertical = 12.dp, horizontal = 8.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text("Principal", color = secondaryText, fontSize = 12.sp)
-                                            Spacer(Modifier.height(4.dp))
-                                            Text(formatMoney(totalPrincipal), color = purpleAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                        }
-
-                                        // Interest Card
-                                        Column(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
-                                                .padding(vertical = 12.dp, horizontal = 8.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text("Interest", color = secondaryText, fontSize = 12.sp)
-                                            Spacer(Modifier.height(4.dp))
-                                            Text(formatMoney(totalInterest), color = greenAccent, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                        }
-
-                                        // Total Payment Card
-                                        Column(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .background(Color(0xFF0F2744), RoundedCornerShape(12.dp))
-                                                .padding(vertical = 12.dp, horizontal = 8.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text("Total", color = secondaryText, fontSize = 12.sp)
-                                            Spacer(Modifier.height(4.dp))
-                                            Text(formatMoney(totalPayment), color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // ==================== LOAN INSIGHTS (NEW) ====================
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.dp, borderColor)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Loan Insights", color = primaryText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            }
-
-                            Spacer(Modifier.height(16.dp))
-
-                            // Transparency Score
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(64.dp)) {
-                                    CircularProgressIndicator(
-                                        progress = 0.92f,
-                                        modifier = Modifier.size(58.dp),
-                                        color = greenAccent,
-                                        strokeWidth = 6.dp,
-                                        trackColor = Color(0xFF1A2A4A)
-                                    )
-                                    Text("92", color = primaryText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                }
-                                Spacer(Modifier.width(16.dp))
-                                Column {
-                                    Text("Transparency Score", color = secondaryText, fontSize = 13.sp)
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("🟢", fontSize = 16.sp)
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Excellent  92/100", color = greenAccent, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                    }
-                                }
-                            }
-
-                            Spacer(Modifier.height(16.dp))
-                            HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
-                            Spacer(Modifier.height(12.dp))
-
-                            // Insights
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(10.dp))
-                                    Text("EMI matches expected rate → ", color = primaryText, fontSize = 13.sp)
-                                    Text("Excellent", color = greenAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                }
+                            Column(modifier = Modifier.padding(if (isExpanded) 32.dp else 20.dp)) {
+                                // EMI Header
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(10.dp))
-                                        Text("Effective Rate (Approx.) 7.1% p.a.", color = primaryText, fontSize = 13.sp)
+                                    Column {
+                                        Text("Your Monthly EMI", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
+                                        Text(
+                                            formatMoney(animatedEmi.toDouble()),
+                                            color = blueAccent,
+                                            fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 1.5f,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
-                                    Text("Very Close", color = goldAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                                    Icon(
+                                        imageVector = Icons.Rounded.CalendarMonth,
+                                        contentDescription = null,
+                                        tint = blueAccent.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass) * 1.5f)
+                                    )
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(10.dp))
-                                    Text("Competitive for Home Loan → ", color = primaryText, fontSize = 13.sp)
-                                    Text("Top 25%", color = blueAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+
+                                Spacer(Modifier.height(24.dp))
+
+                                // LARGE DONUT CHART (Centered)
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val donutSize = if (isExpanded) 180.dp else 140.dp
+                                    val strokeWidth = if (isExpanded) 48f else 38f
+
+                                    Canvas(modifier = Modifier.size(donutSize)) {
+                                        val sweepPrincipal = (prinPct / 100f * 360f).toFloat()
+                                        drawArc(
+                                            color = blueAccent,
+                                            startAngle = -90f,
+                                            sweepAngle = sweepPrincipal,
+                                            useCenter = false,
+                                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                        )
+                                        drawArc(
+                                            color = goldAccent,
+                                            startAngle = -90f + sweepPrincipal,
+                                            sweepAngle = (360f - sweepPrincipal),
+                                            useCenter = false,
+                                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                        )
+                                    }
+
+                                    // Center text inside donut
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            "${prinPct.toInt()}%",
+                                            color = blueAccent,
+                                            fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text("Principal", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
+                                    }
                                 }
-                            }
 
-                            Spacer(Modifier.height(16.dp))
+                                Spacer(Modifier.height(16.dp))
 
-                            Button(
-                                onClick = { /* TODO: Open Detailed Analysis Bottom Sheet */ },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A3A6E)),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text("View Detailed Analysis")
+                                // Percentage labels below donut
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(Modifier.size(10.dp).background(blueAccent, CircleShape))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                    }
+                                    Spacer(Modifier.width(20.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(Modifier.size(10.dp).background(goldAccent, CircleShape))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                    }
+                                }
+
+                                Spacer(Modifier.height(28.dp))
+
+                                // Totals Row
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Total Interest", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
+                                        Text(formatMoney(totalInterest), color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Total Payment", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
+                                        Text(formatMoney(totalPayment), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
 
-                    // ==================== SMART RECOMMENDATIONS (Updated) ====================
+                    // ==================== LOAN INSIGHTS (Extracted) ====================
+                    LoanInsightsCard(
+                        primaryCard = primaryCard, borderColor = borderColor,
+                        primaryText = primaryText, secondaryText = secondaryText,
+                        greenAccent = greenAccent, goldAccent = goldAccent, blueAccent = blueAccent,
+                        sizeClass = sizeClass
+                    )
+
+                    // ==================== DYNAMIC SMART RECOMMENDATIONS ====================
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = primaryCard),
@@ -1140,164 +812,48 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Smart Recommendations", color = primaryText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Smart Recommendations", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
+                                Spacer(Modifier.width(8.dp))
+                                Surface(color = Color(0xFF3B2A6E), shape = RoundedCornerShape(20.dp)) {
+                                    Text("PRO", color = Color(0xFFB39DFF), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp))
+                                }
                             }
 
-                            Spacer(Modifier.height(4.dp))
-                            Text("Personalized repayment strategies", color = greenAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-
-                            Spacer(Modifier.height(14.dp))
-
-                            // ==================== SMART RECOMMENDATIONS - LazyRow (Phase 4) ====================
-                            // ==================== RESPONSIVE RECOMMENDATION CARD SIZING (WindowSizeClass + Fallback) ====================
-                            val recommendationCardHeight = when {
-                                isExpandedWidth -> 220.dp
-                                isMediumWidth || screenWidth >= 500 -> 200.dp
-                                isCompactWidth || screenWidth >= 400 -> 180.dp
-                                else -> 160.dp
-                            }
-
-                            val recommendationIconSize = when {
-                                isTablet -> 26.dp
-                                else -> 22.dp
-                            }
-
-                            val recommendationPadding = when {
-                                isTablet -> 16.dp
-                                else -> 12.dp
-                            }
-
-                            // ==================== DYNAMIC RECOMMENDATIONS ====================
-                            val originalTotalInterest = totalInterest
-                            val originalMonths = totalMonths
-
-                            // Best Savings: Increase EMI by 15%
-                            val bestSavingsEmi = monthlyEmi * 1.15
-                            val bestSavingsMonths = calculateReducedTenure(loanAmount, interestRate, bestSavingsEmi)
-                            val bestSavingsInterest = calculateTotalInterest(loanAmount, interestRate, bestSavingsMonths)
-                            val bestSavingsSaved = (originalTotalInterest - bestSavingsInterest).coerceAtLeast(0.0)
-
-                            // Fastest Closure: Increase EMI by 25%
-                            val fastestEmi = monthlyEmi * 1.25
-                            val fastestMonths = calculateReducedTenure(loanAmount, interestRate, fastestEmi)
-                            val fastestYearsSaved = ((originalMonths - fastestMonths) / 12.0).coerceAtLeast(0.0)
-
-                            // Lowest EMI: Extend tenure by up to 5 years
-                            val extendedMonths = min(originalMonths + 60, 360)
-                            val lowestEmi = calculateEMI(loanAmount, interestRate, extendedMonths)
-                            val lowestEmiReduction = (monthlyEmi - lowestEmi).coerceAtLeast(0.0)
-
-                            // AI Recommended - Scoring System
-                            val scoreSavings = bestSavingsSaved * 0.4
-                            val scoreClosure = fastestYearsSaved * 12 * 0.4
-                            val scoreAffordability = lowestEmiReduction * 0.2
-
-                            val bestScore = maxOf(scoreSavings, scoreClosure, scoreAffordability)
-                            val recommendedTitle = when (bestScore) {
-                                scoreSavings -> "Best Savings"
-                                scoreClosure -> "Fastest Closure"
-                                else -> "Lowest EMI"
-                            }
-
-                            val recommendations = listOf(
-                                Recommendation(
-                                    title = "Best Savings",
-                                    benefit = "Save ${formatMoney(bestSavingsSaved)} interest",
-                                    accent = greenAccent,
-                                    description = "Increase your EMI by 15% to significantly reduce total interest paid over the loan tenure.",
-                                    score = scoreSavings
-                                ),
-                                Recommendation(
-                                    title = "Fastest Closure",
-                                    benefit = "Finish ${"%.1f".format(fastestYearsSaved)} years earlier",
-                                    accent = blueAccent,
-                                    description = "Increase EMI by 25% to close your loan much earlier by directing more money toward the principal.",
-                                    score = scoreClosure
-                                ),
-                                Recommendation(
-                                    title = "Lowest EMI",
-                                    benefit = "Reduce EMI by ${formatMoney(lowestEmiReduction)}",
-                                    accent = goldAccent,
-                                    description = "Extend your tenure to lower your monthly payment while keeping the loan manageable.",
-                                    score = scoreAffordability
-                                ),
-                                Recommendation(
-                                    title = "AI Recommended",
-                                    benefit = if (recommendedTitle == "Best Savings") "Save ${formatMoney(bestSavingsSaved)} interest"
-                                              else if (recommendedTitle == "Fastest Closure") "Finish ${"%.1f".format(fastestYearsSaved)} years earlier"
-                                              else "Reduce EMI by ${formatMoney(lowestEmiReduction)}",
-                                    accent = purpleAccent,
-                                    description = "Selected based on the best overall balance for your profile.",
-                                    score = bestScore
-                                )
-                            ).sortedByDescending { it.score }
+                            Spacer(Modifier.height(16.dp))
 
                             LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp)
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                contentPadding = PaddingValues(end = 16.dp)
                             ) {
-                                items(recommendations) { rec ->
+                                items(recommendations, key = { it.id }) { rec ->
+                                    val cardWidth = if (isExpanded) 220.dp else 160.dp
                                     Column(
                                         modifier = Modifier
-                                            .widthIn(min = 150.dp, max = 260.dp)
-                                            .heightIn(min = recommendationCardHeight)
-                                            .background(Color(0xFF0F2744), RoundedCornerShape(14.dp))
-                                            .padding(recommendationPadding),
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                            .width(cardWidth)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(Color(0xFF0A1D3D))
+                                            .clickable { selectedRecommendation = rec }
+                                            .border(
+                                                1.dp,
+                                                if (rec.isRecommended) rec.accentColor else borderColor,
+                                                RoundedCornerShape(16.dp)
+                                            )
+                                            .padding(16.dp)
                                     ) {
-                                        // Recommended badge only on the best card
-                                        if (rec.title == recommendedTitle) {
-                                            Surface(
-                                                color = Color(0xFF22C55E).copy(alpha = 0.15f),
-                                                shape = RoundedCornerShape(20.dp)
-                                            ) {
-                                                Text(
-                                                    "Recommended",
-                                                    color = Color(0xFF22C55E),
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
-                                                )
-                                            }
-                                            Spacer(Modifier.height(6.dp))
+                                        if (rec.isRecommended) {
+                                            Text(
+                                                "RECOMMENDED",
+                                                color = rec.accentColor,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
                                         }
-
-                                        Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = rec.accent, modifier = Modifier.size(recommendationIconSize))
-                                        Spacer(Modifier.height(8.dp))
-                                        Text(rec.title, color = primaryText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                                        Icon(imageVector = rec.icon, contentDescription = null, tint = rec.accentColor, modifier = Modifier.size(28.dp))
+                                        Spacer(Modifier.height(12.dp))
+                                        Text(rec.title, color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                         Spacer(Modifier.height(4.dp))
-                                        Text(
-                                            rec.benefit,
-                                            color = secondaryText,
-                                            fontSize = 10.sp,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Spacer(Modifier.height(10.dp))
-                                        Button(
-                                            onClick = {
-                                                val detail = generateRecommendationDetail(
-                                                    title = rec.title,
-                                                    loanAmount = loanAmount,
-                                                    interestRate = interestRate,
-                                                    monthlyEmi = monthlyEmi,
-                                                    totalMonths = totalMonths,
-                                                    totalInterest = totalInterest,
-                                                    totalPayment = totalPayment
-                                                )
-                                                selectedRecommendationDetail = detail
-                                                showPremiumRecommendationSheet = true
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(32.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F3A5F)),
-                                            shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(0.dp)
-                                        ) {
-                                            Text("View Plan", fontSize = 11.sp)
-                                        }
+                                        Text(rec.description, color = secondaryText, fontSize = 12.sp, lineHeight = 16.sp)
                                     }
                                 }
                             }
@@ -1311,28 +867,24 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         shape = RoundedCornerShape(18.dp),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Amortization Schedule", color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                Text("View Full Schedule ›", color = blueAccent, fontSize = 12.sp, modifier = Modifier.clickable { showFullSchedule = true })
+                                Text("Amortization Schedule", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
+                                Text("Full Schedule ›", color = blueAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, modifier = Modifier.clickable { showFullSchedule = true })
                             }
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(12.dp))
 
-                            val scheduleData = if (yearBreakdown.size <= 4) {
-                                yearBreakdown
-                            } else {
-                                yearBreakdown.take(3) + listOf(yearBreakdown.last())
-                            }
+                            val scheduleData = if (yearBreakdown.size <= 4) yearBreakdown else yearBreakdown.take(3) + listOf(yearBreakdown.last())
 
                             scheduleData.forEachIndexed { index, row ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("Year ${row.year}", color = if (index == scheduleData.lastIndex) secondaryText else primaryText, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                                    Text(formatMoney(row.emi), color = primaryText, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text("Y${row.year}", color = if (index == scheduleData.lastIndex) secondaryText else primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f))
+                                    Text(formatMoney(row.emi), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                                 }
                                 if (index < scheduleData.lastIndex) {
                                     HorizontalDivider(color = borderColor.copy(alpha = 0.35f))
@@ -1342,566 +894,111 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     }
 
                     // ==================== BOTTOM ACTIONS ====================
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)) {
                         OutlinedButton(
-                            onClick = { /* TODO: Generate PDF */ },
-                            modifier = Modifier.weight(1f).height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            onClick = {  },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, borderColor)
                         ) {
-                            Icon(Icons.Rounded.PictureAsPdf, contentDescription = null)
+                            Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
                             Spacer(Modifier.width(8.dp))
-                            Text("Export PDF")
+                            Text("Export PDF", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                         }
                         Button(
-                            onClick = { /* TODO: Share */ },
-                            modifier = Modifier.weight(1f).height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            onClick = {  },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
                         ) {
-                            Icon(Icons.Rounded.Share, contentDescription = null)
+                            Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
                             Spacer(Modifier.width(8.dp))
-                            Text("Share Result")
+                            Text("Share", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                         }
                     }
                 }
             }
-            }   // end item Results
-
-        }   // end LazyColumn
-        }   // end Box (tablet wrapper)
-    }   // end Scaffold content lambda
+        }
+    }
 
     // FULL SCHEDULE DIALOG
     if (showFullSchedule && hasValidInput) {
-        FullAmortizationDialog(
-            principal = loanAmount,
-            annualRate = interestRate,
-            totalMonths = totalMonths,
-            schedule = yearBreakdown,
-            monthlyEmi = monthlyEmi,
-            onDismiss = { showFullSchedule = false },
-            onExportCsv = {
-                csvLauncher.launch("loan_amortization_schedule.csv")
-            }
-        )
+        FullAmortizationDialog(principal = loanAmount, annualRate = interestRate, totalMonths = totalMonths, onDismiss = { showFullSchedule = false })
     }
 
-    // ==================== RECOMMENDATION BOTTOM SHEET ====================
-    if (showPremiumRecommendationSheet && selectedRecommendationDetail != null) {
+    // BOTTOM SHEET
+    selectedRecommendation?.let { rec ->
         RecommendationBottomSheet(
-            detail = selectedRecommendationDetail!!,
-            onDismiss = {
-                showPremiumRecommendationSheet = false
-                selectedRecommendationDetail = null
-            }
+            recommendation = rec,
+            isExpandedWidth = isExpanded,
+            isMediumWidth = isMedium,
+            screenWidth = screenWidth,
+            onDismissRequest = { selectedRecommendation = null }
         )
     }
-    // ==================== RECOMMENDATION BOTTOM SHEET ====================
-    if (showPremiumRecommendationSheet && selectedRecommendationDetail != null) {
-        RecommendationBottomSheet(
-            detail = selectedRecommendationDetail!!,
-            onDismiss = {
-                showPremiumRecommendationSheet = false
-                selectedRecommendationDetail = null
-            }
-        )
-    }
-}  // closes EmiCalculatorScreen function
-
-// ==================== CSV EXPORT HELPER ====================
-fun exportScheduleToCsv(
-    context: android.content.Context,
-    uri: android.net.Uri,
-    schedule: List<YearBreakdown>,
-    loanAmount: Double,
-    interestRate: Double,
-    totalMonths: Int,
-    monthlyEmi: Double
-) {
-    try {
-        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-            val writer = outputStream.bufferedWriter()
-
-            // Header
-            writer.write("Month,EMI,Principal,Interest,Balance\n")
-
-            var runningBalance = loanAmount
-            val monthlyRate = interestRate / 12 / 100
-
-            schedule.forEachIndexed { index, year ->
-                val monthNumber = index + 1
-                val interest = runningBalance * monthlyRate
-                val principalPaid = (monthlyEmi - interest).coerceAtLeast(0.0)
-                runningBalance = (runningBalance - principalPaid).coerceAtLeast(0.0)
-
-                writer.write(
-                    "$monthNumber,${"%.0f".format(monthlyEmi)},${"%.0f".format(principalPaid)},${"%.0f".format(interest)},${"%.0f".format(runningBalance)}\n"
-                )
-            }
-            writer.flush()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
 }
 
-// ==================== REUSABLE BOTTOM SHEET CONTENT ====================
+// ==================== LOAN INSIGHTS CARD ====================
 @Composable
-fun BottomSheetContent(
-    title: String,
-    benefit: String,
-    description: String
-) {
-    val primaryText = Color(0xFFFFFFFF)
-    val secondaryText = Color(0xFFA8B3D1)
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Rounded.Lightbulb,
-            contentDescription = null,
-            tint = Color(0xFF7C4DFF),
-            modifier = Modifier.size(48.dp)
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            title,
-            color = primaryText,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(Modifier.height(6.dp))
-
-        Text(
-            benefit,
-            color = Color(0xFF7C4DFF),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F2744)),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    "How this strategy works",
-                    color = primaryText,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    description,
-                    color = secondaryText,
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp
-                )
-            }
-        }
-
-        Spacer(Modifier.height(32.dp))
-
-        Button(
-            onClick = { /* Handled by onDismissRequest */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C4DFF)),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Text("Got it, Close", color = Color.Black, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-fun ImpactCard(
-    icon: ImageVector,
-    title: String,
-    value: String,
-    color: Color
-) {
-    Surface(
-        color = color.copy(alpha = 0.12f),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text(title, color = Color(0xFFA8B3D1), fontSize = 13.sp)
-                Text(value, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun RecommendationComparisonCard(
-    current: RecommendationPlan,
-    recommended: RecommendationPlan,
-    interestSaved: Double = 0.0,
-    yearsSaved: Double = 0.0,
-    emiChange: Double = 0.0
-) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Current Plan
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(Color(0xFF0F2744), RoundedCornerShape(14.dp))
-                    .padding(14.dp)
-            ) {
-                Text("Current Plan", color = Color(0xFFA8B3D1), fontSize = 13.sp)
-                Spacer(Modifier.height(12.dp))
-                ComparisonItem("Monthly EMI", formatMoney(current.monthlyEmi))
-                ComparisonItem("Tenure", "${current.tenureMonths / 12} years")
-                ComparisonItem("Total Interest", formatMoney(current.totalInterest))
-                ComparisonItem("Total Payment", formatMoney(current.totalPayment))
-            }
-
-            // Recommended Plan
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(Color(0xFF0F2744), RoundedCornerShape(14.dp))
-                    .padding(14.dp)
-            ) {
-                Text("Recommended Plan", color = Color(0xFF22C55E), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(12.dp))
-                ComparisonItem("Monthly EMI", formatMoney(recommended.monthlyEmi))
-                ComparisonItem("Tenure", "${recommended.tenureMonths / 12} years")
-                ComparisonItem("Total Interest", formatMoney(recommended.totalInterest))
-                ComparisonItem("Total Payment", formatMoney(recommended.totalPayment))
-            }
-        }
-
-        // Impact Summary (only show if we have meaningful data)
-        if (interestSaved > 0 || yearsSaved > 0 || emiChange != 0.0) {
-            Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (interestSaved > 0) {
-                    Surface(
-                        color = Color(0xFF22C55E).copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Interest Saved", color = Color(0xFF22C55E), fontSize = 11.sp)
-                            Text("₹${formatMoney(interestSaved)}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-                if (yearsSaved > 0) {
-                    Surface(
-                        color = Color(0xFF3B82F6).copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Years Saved", color = Color(0xFF3B82F6), fontSize = 11.sp)
-                            Text("${"%.1f".format(yearsSaved)} yrs", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                // Extra EMI Required (for Best Savings & Fastest Closure)
-                val extraEmi = recommended.monthlyEmi - current.monthlyEmi
-                if (extraEmi > 0) {
-                    Surface(
-                        color = Color(0xFF7C4DFF).copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Extra EMI Required", color = Color(0xFF7C4DFF), fontSize = 11.sp)
-                            Text("₹${formatMoney(extraEmi)} / mo", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-
-        }
-    }
-}
-
-@Composable
-fun ComparisonItem(label: String, value: String) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(label, color = Color(0xFFA8B3D1), fontSize = 12.sp)
-        Text(value, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-// ==================== FULL RICH RECOMMENDATION BOTTOM SHEET (Restored) ====================
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RecommendationBottomSheet(
-    detail: RecommendationDetail,
-    onDismiss: () -> Unit
-) {
-    val bottomSheetPadding = when {
-        isExpandedWidth -> 24.dp
-        isMediumWidth || screenWidth >= 500 -> 20.dp
-        else -> 16.dp
-    }
-
-    val bottomSheetIconSize = when {
-        isExpandedWidth -> 48.dp
-        else -> 40.dp
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxHeight(0.88f),
-        sheetState = rememberModalBottomSheetState(),
-        containerColor = Color(0xFF061633)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = bottomSheetPadding, vertical = 16.dp)
-        ) {
-            // Header
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Rounded.Lightbulb,
-                    contentDescription = null,
-                    tint = Color(0xFF7C4DFF),
-                    modifier = Modifier.size(bottomSheetIconSize)
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    detail.title,
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    detail.valueProposition,
-                    color = Color(0xFFA8B3D1),
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // Plan Comparison
-            Text(
-                "Plan Comparison",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(Modifier.height(10.dp))
-
-            RecommendationComparisonCard(
-                current = detail.currentPlan,
-                recommended = detail.recommendedPlan,
-                interestSaved = detail.interestSaved,
-                yearsSaved = detail.yearsSaved,
-                emiChange = detail.recommendedPlan.monthlyEmi - detail.currentPlan.monthlyEmi
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            // Key Benefits / Impact Summary
-            Text(
-                "Key Benefits",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(Modifier.height(10.dp))
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                if (detail.interestSaved > 0) {
-                    ImpactCard(
-                        icon = Icons.Rounded.TrendingDown,
-                        title = "Interest Saved",
-                        value = "₹${formatMoney(detail.interestSaved)}",
-                        color = Color(0xFF22C55E)
-                    )
-                }
-                if (detail.yearsSaved > 0) {
-                    ImpactCard(
-                        icon = Icons.Rounded.Schedule,
-                        title = "Loan Closed Earlier",
-                        value = "${"%.1f".format(detail.yearsSaved)} Years",
-                        color = Color(0xFF3B82F6)
-                    )
-                }
-                val extraEmi = detail.recommendedPlan.monthlyEmi - detail.currentPlan.monthlyEmi
-                if (extraEmi > 0) {
-                    ImpactCard(
-                        icon = Icons.Rounded.TrendingUp,
-                        title = "Extra EMI Required",
-                        value = "₹${formatMoney(extraEmi)} / month",
-                        color = Color(0xFF7C4DFF)
-                    )
-                }
-                if (detail.emiReduction > 0) {
-                    ImpactCard(
-                        icon = Icons.Rounded.TrendingDown,
-                        title = "EMI Reduced",
-                        value = "₹${formatMoney(detail.emiReduction)} / month",
-                        color = Color(0xFF22C55E)
-                    )
-                }
-                if (detail.additionalInterest > 0) {
-                    ImpactCard(
-                        icon = Icons.Rounded.Warning,
-                        title = "Additional Interest Cost",
-                        value = "₹${formatMoney(detail.additionalInterest)}",
-                        color = Color(0xFFF59E0B)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // Why This Works
-            Text(
-                "Why this works",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(Modifier.height(10.dp))
-
-            when (detail.title) {
-                "Best Savings" -> {
-                    StrategyInsightCard(
-                        title = "Best Savings Strategy",
-                        points = listOf(
-                            "Increase EMI by 15% to pay down principal faster",
-                            "Maximizes long-term interest savings",
-                            "Best if you can afford slightly higher monthly payments"
-                        ),
-                        isPositive = true
-                    )
-                }
-                "Fastest Closure" -> {
-                    StrategyInsightCard(
-                        title = "Fastest Closure Strategy",
-                        points = listOf(
-                            "Increase EMI by 25% for aggressive principal reduction",
-                            "Shortens loan tenure significantly",
-                            "Ideal if becoming debt-free is your top priority"
-                        ),
-                        isPositive = true
-                    )
-                }
-                "Lowest EMI" -> {
-                    Column {
-                        StrategyInsightCard(
-                            title = "Lowest EMI Strategy",
-                            points = listOf(
-                                "Extend tenure to reduce monthly outflow",
-                                "Improves short-term cash flow"
-                            ),
-                            isPositive = false
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Note: This increases total interest paid over time.",
-                            color = Color(0xFFF59E0B),
-                            fontSize = 13.sp
-                        )
-                    }
-                }
-                else -> {
-                    StrategyInsightCard(
-                        title = "AI Recommended",
-                        points = listOf(
-                            detail.whyRecommended,
-                            "Selected for the best overall balance"
-                        ),
-                        isPositive = true
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(28.dp))
-
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C4DFF)),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text("Got it, Close", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun StrategyInsightCard(
-    title: String,
-    points: List<String>,
-    isPositive: Boolean
+fun LoanInsightsCard(
+    primaryCard: Color, borderColor: Color, primaryText: Color, secondaryText: Color,
+    greenAccent: Color, goldAccent: Color, blueAccent: Color,
+    sizeClass: WindowWidthSizeClass
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F2744)),
-        shape = RoundedCornerShape(14.dp)
+        colors = CardDefaults.cardColors(containerColor = primaryCard),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(12.dp))
-            points.forEach { point ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (isPositive) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
-                        contentDescription = null,
-                        tint = if (isPositive) Color(0xFF22C55E) else Color(0xFFF59E0B),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(point, color = Color(0xFFA8B3D1), fontSize = 14.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Loan Insights", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.width(8.dp))
+                Surface(color = Color(0xFF3B2A6E), shape = RoundedCornerShape(20.dp)) {
+                    Text("PRO", color = Color(0xFFB39DFF), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp))
                 }
-                Spacer(Modifier.height(6.dp))
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Transparency Score
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+                    CircularProgressIndicator(
+                        progress = 0.92f, modifier = Modifier.size(64.dp),
+                        color = greenAccent, strokeWidth = 6.dp, trackColor = Color(0xFF1A2A4A)
+                    )
+                    Text("92", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(16.dp))
+                Column {
+                    Text("Transparency Score", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                    Text("92/100 — Excellent", color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
+            Spacer(Modifier.height(16.dp))
+
+            // Insights
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("EMI matches expected rate → ", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                    Text("Excellent", color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("Effective Rate 7.1% p.a. → ", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                    Text("Close", color = goldAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
+                }
             }
         }
     }

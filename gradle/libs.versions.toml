@@ -8,7 +8,7 @@ lifecycleRuntimeKtx = "2.8.7"
 lifecycleViewmodelCompose = "2.8.7"
 lifecycleRuntimeCompose = "2.8.7"
 activityCompose = "1.10.1"
-kotlin = "2.0.21"
+kotlin = "2.2.10"
 composeBom = "2024.09.00"
 googleDevtoolsKsp = "2.3.5"
 navigationCompose = "2.8.9"
@@ -38,7 +38,6 @@ robolectric = "4.16.1"
 roborazzi = "1.59.0"
 firebaseBom = "34.12.0"
 secretsGradlePlugin = "2.0.1"
-material3WindowSize = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -64,6 +63,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
@@ -89,12 +89,9 @@ roborazzi-junit-rule = { group = "io.github.takahirom.roborazzi", name = "robora
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 
-# Window Size Class (Required for Responsive UI)
-androidx-compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSize" }
-
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-googleDevtoolsKsp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
