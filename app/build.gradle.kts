@@ -28,7 +28,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
+
+    // ✅ Modern way (Kotlin 2.0+)
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.11" }
 }
