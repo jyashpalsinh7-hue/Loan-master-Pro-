@@ -79,6 +79,31 @@ fun calculateEMI(principal: Double, annualRate: Double, months: Int): Double {
     return principal * r * (1 + r).pow(months) / ((1 + r).pow(months) - 1)
 }
 
+fun getMonthlyAmortizationSchedule(principal: Double, annualRate: Double, totalMonths: Int): List<MonthlyAmortization> {
+    if (principal <= 0 || annualRate <= 0 || totalMonths <= 0) return emptyList()
+    val monthlyRate = annualRate / 12 / 100
+    val emi = calculateEMI(principal, annualRate, totalMonths)
+    val list = mutableListOf<MonthlyAmortization>()
+    var balance = principal
+
+    for (month in 1..totalMonths) {
+        val interest = balance * monthlyRate
+        val principalPaid = emi - interest
+        balance = (balance - principalPaid).coerceAtLeast(0.0)
+
+        list.add(
+            MonthlyAmortization(
+                month = month,
+                emi = emi,
+                principalPaid = principalPaid,
+                interestPaid = interest,
+                remainingBalance = balance
+            )
+        )
+    }
+    return list
+}
+
 fun getYearWiseBreakdown(
     principal: Double,
     annualRate: Double,
@@ -243,6 +268,86 @@ fun generateRecommendations(
 
 
 
+// ==================== TENURE INPUT FIELD ====================
+@Composable
+fun TenureInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isMonths: Boolean,
+    onToggleIsMonths: (Boolean) -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    inputBg: Color,
+    borderColor: Color,
+    secondaryText: Color,
+    sizeClass: WindowWidthSizeClass,
+    modifier: Modifier = Modifier
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    Column(modifier = modifier) {
+        Text(label, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+        Spacer(Modifier.height(6.dp))
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = inputBg,
+            border = BorderStroke(1.dp, borderColor)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                    Spacer(Modifier.width(10.dp))
+                    BasicTextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        textStyle = TextStyle(color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                    )
+                    
+                    // Toggle Buttons
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFF061633))
+                            .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .background(if (!isMonths) Color(0xFF2D7DFF) else Color.Transparent)
+                                .clickable { 
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    onToggleIsMonths(false) 
+                                }
+                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                        ) {
+                            Text("Yrs", color = if (!isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(if (isMonths) Color(0xFF2D7DFF) else Color.Transparent)
+                                .clickable { 
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    onToggleIsMonths(true) 
+                                }
+                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                        ) {
+                            Text("Mo", color = if (isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ==================== LOAN TYPE SELECTOR ====================
 @Composable
 fun LoanTypeSelector(
@@ -254,6 +359,9 @@ fun LoanTypeSelector(
     sizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier
 ) {
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
     Column(modifier = modifier) {
         Text("Loan Type", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
         Spacer(Modifier.height(6.dp))
@@ -263,28 +371,57 @@ fun LoanTypeSelector(
             border = BorderStroke(1.dp, borderColor),
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { /* TODO: Open Loan Type Bottom Sheet */ }
+                .clickable { 
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    isDropdownExpanded = true 
+                }
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Home,
-                    contentDescription = null,
-                    tint = Color(0xFF22C55E),
-                    modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
-                )
-                Spacer(Modifier.width(10.dp))
-                Text(selectedType, color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = Icons.Rounded.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = Color(0xFF9AA6C8),
-                    modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
-                )
+            Box {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val icon = when (selectedType) {
+                        "Home Loan" -> Icons.Rounded.Home
+                        "Car Loan" -> Icons.Rounded.DirectionsCar
+                        "Personal Loan" -> Icons.Rounded.Person
+                        "Education Loan" -> Icons.Rounded.School
+                        else -> Icons.Rounded.AccountBalance
+                    }
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color(0xFF22C55E),
+                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(selectedType, color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Color(0xFF9AA6C8),
+                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
+                    )
+                }
+                androidx.compose.material3.DropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false },
+                    modifier = Modifier.background(Color(0xFF061633)).border(1.dp, borderColor, RoundedCornerShape(8.dp))
+                ) {
+                    val loanTypes = listOf("Home Loan", "Car Loan", "Personal Loan", "Education Loan", "Business Loan")
+                    loanTypes.forEach { type ->
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text(type, color = Color.White) },
+                            onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                onTypeSelected(type)
+                                isDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -298,29 +435,10 @@ fun FullAmortizationDialog(
     totalMonths: Int,
     onDismiss: () -> Unit
 ) {
-    val monthlyRate = annualRate / 12 / 100
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val emi = calculateEMI(principal, annualRate, totalMonths)
-
     val schedule = remember(principal, annualRate, totalMonths) {
-        val list = mutableListOf<MonthlyAmortization>()
-        var balance = principal
-
-        for (month in 1..totalMonths) {
-            val interest = balance * monthlyRate
-            val principalPaid = emi - interest
-            balance = (balance - principalPaid).coerceAtLeast(0.0)
-
-            list.add(
-                MonthlyAmortization(
-                    month = month,
-                    emi = emi,
-                    principalPaid = principalPaid,
-                    interestPaid = interest,
-                    remainingBalance = balance
-                )
-            )
-        }
-        list
+        getMonthlyAmortizationSchedule(principal, annualRate, totalMonths)
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -388,7 +506,10 @@ fun FullAmortizationDialog(
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
-                        onClick = onDismiss,
+                        onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            onDismiss()
+                        },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color(0xFF183C8A))
@@ -396,7 +517,10 @@ fun FullAmortizationDialog(
                         Text("Close", color = Color.White)
                     }
                     Button(
-                        onClick = { /* TODO: Export CSV */ },
+                        onClick = { 
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            /* TODO: Export CSV */ 
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7DFF)),
                         shape = RoundedCornerShape(12.dp)
@@ -445,19 +569,22 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     // State
     var loanAmountText by remember { mutableStateOf("0") }
     var interestRateText by remember { mutableStateOf("0") }
-    var tenureYearsText by remember { mutableStateOf("0") }
+    var tenureInputText by remember { mutableStateOf("0") }
+    var isTenureInMonths by remember { mutableStateOf(false) }
     var loanType by remember { mutableStateOf("Home Loan") }
     var showFullSchedule by remember { mutableStateOf(false) }
     
     // Bottom Sheet State
     var selectedRecommendation by remember { mutableStateOf<SmartRecommendation?>(null) }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     val loanAmount = loanAmountText.toDoubleOrNull() ?: 0.0
     val interestRate = interestRateText.toDoubleOrNull() ?: 0.0
-    val tenureYears = tenureYearsText.toIntOrNull() ?: 0
-    val totalMonths = tenureYears * 12
+    val tenureValue = tenureInputText.toIntOrNull() ?: 0
+    val totalMonths = if (isTenureInMonths) tenureValue else tenureValue * 12
+    val tenureYears = if (totalMonths > 0) totalMonths / 12 else 0
 
-    val hasValidInput = loanAmount > 0 && interestRate > 0 && tenureYears > 0
+    val hasValidInput = loanAmount > 0 && interestRate > 0 && totalMonths > 0
 
     val monthlyEmi = if (hasValidInput) calculateEMI(loanAmount, interestRate, totalMonths) else 0.0
     val totalPayment = monthlyEmi * totalMonths
@@ -475,6 +602,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
     val yearBreakdown = remember(loanAmount, interestRate, totalMonths) {
         getYearWiseBreakdown(loanAmount, interestRate, totalMonths)
+    }
+
+    val monthlySchedule = remember(loanAmount, interestRate, totalMonths) {
+        getMonthlyAmortizationSchedule(loanAmount, interestRate, totalMonths)
     }
     
     val recommendations = remember(hasValidInput, loanAmount, interestRate, totalMonths, monthlyEmi, totalInterest) {
@@ -534,7 +665,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = primaryText,
-                    modifier = Modifier.clickable { onNavigateBack() }.size(ResponsiveUtils.iconSize(sizeClass))
+                    modifier = Modifier.clickable { 
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onNavigateBack() 
+                    }.size(ResponsiveUtils.iconSize(sizeClass))
                 )
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
@@ -569,9 +703,11 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            PremiumInputField(
-                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs",
+                            TenureInputField(
+                                label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
+                                isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent,
+                                inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             LoanTypeSelector(
@@ -594,9 +730,11 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PremiumInputField(
-                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs",
+                            TenureInputField(
+                                label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
+                                isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
+                                icon = Icons.Rounded.DateRange, iconTint = blueAccent,
+                                inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
                                 sizeClass = sizeClass, modifier = Modifier.weight(1f)
                             )
                             LoanTypeSelector(
@@ -746,14 +884,6 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         }
                     }
 
-                    // ==================== LOAN INSIGHTS (Extracted) ====================
-                    LoanInsightsCard(
-                        primaryCard = primaryCard, borderColor = borderColor,
-                        primaryText = primaryText, secondaryText = secondaryText,
-                        greenAccent = greenAccent, goldAccent = goldAccent, blueAccent = blueAccent,
-                        sizeClass = sizeClass
-                    )
-
                     // ==================== DYNAMIC SMART RECOMMENDATIONS ====================
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -783,7 +913,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                             .width(cardWidth)
                                             .clip(RoundedCornerShape(16.dp))
                                             .background(Color(0xFF0A1D3D))
-                                            .clickable { selectedRecommendation = rec }
+                                            .clickable { 
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                selectedRecommendation = rec 
+                                            }
                                             .border(
                                                 1.dp,
                                                 if (rec.isRecommended) rec.accentColor else borderColor,
@@ -811,6 +944,20 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         }
                     }
 
+                    // ==================== LOAN INTELLIGENCE (Integrated) ====================
+                    if (hasValidInput) {
+                        com.aistudio.loanmaster.xklzmw.LoanIntelligenceCard(
+                            loanType = loanType,
+                            loanAmount = loanAmount,
+                            interestRate = interestRate,
+                            tenureYears = tenureYears,
+                            monthlyEmi = monthlyEmi,
+                            totalInterest = totalInterest,
+                            totalPayment = totalPayment,
+                            sizeClass = sizeClass
+                        )
+                    }
+
                     // ==================== AMORTIZATION SCHEDULE ====================
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -821,7 +968,10 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Amortization Schedule", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
-                                Text("Full Schedule ›", color = blueAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, modifier = Modifier.clickable { showFullSchedule = true })
+                                Text("Full Schedule ›", color = blueAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, modifier = Modifier.clickable { 
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    showFullSchedule = true 
+                                })
                             }
                             Spacer(Modifier.height(12.dp))
 
@@ -844,10 +994,75 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         }
                     }
 
+                    // ==================== LOAN MILESTONES ====================
+                    if (hasValidInput && monthlySchedule.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = primaryCard),
+                            shape = RoundedCornerShape(18.dp),
+                            border = BorderStroke(1.dp, borderColor)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Loan Milestones", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
+                                Spacer(Modifier.height(12.dp))
+
+                                var cumPrincipal = 0.0
+                                var m25: Int? = null
+                                var m50: Int? = null
+                                var m75: Int? = null
+                                var mPrinExceedsInt: Int? = null
+
+                                for (item in monthlySchedule) {
+                                    cumPrincipal += item.principalPaid
+                                    if (m25 == null && cumPrincipal >= loanAmount * 0.25) m25 = item.month
+                                    if (m50 == null && cumPrincipal >= loanAmount * 0.50) m50 = item.month
+                                    if (m75 == null && cumPrincipal >= loanAmount * 0.75) m75 = item.month
+                                    if (mPrinExceedsInt == null && item.principalPaid > item.interestPaid) mPrinExceedsInt = item.month
+                                }
+
+                                val formatMonthYear = { m: Int? -> 
+                                    if (m == null) "N/A" 
+                                    else {
+                                        val y = m / 12
+                                        val mo = m % 12
+                                        if (y > 0 && mo > 0) "${y} Yrs, ${mo} Mos" else if (y > 0) "${y} Yrs" else "${mo} Mos"
+                                    }
+                                }
+
+                                val milestoneRows = listOf(
+                                    "Principal > Interest" to formatMonthYear(mPrinExceedsInt),
+                                    "25% Repaid" to formatMonthYear(m25),
+                                    "50% Repaid" to formatMonthYear(m50),
+                                    "75% Repaid" to formatMonthYear(m75),
+                                    "Final EMI" to formatMonthYear(monthlySchedule.last().month)
+                                )
+
+                                milestoneRows.forEachIndexed { index, pair ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(modifier = Modifier.size(6.dp).clip(androidx.compose.foundation.shape.CircleShape).background(blueAccent))
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(pair.first, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                        }
+                                        Text(pair.second, color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
+                                    }
+                                    if (index < milestoneRows.lastIndex) {
+                                        HorizontalDivider(color = borderColor.copy(alpha = 0.3f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // ==================== BOTTOM ACTIONS ====================
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)) {
                         OutlinedButton(
-                            onClick = {  },
+                            onClick = { 
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            },
                             modifier = Modifier.weight(1f).height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, borderColor)
@@ -857,7 +1072,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             Text("Export PDF", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                         }
                         Button(
-                            onClick = {  },
+                            onClick = { 
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            },
                             modifier = Modifier.weight(1f).height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
@@ -889,68 +1106,4 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     }
 }
 
-// ==================== LOAN INSIGHTS CARD ====================
-@Composable
-fun LoanInsightsCard(
-    primaryCard: Color, borderColor: Color, primaryText: Color, secondaryText: Color,
-    greenAccent: Color, goldAccent: Color, blueAccent: Color,
-    sizeClass: WindowWidthSizeClass
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = primaryCard),
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, borderColor)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Loan Insights", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.width(8.dp))
-                Surface(color = Color(0xFF3B2A6E), shape = RoundedCornerShape(20.dp)) {
-                    Text("PRO", color = Color(0xFFB39DFF), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp))
-                }
-            }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Transparency Score
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
-                    CircularProgressIndicator(
-                        progress = 0.92f, modifier = Modifier.size(64.dp),
-                        color = greenAccent, strokeWidth = 6.dp, trackColor = Color(0xFF1A2A4A)
-                    )
-                    Text("92", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text("Transparency Score", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
-                    Text("92/100 — Excellent", color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.SemiBold)
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-            HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
-            Spacer(Modifier.height(16.dp))
-
-            // Insights
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(10.dp))
-                    Text("EMI matches expected rate → ", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
-                    Text("Excellent", color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = greenAccent, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(10.dp))
-                    Text("Effective Rate 7.1% p.a. → ", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
-                    Text("Close", color = goldAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
-                }
-            }
-        }
-    }
-}
