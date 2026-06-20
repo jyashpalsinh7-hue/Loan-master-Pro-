@@ -55,14 +55,14 @@ fun LoanEligibilityScreen() {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    val bgColor = Color(0xFF0B132B)
-    val surfaceColor = Color(0xFF152238)
+    val bgColor = ResponsiveUtils.BgColor
+    val surfaceColor = ResponsiveUtils.SurfaceColor
     val neonGreen = Color(0xFF4ADE80)
     val brightBlue = Color(0xFF3B82F6)
     val warningYellow = Color(0xFFFBBF24)
     val dangerRed = Color(0xFFEF4444)
-    val textColor = Color.White
-    val textSecondary = Color.Gray
+    val textColor = ResponsiveUtils.TextPrimary
+    val textSecondary = ResponsiveUtils.TextSecondary
 
     val formatMoney = { amount: Double ->
         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))

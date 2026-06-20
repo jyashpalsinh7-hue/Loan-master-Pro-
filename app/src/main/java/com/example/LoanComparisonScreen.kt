@@ -54,8 +54,8 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    val bgColor = Color(0xFF020B1F)
-    val textColor = Color.White
+    val bgColor = ResponsiveUtils.BgColor
+    val textColor = ResponsiveUtils.TextPrimary
 
     val loansCache = remember {
         mutableStateListOf(

@@ -38,15 +38,15 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact) {
-    val bgColor = Color(0xFF0B132B)
-    val surfaceColor = Color(0xFF152238)
+    val bgColor = ResponsiveUtils.BgColor
+    val surfaceColor = ResponsiveUtils.SurfaceColor
     val accentBlue = Color(0xFF3B82F6)
     val accentGreen = Color(0xFF4ADE80)
     val accentOrange = Color(0xFFF97316)
     val accentPurple = Color(0xFFA855F7)
     val heroCardTint = Color(0xFF0F291E)
-    val textColor = Color.White
-    val textSecondary = Color.Gray
+    val textColor = ResponsiveUtils.TextPrimary
+    val textSecondary = ResponsiveUtils.TextSecondary
 
     val formatMoney = { amount: Double ->
         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))

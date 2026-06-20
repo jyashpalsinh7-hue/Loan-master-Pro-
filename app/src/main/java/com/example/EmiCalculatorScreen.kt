@@ -554,12 +554,12 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val horizPadding = ResponsiveUtils.horizontalPadding(sizeClass)
     val cardSpacing = ResponsiveUtils.cardSpacing(sizeClass)
     
-    val bgColor = Color(0xFF020B1F)
-    val primaryCard = Color(0xFF061633)
-    val inputBg = Color(0xFF071833)
-    val borderColor = Color(0xFF183C8A)
-    val primaryText = Color(0xFFFFFFFF)
-    val secondaryText = Color(0xFFA8B3D1)
+    val bgColor = ResponsiveUtils.BgColor
+    val primaryCard = ResponsiveUtils.SurfaceColor
+    val inputBg = ResponsiveUtils.SurfaceColor
+    val borderColor = ResponsiveUtils.CardStroke
+    val primaryText = ResponsiveUtils.TextPrimary
+    val secondaryText = ResponsiveUtils.TextSecondary
 
     val blueAccent = Color(0xFF2D7DFF)
     val goldAccent = Color(0xFFFFC328)

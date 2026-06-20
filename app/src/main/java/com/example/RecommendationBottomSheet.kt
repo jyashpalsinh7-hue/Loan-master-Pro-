@@ -45,12 +45,12 @@ fun RecommendationBottomSheet(
 ) {
     val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val bgColor = Color(0xFF020B1F)
-    val cardColor = Color(0xFF061633)
-    val inputBg = Color(0xFF071833)
-    val borderColor = Color(0xFF183C8A)
-    val primaryText = Color.White
-    val secondaryText = Color(0xFFA8B3D1)
+    val bgColor = ResponsiveUtils.BgColor
+    val cardColor = ResponsiveUtils.SurfaceColor
+    val inputBg = ResponsiveUtils.SurfaceColor
+    val borderColor = ResponsiveUtils.CardStroke
+    val primaryText = ResponsiveUtils.TextPrimary
+    val secondaryText = ResponsiveUtils.TextSecondary
     val greenAccent = Color(0xFF22C55E)
     val redAccent = Color(0xFFFF5252)
 

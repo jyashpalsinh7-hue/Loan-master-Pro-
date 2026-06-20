@@ -38,12 +38,12 @@ import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
 
-val CurrBgColor = Color(0xFF0B132B)
-val CurrSurfaceColor = Color(0xFF152238)
+val CurrBgColor = ResponsiveUtils.BgColor
+val CurrSurfaceColor = ResponsiveUtils.SurfaceColor
 val CurrNeonGreen = Color(0xFF4ADE80)
 val CurrAccentBlue = Color(0xFF3B82F6)
 val CurrAccentRed = Color(0xFFFF5252)
-val CurrCardStrokeColor = Color(0xFF263238)
+val CurrCardStrokeColor = ResponsiveUtils.CardStroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
