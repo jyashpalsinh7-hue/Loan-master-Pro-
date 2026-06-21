@@ -40,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -285,67 +286,48 @@ fun TenureInputField(
     modifier: Modifier = Modifier
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    Column(modifier = modifier) {
-        Text(label, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
-        Spacer(Modifier.height(6.dp))
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = inputBg,
-            border = BorderStroke(1.dp, borderColor)
-        ) {
-            Column {
-                Row(
+    PremiumInputField(
+        label = label,
+        value = value,
+        onValueChange = onValueChange,
+        icon = icon,
+        iconTint = iconTint,
+        sizeClass = sizeClass,
+        modifier = modifier,
+        trailingContent = {
+            // Toggle Buttons
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(inputBg)
+                    .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(if (!isMonths) Color(0xFF2D7DFF) else Color.Transparent)
+                        .clickable { 
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            onToggleIsMonths(false) 
+                        }
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
-                    Spacer(Modifier.width(10.dp))
-                    BasicTextField(
-                        value = value,
-                        onValueChange = onValueChange,
-                        textStyle = TextStyle(color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-                    )
-                    
-                    // Toggle Buttons
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF061633))
-                            .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .background(if (!isMonths) Color(0xFF2D7DFF) else Color.Transparent)
-                                .clickable { 
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    onToggleIsMonths(false) 
-                                }
-                                .padding(horizontal = 8.dp, vertical = 6.dp)
-                        ) {
-                            Text("Yrs", color = if (!isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
+                    Text("Yrs", color = if (!isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
+                }
+                Box(
+                    modifier = Modifier
+                        .background(if (isMonths) Color(0xFF2D7DFF) else Color.Transparent)
+                        .clickable { 
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            onToggleIsMonths(true) 
                         }
-                        Box(
-                            modifier = Modifier
-                                .background(if (isMonths) Color(0xFF2D7DFF) else Color.Transparent)
-                                .clickable { 
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    onToggleIsMonths(true) 
-                                }
-                                .padding(horizontal = 8.dp, vertical = 6.dp)
-                        ) {
-                            Text("Mo", color = if (isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
-                        }
-                    }
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    Text("Mo", color = if (isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
                 }
             }
         }
-    }
+    )
 }
 
 // ==================== LOAN TYPE SELECTOR ====================
@@ -397,23 +379,23 @@ fun LoanTypeSelector(
                         modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
                     )
                     Spacer(Modifier.width(10.dp))
-                    Text(selectedType, color = Color.White, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Text(selectedType, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     Icon(
                         imageVector = Icons.Rounded.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = Color(0xFF9AA6C8),
+                        tint = secondaryText,
                         modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
                     )
                 }
                 androidx.compose.material3.DropdownMenu(
                     expanded = isDropdownExpanded,
                     onDismissRequest = { isDropdownExpanded = false },
-                    modifier = Modifier.background(Color(0xFF061633)).border(1.dp, borderColor, RoundedCornerShape(8.dp))
+                    modifier = Modifier.background(inputBg).border(1.dp, borderColor, RoundedCornerShape(8.dp))
                 ) {
                     val loanTypes = listOf("Home Loan", "Car Loan", "Personal Loan", "Education Loan", "Business Loan")
                     loanTypes.forEach { type ->
                         androidx.compose.material3.DropdownMenuItem(
-                            text = { Text(type, color = Color.White) },
+                            text = { Text(type, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 onTypeSelected(type)
@@ -554,12 +536,12 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val horizPadding = ResponsiveUtils.horizontalPadding(sizeClass)
     val cardSpacing = ResponsiveUtils.cardSpacing(sizeClass)
     
-    val bgColor = ResponsiveUtils.BgColor
-    val primaryCard = ResponsiveUtils.SurfaceColor
-    val inputBg = ResponsiveUtils.SurfaceColor
-    val borderColor = ResponsiveUtils.CardStroke
-    val primaryText = ResponsiveUtils.TextPrimary
-    val secondaryText = ResponsiveUtils.TextSecondary
+    val bgColor = androidx.compose.material3.MaterialTheme.colorScheme.background
+    val primaryCard = androidx.compose.material3.MaterialTheme.colorScheme.surface
+    val inputBg = androidx.compose.material3.MaterialTheme.colorScheme.surface
+    val borderColor = androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant
+    val primaryText = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
+    val secondaryText = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
 
     val blueAccent = Color(0xFF2D7DFF)
     val goldAccent = Color(0xFFFFC328)
@@ -578,9 +560,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     var selectedRecommendation by remember { mutableStateOf<SmartRecommendation?>(null) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
-    val loanAmount = loanAmountText.toDoubleOrNull() ?: 0.0
-    val interestRate = interestRateText.toDoubleOrNull() ?: 0.0
-    val tenureValue = tenureInputText.toIntOrNull() ?: 0
+    val loanAmount = loanAmountText.safeToDouble()
+    val interestRate = interestRateText.safeToDouble()
+    val tenureValue = tenureInputText.safeToDouble().toInt().coerceIn(0, 1200)
     val totalMonths = if (isTenureInMonths) tenureValue else tenureValue * 12
     val tenureYears = if (totalMonths > 0) totalMonths / 12 else 0
 
@@ -651,101 +633,107 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = horizPadding, vertical = ResponsiveUtils.verticalPadding(sizeClass)),
-            verticalArrangement = Arrangement.spacedBy(cardSpacing)
         ) {
-            // HEADER
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    tint = primaryText,
-                    modifier = Modifier.clickable { 
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        onNavigateBack() 
-                    }.size(ResponsiveUtils.iconSize(sizeClass))
-                )
-                Spacer(Modifier.width(16.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("EMI Calculator", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass), fontWeight = FontWeight.Bold)
-                    Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                }
-                Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
-                Spacer(Modifier.width(16.dp))
-                Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
-            }
-
-            // INPUT SECTION
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = primaryCard),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, borderColor)
-            ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (isExpanded) {
-                        // 2x2 Grid for Wide Screens
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            PremiumInputField(
-                                label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
-                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                            PremiumInputField(
-                                label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
-                                icon = Icons.Rounded.Percent, iconTint = blueAccent,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = monthlyEmi,
+                headerSection = {
+                    // HEADER
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back",
+                            tint = primaryText,
+                            modifier = Modifier.clickable { 
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                onNavigateBack() 
+                            }.size(ResponsiveUtils.iconSize(sizeClass))
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("EMI Calculator", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            TenureInputField(
-                                label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
-                                isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent,
-                                inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                            LoanTypeSelector(
-                                selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                        }
-                    } else {
-                        // Stacked or 1x2 then 2x2 depending on medium vs compact
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PremiumInputField(
-                                label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
-                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                            PremiumInputField(
-                                label = "Interest", value = interestRateText, onValueChange = { interestRateText = it },
-                                icon = Icons.Rounded.Percent, iconTint = blueAccent,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            TenureInputField(
-                                label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
-                                isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
-                                icon = Icons.Rounded.DateRange, iconTint = blueAccent,
-                                inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
-                            LoanTypeSelector(
-                                selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                            )
+                        Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                        Spacer(Modifier.width(16.dp))
+                        Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                    }
+                },
+                inputControlsSection = {
+                    // INPUT SECTION
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = primaryCard),
+                        shape = RoundedCornerShape(18.dp),
+                        border = BorderStroke(1.dp, borderColor)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            if (isExpanded) {
+                                // 2x2 Grid for Wide Screens
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                                    PremiumInputField(
+                                        label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
+                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                    PremiumInputField(
+                                        label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
+                                        icon = Icons.Rounded.Percent, iconTint = blueAccent,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f),
+                                        infoText = "The annual interest rate charged on your loan."
+                                    )
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                                    TenureInputField(
+                                        label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
+                                        isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
+                                        icon = Icons.Rounded.DateRange, iconTint = blueAccent,
+                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                    LoanTypeSelector(
+                                        selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            } else {
+                                // Stacked or 1x2 then 2x2 depending on medium vs compact
+                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                                    PremiumInputField(
+                                        label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
+                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                    PremiumInputField(
+                                        label = "Interest", value = interestRateText, onValueChange = { interestRateText = it },
+                                        icon = Icons.Rounded.Percent, iconTint = blueAccent,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f),
+                                        infoText = "The annual interest rate charged on your loan."
+                                    )
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                                    TenureInputField(
+                                        label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
+                                        isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
+                                        icon = Icons.Rounded.DateRange, iconTint = blueAccent,
+                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                    LoanTypeSelector(
+                                        selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
+                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
                         }
                     }
-                }
-            }
-
+                },
+                resultsSection = {
+                    Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
             // PLACEHOLDER
             if (!hasValidInput) {
                 Card(
@@ -1084,10 +1072,13 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             Text("Share", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                         }
                     }
-                }
-            }
-        }
-    }
+                } // closes Column inside AnimatedVisibility
+            } // closes AnimatedVisibility
+             } // closes Column of resultsSection
+            } // closes resultsSection lambda
+            ) // closes ResponsiveScreenWrapper
+        } // closes Box
+    } // closes Scaffold
 
     // FULL SCHEDULE DIALOG
     if (showFullSchedule && hasValidInput) {

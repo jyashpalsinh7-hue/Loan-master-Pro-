@@ -46,12 +46,13 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var monthlyDeposit by remember { mutableDoubleStateOf(5000.0) }
-    var interestRatePa by remember { mutableDoubleStateOf(6.5) }
-    var tenureYears by remember { mutableDoubleStateOf(5.0) }
+    var monthlyDepositText by remember { mutableStateOf("5000") }
+    var interestRatePaText by remember { mutableStateOf("6.5") }
+    var tenureYearsText by remember { mutableStateOf("5") }
+    var compoundingFrequency by remember { mutableStateOf("Quarterly") }
+    var showCompoundingDropdown by remember { mutableStateOf(false) }
 
-    var editingField by remember { mutableStateOf<String?>(null) }
-    var editValue by remember { mutableStateOf("") }
+
 
     val formatInr = { value: Double ->
         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
@@ -64,52 +65,36 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
-    val p = monthlyDeposit
-    val r = interestRatePa / 12 / 100
-    val n = tenureYears * 12
-    val maturityValue = if (r > 0) p * (((1 + r).pow(n) - 1) / r) * (1 + r) else p * n
-    val totalInvested = p * n
+    val p = monthlyDepositText.safeToDouble()
+    val annualRate = interestRatePaText.safeToDouble() / 100
+    val t = tenureYearsText.safeToDouble().coerceIn(0.0, 100.0)
+    val months = (t * 12).toInt()
+    
+    val n = when (compoundingFrequency) {
+        "Yearly" -> 1.0
+        "Half-Yearly" -> 2.0
+        "Quarterly" -> 4.0
+        "Monthly" -> 12.0
+        else -> 4.0
+    }
+    
+    // RD calculation with different compounding frequencies
+    // M = P * \sum_{i=1}^{months} (1 + R/N)^{N * (months - i + 1)/12}
+    var maturityValue = 0.0
+    if (annualRate > 0 && months > 0) {
+        for (i in 1..months) {
+            val remainingTimeYears = (months - i + 1) / 12.0
+            maturityValue += p * (1 + annualRate / n).pow(n * remainingTimeYears)
+        }
+    } else {
+        maturityValue = p * months
+    }
+    
+    val totalInvested = p * months
     val totalReturns = maturityValue - totalInvested
     val wealthGain = if (totalInvested > 0) (totalReturns / totalInvested) * 100 else 0.0
 
-    if (editingField != null) {
-        AlertDialog(
-            onDismissRequest = { editingField = null },
-            title = { Text("Edit $editingField", color = TextPrimary) },
-            text = {
-                OutlinedTextField(
-                    value = editValue,
-                    onValueChange = { editValue = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentYellow,
-                        unfocusedBorderColor = CardStroke
-                    )
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val parsed = editValue.toDoubleOrNull() ?: 0.0
-                        when (editingField) {
-                            "Monthly Deposit" -> monthlyDeposit = parsed
-                            "Interest Rate" -> interestRatePa = parsed
-                            "Tenure" -> tenureYears = parsed
-                        }
-                        editingField = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark)
-                ) { Text("Save", fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingField = null }) { Text("Cancel", color = TextSecondary) }
-            },
-            containerColor = SurfaceDark
-        )
-    }
+
 
     Scaffold(
         topBar = {
@@ -138,43 +123,64 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         bottomBar = { AppBottomBar(selectedRoute = "calculators") },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
-            // Inputs
-            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = maturityValue,
+                headerSection = { },
+                inputControlsSection = {
+                    // Inputs
+                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
                 if (sizeClass == WindowWidthSizeClass.Compact) {
                     PremiumInputField(
-                        label = "Monthly Deposit", value = formatDec(monthlyDeposit).removeSuffix(".00"), onValueChange = { monthlyDeposit = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
                         icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
                         icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Tenure", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
                         icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        PremiumInputField(
+                            label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
+                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth(),
+                            infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
+                        )
+                        DropdownMenu(
+                            expanded = showCompoundingDropdown,
+                            onDismissRequest = { showCompoundingDropdown = false },
+                            modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
+                        ) {
+                            listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option, color = TextPrimary) },
+                                    onClick = {
+                                        compoundingFrequency = option
+                                        showCompoundingDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Monthly Deposit", value = formatDec(monthlyDeposit).removeSuffix(".00"), onValueChange = { monthlyDeposit = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
                                 icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
                                 icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass
                             )
                         }
@@ -182,24 +188,45 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Tenure", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
                                 icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
-                            // Empty box to align grid
+                            PremiumInputField(
+                                label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
+                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass,
+                                infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
+                            )
+                            DropdownMenu(
+                                expanded = showCompoundingDropdown,
+                                onDismissRequest = { showCompoundingDropdown = false },
+                                modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
+                            ) {
+                                listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = TextPrimary) },
+                                        onClick = {
+                                            compoundingFrequency = option
+                                            showCompoundingDropdown = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-
-            // Hero Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceDark)
+        },
+        resultsSection = {
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+                // Hero Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SurfaceDark)
                     .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
@@ -431,9 +458,17 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     
                     val yearsList = listOf(1.0, 3.0, 5.0, 10.0)
                     yearsList.forEachIndexed { index, y ->
-                        val tMonths = y * 12
+                        val tMonths = (y * 12).toInt()
                         val tInvested = p * tMonths
-                        val tMat = if (r > 0) p * (((1 + r).pow(tMonths) - 1) / r) * (1 + r) else p * tMonths
+                        var tMat = 0.0
+                        if (annualRate > 0 && tMonths > 0) {
+                            for (i in 1..tMonths) {
+                                val remainingTimeYears = (tMonths - i + 1) / 12.0
+                                tMat += p * (1 + annualRate / n).pow(n * remainingTimeYears)
+                            }
+                        } else {
+                            tMat = p * tMonths
+                        }
                         val tRet = tMat - tInvested
                         val isLast = index == yearsList.size - 1
                         val color = if (isLast) AccentGreen else TextPrimary
@@ -461,8 +496,11 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 RdActionButton("Download Report", "Save as PDF", Icons.Rounded.Download, AccentGreen)
                 RdActionButton("Share Results", "Share Projection", Icons.Rounded.Share, AccentYellow)
             }
+          }
         }
-    }
+    )
+  }
+ }
 }
 
 @Composable

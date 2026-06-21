@@ -121,106 +121,141 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(bottom = ResponsiveUtils.verticalPadding(sizeClass))
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
-
-            // Loan Cards Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = ResponsiveUtils.horizontalPadding(sizeClass)),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                processedLoans.forEach { loan ->
-                    LoanCard(loan = loan, onEdit = { editingLoan = loan }, modifier = Modifier.width(160.dp).height(130.dp))
-                }
-                
-                // Add Loan Card
-                Box(
-                    modifier = Modifier
-                        .width(160.dp)
-                        .height(130.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceDark.copy(alpha=0.5f))
-                        .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
-                        .clickable {
-                            if (processedLoans.size >= 3 && !isPremiumUnlocked) {
-                                showUnlockDialog = true
-                            } else {
-                                val baseLoan = processedLoans.firstOrNull { it.loanAmount > 0.0 }
-                                val p = baseLoan?.loanAmount ?: 1000000.0
-                                val r = baseLoan?.interestRate ?: 8.5
-                                val t = baseLoan?.tenureYears ?: 10
-                                val nextId = listOf("A", "B", "C", "D", "E").firstOrNull { id -> processedLoans.none { it.id == id } } ?: "D"
-                                val colors = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), AccentYellow, Color(0xFF10B981), Color(0xFFF43F5E))
-                                val colorIndex = processedLoans.size % colors.size
-                                editingLoan = LoanOffer(nextId, "Bank $nextId", r, t, p, 0.0, 0.0, colors[colorIndex])
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
-                                .border(1.dp, AccentBlue, androidx.compose.foundation.shape.CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Rounded.Add, contentDescription = "Add", tint = AccentBlue)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text("Add Loan", color = AccentBlue, fontSize = 14.sp)
-                    }
-                }
+            var emiTrigger = 0.0
+            if (processedLoans.isNotEmpty()) {
+                emiTrigger = processedLoans.sumOf { localCalculateEMI(it.loanAmount, it.interestRate, it.tenureYears) }
             }
-
-            Column(modifier = Modifier.padding(horizontal = ResponsiveUtils.horizontalPadding(sizeClass)), verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
-                val isAnyLoanAdded = processedLoans.any { it.loanAmount > 0.0 || it.interestRate > 0.0 || it.tenureYears > 0 }
-                if (!isAnyLoanAdded) {
-                    EmptyStateIllustration()
-                } else {
-                    ComparisonTable(loans = processedLoans)
-                    LoanAdvisorSection(
-                        loans = processedLoans,
-                        bestLoan = bestLoan,
-                        isPremiumUnlocked = isPremiumUnlocked,
-                        onUnlockRequested = { isPremiumUnlocked = true }
-                    )
-                    WhatYouWillUnlockSection(
-                        isPremiumUnlocked = isPremiumUnlocked,
-                        onToolClick = { tool -> selectedPremiumTool = tool }
-                    )
-
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = emiTrigger,
+                headerSection = { },
+                inputControlsSection = {
+                    // Loan Cards Row
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(vertical = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedButton(onClick = { }, modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), border = BorderStroke(1.dp, CardStroke)) { 
-                            Icon(Icons.Rounded.BookmarkBorder, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Save Comparison", fontSize = 12.sp) 
+                        processedLoans.forEach { loan ->
+                            LoanCard(loan = loan, onEdit = { editingLoan = loan }, modifier = Modifier.width(160.dp).height(130.dp))
                         }
-                        OutlinedButton(onClick = { }, modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), border = BorderStroke(1.dp, CardStroke)) { 
-                            Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Share Result", fontSize = 12.sp) 
+                        
+                        // Add Loan Card
+                        Box(
+                            modifier = Modifier
+                                .width(160.dp)
+                                .height(130.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(SurfaceDark.copy(alpha=0.5f))
+                                .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
+                                .clickable {
+                                    if (processedLoans.size >= 3 && !isPremiumUnlocked) {
+                                        showUnlockDialog = true
+                                    } else {
+                                        val baseLoan = processedLoans.firstOrNull { it.loanAmount > 0.0 }
+                                        val p = baseLoan?.loanAmount ?: 1000000.0
+                                        val r = baseLoan?.interestRate ?: 8.5
+                                        val t = baseLoan?.tenureYears ?: 10
+                                        val nextId = listOf("A", "B", "C", "D", "E").firstOrNull { id -> processedLoans.none { it.id == id } } ?: "D"
+                                        val colors = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), AccentYellow, Color(0xFF10B981), Color(0xFFF43F5E))
+                                        val colorIndex = processedLoans.size % colors.size
+                                        editingLoan = LoanOffer(nextId, "Bank $nextId", r, t, p, 0.0, 0.0, colors[colorIndex])
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(androidx.compose.foundation.shape.CircleShape)
+                                        .border(1.dp, AccentBlue, androidx.compose.foundation.shape.CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Rounded.Add, contentDescription = "Add", tint = AccentBlue)
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Text("Add Loan", color = AccentBlue, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            }
                         }
-                        OutlinedButton(onClick = { }, modifier = Modifier.weight(1f), colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), border = BorderStroke(1.dp, CardStroke)) { 
-                            Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Export PDF", fontSize = 12.sp) 
+                    }
+                },
+                resultsSection = {
+                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+                        val isAnyLoanAdded = processedLoans.any { it.loanAmount > 0.0 || it.interestRate > 0.0 || it.tenureYears > 0 }
+                        if (!isAnyLoanAdded) {
+                            EmptyStateIllustration()
+                        } else {
+                            ComparisonTable(loans = processedLoans)
+                            LoanAdvisorSection(
+                                loans = processedLoans,
+                                bestLoan = bestLoan,
+                                isPremiumUnlocked = isPremiumUnlocked,
+                                onUnlockRequested = { isPremiumUnlocked = true }
+                            )
+                            WhatYouWillUnlockSection(
+                                isPremiumUnlocked = isPremiumUnlocked,
+                                onToolClick = { tool -> selectedPremiumTool = tool }
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = { }, 
+                                    modifier = Modifier.weight(1f), 
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
+                                    border = BorderStroke(1.dp, CardStroke),
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                ) { 
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(Icons.Rounded.BookmarkBorder, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Save Comparison", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                    }
+                                }
+                                OutlinedButton(
+                                    onClick = { }, 
+                                    modifier = Modifier.weight(1f), 
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
+                                    border = BorderStroke(1.dp, CardStroke),
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                ) { 
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Share Result", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                    }
+                                }
+                                OutlinedButton(
+                                    onClick = { }, 
+                                    modifier = Modifier.weight(1f), 
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
+                                    border = BorderStroke(1.dp, CardStroke),
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                ) { 
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Export PDF", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
+            )
         }
     }
 
@@ -475,79 +510,51 @@ fun LoanEditBottomSheet(
                 Text(msg, color = Color(0xFFF87171), fontSize = 14.sp)
             }
             
-            OutlinedTextField(
+            PremiumInputField(
                 value = bankName,
                 onValueChange = { bankName = it },
-                label = { Text("Bank Name", color = TextSecondary) },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = CardStroke
-                ),
+                label = "Bank Name",
+                icon = Icons.Rounded.AccountBalance,
+                iconTint = AccentBlue,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
+            PremiumInputField(
                 value = loanAmount,
                 onValueChange = { loanAmount = it },
-                label = { Text("Loan Amount (₹)", color = TextSecondary) },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = CardStroke
-                ),
+                label = "Loan Amount",
+                icon = Icons.Rounded.AccountBalanceWallet,
+                iconTint = AccentBlue,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+                PremiumInputField(
                     value = interestRate,
                     onValueChange = { interestRate = it },
-                    label = { Text("Interest Rate (%)", color = TextSecondary) },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentBlue,
-                        unfocusedBorderColor = CardStroke
-                    ),
+                    label = "Interest Rate (p.a.)",
+                    icon = Icons.Rounded.Percent,
+                    iconTint = AccentBlue,
                     modifier = Modifier.weight(1f)
                 )
 
-                OutlinedTextField(
+                PremiumInputField(
                     value = tenure,
                     onValueChange = { tenure = it },
-                    label = { Text("Tenure (Years)", color = TextSecondary) },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentBlue,
-                        unfocusedBorderColor = CardStroke
-                    ),
+                    label = "Tenure (Years)",
+                    icon = Icons.Rounded.DateRange,
+                    iconTint = AccentBlue,
+                    suffix = " Yrs",
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            OutlinedTextField(
+            PremiumInputField(
                 value = processingFee,
                 onValueChange = { processingFee = it },
-                label = { Text("Processing Fee (₹)", color = TextSecondary) },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = CardStroke
-                ),
+                label = "Processing Fee",
+                icon = Icons.Rounded.MonetizationOn,
+                iconTint = AccentBlue,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -665,9 +672,9 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                     modifier = Modifier.fillMaxWidth().background(Color(0xFF020B1F)).padding(horizontal = 12.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Comparison Overview", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f))
+                    Text("Comparison Overview", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     loans.forEach { loan ->
-                        Text("Loan ${loan.id}", color = loan.color, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text("Loan ${loan.id}", color = loan.color, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
                 HorizontalDivider(color = CardStroke)
@@ -695,7 +702,7 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                         Row(modifier = Modifier.weight(1.5f), verticalAlignment = Alignment.CenterVertically) {
                             Icon(icon, contentDescription = title, tint = TextSecondary, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(title, color = TextSecondary, fontSize = 11.sp)
+                            Text(title, color = TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             if (title == "Effective Interest Rate") {
                                 Spacer(Modifier.width(4.dp))
                                 Icon(Icons.Rounded.Info, contentDescription = "Info", tint = TextSecondary, modifier = Modifier.size(12.dp))
@@ -962,9 +969,9 @@ fun WhatYouWillUnlockSection(isPremiumUnlocked: Boolean, onToolClick: (String) -
                                     }
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 Spacer(Modifier.height(4.dp))
-                                Text(desc, color = TextSecondary, fontSize = 11.sp, lineHeight = 16.sp)
+                                Text(desc, color = TextSecondary, fontSize = 11.sp, lineHeight = 16.sp, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
                         }
                     }

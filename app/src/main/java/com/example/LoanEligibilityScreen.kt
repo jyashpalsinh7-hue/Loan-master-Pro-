@@ -88,7 +88,7 @@ fun LoanEligibilityScreen() {
     }
     
     LaunchedEffect(selectedLoanProfile, creditScoreRange) {
-        val baseRate = selectedLoanProfile.defaultRate.toDoubleOrNull() ?: 8.5
+        val baseRate = selectedLoanProfile.defaultRate.safeToDouble()
         val additionalRate = when(creditScoreRange) {
             "Excellent" -> 0.0
             "Good" -> 1.0
@@ -97,10 +97,10 @@ fun LoanEligibilityScreen() {
         interestRate = (baseRate + additionalRate).toString()
     }
 
-    val income1 = monthlyIncome.toDoubleOrNull() ?: 0.0
-    val emi1 = existingEMIs.toDoubleOrNull() ?: 0.0
-    val income2 = if (isCoBorrowerEnabled) (coBorrowerIncome.toDoubleOrNull() ?: 0.0) else 0.0
-    val emi2 = if (isCoBorrowerEnabled) (coBorrowerEMIs.toDoubleOrNull() ?: 0.0) else 0.0
+    val income1 = monthlyIncome.safeToDouble()
+    val emi1 = existingEMIs.safeToDouble()
+    val income2 = if (isCoBorrowerEnabled) (coBorrowerIncome.safeToDouble()) else 0.0
+    val emi2 = if (isCoBorrowerEnabled) (coBorrowerEMIs.safeToDouble()) else 0.0
 
     val totalIncome = income1 + income2
     val totalExistingEmi = emi1 + emi2
@@ -109,8 +109,8 @@ fun LoanEligibilityScreen() {
     val maxAllowedEmi = totalIncome * foirLimit
     val availableEmi = maxAllowedEmi - totalExistingEmi
 
-    val r = (interestRate.toDoubleOrNull() ?: 0.0) / 100 / 12
-    val n = (tenureYears.toDoubleOrNull() ?: 0.0) * 12
+    val r = (interestRate.safeToDouble()) / 100 / 12
+    val n = (tenureYears.safeToDouble().coerceIn(0.0, 100.0)) * 12
     val eligibleLoanAmount = if (availableEmi > 0 && r > 0 && n > 0.0) {
         availableEmi * ((Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n)))
     } else 0.0
@@ -630,7 +630,7 @@ fun LoanEligibilityScreen() {
                     modifier = Modifier.fillMaxWidth(),
                     content1 = { mod ->
                         Card(modifier = mod.clickable { 
-                            monthlyIncome = ((monthlyIncome.toDoubleOrNull() ?: 0.0) + 10000).toInt().toString()
+                            monthlyIncome = ((monthlyIncome.safeToDouble()) + 10000).toInt().toString()
                         }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
@@ -641,7 +641,7 @@ fun LoanEligibilityScreen() {
                     },
                     content2 = { mod ->
                         Card(modifier = mod.clickable { 
-                            val newEmi = ((existingEMIs.toDoubleOrNull() ?: 0.0) - 5000)
+                            val newEmi = ((existingEMIs.safeToDouble()) - 5000)
                             existingEMIs = (if (newEmi > 0) newEmi else 0.0).toInt().toString()
                         }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -758,34 +758,15 @@ fun AutoResizeTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
-    val inputLength = value.length
-    val scaledFontSize = when {
-        inputLength >= 12 -> 12.sp
-        inputLength >= 9 -> 14.sp
-        else -> 16.sp
-    }
-    
-    OutlinedTextField(
+    PremiumInputField(
+        label = label,
         value = value,
         onValueChange = onValueChange,
+        icon = Icons.Rounded.Edit, // Default icon
+        iconTint = Color(0xFF3B82F6),
+        modifier = modifier,
         readOnly = readOnly,
-        label = { Text(label, color = Color.Gray, fontSize = 10.sp, maxLines = 1, softWrap = false) },
-        modifier = modifier.height(64.dp),
-        singleLine = true,
-        maxLines = 1,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        textStyle = LocalTextStyle.current.copy(fontSize = scaledFontSize, color = Color.White),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color(0xFF3B82F6),
-            unfocusedBorderColor = Color(0xFF152238),
-            focusedContainerColor = Color(0xFF152238).copy(alpha = 0.5f),
-            unfocusedContainerColor = Color(0xFF152238).copy(alpha = 0.5f)
-        ),
-        leadingIcon = leadingIcon,
-        trailingIcon = trailingIcon,
-        shape = RoundedCornerShape(12.dp)
+        trailingContent = trailingIcon
     )
 }
 

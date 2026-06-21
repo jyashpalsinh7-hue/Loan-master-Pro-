@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 
-private val AppColorScheme = darkColorScheme(
+private val DarkColorScheme = darkColorScheme(
     primary = AccentYellow,
     secondary = AccentBlue,
     background = BackgroundDark,
@@ -25,21 +25,46 @@ private val AppColorScheme = darkColorScheme(
     onSurface = TextPrimary
 )
 
+private val LightColorScheme = lightColorScheme(
+    primary = AccentBlue,
+    secondary = AccentYellow,
+    background = androidx.compose.ui.graphics.Color(0xFFF3F4F6),
+    surface = androidx.compose.ui.graphics.Color.White,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    onSecondary = androidx.compose.ui.graphics.Color.Black,
+    onBackground = androidx.compose.ui.graphics.Color(0xFF1E293B),
+    onSurface = androidx.compose.ui.graphics.Color(0xFF0F172A)
+)
+
+val LocalThemeMode = androidx.compose.runtime.compositionLocalOf { false }
+val LocalThemeToggle = androidx.compose.runtime.compositionLocalOf { {} }
+
 @Composable
 fun MyApplicationTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = BackgroundDark.toArgb()
-            window.navigationBarColor = NavBackground.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.surface.toArgb()
         }
     }
 
     MaterialTheme(
-        colorScheme = AppColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

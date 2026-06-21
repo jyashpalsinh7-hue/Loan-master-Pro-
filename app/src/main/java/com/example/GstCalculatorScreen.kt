@@ -77,7 +77,7 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("GST Calculator", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text("Calculate GST amount instantly", color = TextSecondary, fontSize = 12.sp)
+                        Text("Calculate GST amount instantly", color = TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = "Favorite", tint = TextPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(16.dp))
@@ -88,119 +88,96 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
         bottomBar = { AppBottomBar(selectedRoute = "gst") },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
-            // Top Tab Row
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                GstTab("Add GST", "Price + GST", Icons.Rounded.PostAdd, true)
-                GstTab("Remove GST", "Price from Total", Icons.Rounded.RemoveCircleOutline, false)
-                GstTab("GST on Margin", "(Scheme)", Icons.Rounded.Percent, false)
-                GstTab("HSN Finder", "Search Code", Icons.Rounded.Search, false)
-            }
-
-            // Enter Details Section
-            Column(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Enter Details", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(modifier = Modifier.weight(1.5f)) {
-                        AutoResizedText("Amount (Without GST)", color = TextSecondary, fontSize = 12.sp, maxLines = 1)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = amountText,
-                            onValueChange = { amountText = it },
-                            leadingIcon = { Text("₹", color = TextSecondary, fontSize = 16.sp, modifier = Modifier.padding(start = 12.dp)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = TextPrimary,
-                                unfocusedTextColor = TextPrimary,
-                                focusedBorderColor = AccentBlue,
-                                unfocusedBorderColor = CardStroke,
-                                focusedContainerColor = BackgroundDark,
-                                unfocusedContainerColor = BackgroundDark
-                            ),
-                            modifier = Modifier.fillMaxWidth().height(52.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Enter taxable amount", color = TextSecondary, fontSize = 10.sp)
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = totalAmount,
+                headerSection = {
+                    // Top Tab Row
+                    androidx.compose.foundation.lazy.LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        item { GstTab("Add GST", "Price + GST", Icons.Rounded.PostAdd, true) }
+                        item { GstTab("Remove GST", "Price from Total", Icons.Rounded.RemoveCircleOutline, false) }
+                        item { GstTab("GST on Margin", "(Scheme)", Icons.Rounded.Percent, false) }
+                        item { GstTab("HSN Finder", "Search Code", Icons.Rounded.Search, false) }
                     }
-                    Column(modifier = Modifier.weight(1f)) {
-                        AutoResizedText("GST Rate", color = TextSecondary, fontSize = 12.sp, maxLines = 1)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        var isGstExpanded by remember { mutableStateOf(false) }
-                        Box {
-                            OutlinedTextField(
-                                value = "${gstRate.toInt()}%",
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = TextSecondary) },
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = TextPrimary,
-                                    unfocusedTextColor = TextPrimary,
-                                    focusedBorderColor = CardStroke,
-                                    unfocusedBorderColor = CardStroke,
-                                    focusedContainerColor = BackgroundDark,
-                                    unfocusedContainerColor = BackgroundDark
-                                ),
-                                modifier = Modifier.fillMaxWidth().height(52.dp).clickable { isGstExpanded = true }
-                            )
-                            DropdownMenu(expanded = isGstExpanded, onDismissRequest = { isGstExpanded = false }) {
-                                listOf(5.0, 12.0, 18.0, 28.0).forEach { rate ->
-                                    DropdownMenuItem(text = { Text("${rate.toInt()}%") }, onClick = { gstRate = rate; isGstExpanded = false })
-                                }
-                            }
+                },
+                inputControlsSection = {
+                    // Enter Details Section
+                    Column(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Enter Details", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Select GST rate", color = TextSecondary, fontSize = 10.sp)
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        AutoResizedText("Cess Rate (if any)", color = TextSecondary, fontSize = 12.sp, maxLines = 1)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        var isCessExpanded by remember { mutableStateOf(false) }
-                        Box {
-                            OutlinedTextField(
-                                value = "${cessRate.toInt()}%",
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null, tint = TextSecondary) },
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = TextPrimary,
-                                    unfocusedTextColor = TextPrimary,
-                                    focusedBorderColor = CardStroke,
-                                    unfocusedBorderColor = CardStroke,
-                                    focusedContainerColor = BackgroundDark,
-                                    unfocusedContainerColor = BackgroundDark
-                                ),
-                                modifier = Modifier.fillMaxWidth().height(52.dp).clickable { isCessExpanded = true }
-                            )
-                            DropdownMenu(expanded = isCessExpanded, onDismissRequest = { isCessExpanded = false }) {
-                                listOf(0.0, 1.0, 3.0, 5.0, 12.0).forEach { rate ->
-                                    DropdownMenuItem(text = { Text("${rate.toInt()}%") }, onClick = { cessRate = rate; isCessExpanded = false })
-                                }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(modifier = Modifier.weight(1.5f)) {
+                                PremiumInputField(
+                                    label = "Amount (Without GST)",
+                                    value = amountText,
+                                    onValueChange = { amountText = it },
+                                    icon = Icons.Rounded.MonetizationOn,
+                                    iconTint = AccentBlue,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Enter taxable amount", color = TextSecondary, fontSize = 10.sp)
                             }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Select cess rate", color = TextSecondary, fontSize = 10.sp)
-                    }
+                            Column(modifier = Modifier.weight(1f)) {
+                                var isGstExpanded by remember { mutableStateOf(false) }
+                                Box {
+                                    PremiumInputField(
+                                        label = "GST Rate",
+                                        value = "${gstRate.toInt()}%",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        icon = Icons.Rounded.Percent,
+                                        iconTint = AccentBlue,
+                                        trailingIcon = Icons.Rounded.KeyboardArrowDown,
+                                        onClick = { isGstExpanded = true },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    DropdownMenu(expanded = isGstExpanded, onDismissRequest = { isGstExpanded = false }) {
+                                        listOf(5.0, 12.0, 18.0, 28.0).forEach { rate ->
+                                            DropdownMenuItem(text = { Text("${rate.toInt()}%") }, onClick = { gstRate = rate; isGstExpanded = false })
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Select GST rate", color = TextSecondary, fontSize = 10.sp)
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                var isCessExpanded by remember { mutableStateOf(false) }
+                                Box {
+                                    PremiumInputField(
+                                        label = "Cess Rate (if any)",
+                                        value = "${cessRate.toInt()}%",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        icon = Icons.Rounded.Percent,
+                                        iconTint = AccentBlue,
+                                        trailingIcon = Icons.Rounded.KeyboardArrowDown,
+                                        onClick = { isCessExpanded = true },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    DropdownMenu(expanded = isCessExpanded, onDismissRequest = { isCessExpanded = false }) {
+                                        listOf(0.0, 1.0, 3.0, 5.0, 12.0).forEach { rate ->
+                                            DropdownMenuItem(text = { Text("${rate.toInt()}%") }, onClick = { cessRate = rate; isCessExpanded = false })
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Select cess rate", color = TextSecondary, fontSize = 10.sp)
+                            }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -247,9 +224,11 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                     }
                 }
             }
-
-            // GST Calculation Summary
-            Text("GST Calculation Summary", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        },
+        resultsSection = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                // GST Calculation Summary
+                Text("GST Calculation Summary", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -299,46 +278,65 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                     }
                 }
 
+                // Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GstActionButton("Save Calculation", Icons.Rounded.BookmarkBorder, AccentBlue)
+                    GstActionButton("Share Result", Icons.Rounded.Share, Color(0xFF7C4DFF))
+                    GstActionButton("Download PDF", Icons.Rounded.Download, AccentGreen)
+                    GstActionButton("Clear All", Icons.Rounded.DeleteOutline, Color(0xFFE53935))
+                }
+                
                 // Rate Wise Quick Calculator
                 Column(
-                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Rate Wise Quick Calculator", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Rate Wise Quick Calculator", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                        columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(minSize = 250.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        userScrollEnabled = false
+                    ) {
                         listOf(5.0, 12.0, 18.0, 28.0).forEach { rate ->
-                            val isActive = rate == gstRate
-                            val rateTotal = amount + (amount * (rate / 100.0))
-                            
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .border(1.dp, if (isActive) AccentYellow else CardStroke, RoundedCornerShape(8.dp))
-                                    .background(if (isActive) AccentYellow.copy(alpha = 0.05f) else Color.Transparent)
-                                    .clickable { gstRate = rate }
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text("${rate.toInt()}%", color = if (isActive) AccentYellow else TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                    Text("GST", color = TextSecondary, fontSize = 10.sp)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f, fill = false)) {
-                                        AutoResizedText("Total Amount", color = TextSecondary, fontSize = 10.sp, maxLines = 1)
-                                        AutoResizedText(formatInr(rateTotal), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            item {
+                                val isActive = rate == gstRate
+                                val rateTotal = amount + (amount * (rate / 100.0))
+                                
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .border(1.dp, if (isActive) AccentYellow else CardStroke, RoundedCornerShape(8.dp))
+                                        .background(if (isActive) AccentYellow.copy(alpha = 0.05f) else Color.Transparent)
+                                        .clickable { gstRate = rate }
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text("${rate.toInt()}%", color = if (isActive) AccentYellow else TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("GST", color = TextSecondary, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
-                                    if (isActive) {
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(AccentBlue), contentAlignment = Alignment.Center) {
-                                            Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f, fill = false)) {
+                                            AutoResizedText("Total Amount", color = TextSecondary, fontSize = 10.sp, maxLines = 1)
+                                            AutoResizedText(formatInr(rateTotal), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                        if (isActive) {
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(AccentBlue), contentAlignment = Alignment.Center) {
+                                                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                            }
                                         }
                                     }
                                 }
@@ -346,69 +344,61 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                         }
                     }
                 }
-            }
 
-            // Summary Table
-            Column(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(vertical = 16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
-                    Text("Summary Table", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
-                }
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                // Summary Table
+                Column(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(12.dp)).padding(vertical = 16.dp)
                 ) {
-                    Column {
-                        Row(modifier = Modifier.background(CardStroke.copy(alpha = 0.5f)).padding(vertical = 10.dp).wrapContentHeight()) {
-                            Text("Rate", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 60.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("Taxable Amount", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("CGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("SGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("IGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("Total GST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 100.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text("Total Amount", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
-                        
-                        listOf(5.0, 12.0, 18.0, 28.0).forEachIndexed { index, rate ->
-                            val isActive = rate == gstRate
-                            val textColor = if (isActive) AccentYellow else TextPrimary
-                            
-                            val listTotalGst = amount * (rate / 100.0)
-                            val listCgst = if (isIntrastate) listTotalGst / 2 else 0.0
-                            val listSgst = if (isIntrastate) listTotalGst / 2 else 0.0
-                            val listIgst = if (isIntrastate) 0.0 else listTotalGst
-                            val listTotalAmt = amount + listTotalGst
-                            
-                            Row(modifier = Modifier.padding(vertical = 12.dp).wrapContentHeight()) {
-                                Text("${rate.toInt()}%", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 60.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(formatInr(amount), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(if (isIntrastate) formatInr(listCgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(if (isIntrastate) formatInr(listSgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(if (!isIntrastate) formatInr(listIgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(formatInr(listTotalGst), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 100.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(formatInr(listTotalAmt), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+                        Text("Summary Table", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                    }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                    ) {
+                        Column {
+                            Row(modifier = Modifier.background(CardStroke.copy(alpha = 0.5f)).padding(vertical = 10.dp).wrapContentHeight()) {
+                                Text("Rate", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 60.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("Taxable Amount", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("CGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("SGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("IGST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("Total GST", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 100.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text("Total Amount", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             }
-                            if (index < 3) Divider(color = CardStroke)
+                            
+                            listOf(5.0, 12.0, 18.0, 28.0).forEachIndexed { index, rate ->
+                                val isActive = rate == gstRate
+                                val textColor = if (isActive) AccentYellow else TextPrimary
+                                
+                                val listTotalGst = amount * (rate / 100.0)
+                                val listCgst = if (isIntrastate) listTotalGst / 2 else 0.0
+                                val listSgst = if (isIntrastate) listTotalGst / 2 else 0.0
+                                val listIgst = if (isIntrastate) 0.0 else listTotalGst
+                                val listTotalAmt = amount + listTotalGst
+                                
+                                Row(modifier = Modifier.padding(vertical = 12.dp).wrapContentHeight()) {
+                                    Text("${rate.toInt()}%", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 60.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(formatInr(amount), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(if (isIntrastate) formatInr(listCgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(if (isIntrastate) formatInr(listSgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(if (!isIntrastate) formatInr(listIgst) else "-", color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 80.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(formatInr(listTotalGst), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 100.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(formatInr(listTotalAmt), color = textColor, fontSize = 12.sp, modifier = Modifier.widthIn(min = 120.dp), textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                }
+                                if (index < 3) HorizontalDivider(color = CardStroke)
+                            }
                         }
                     }
                 }
             }
-
-            // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                GstActionButton("Save Calculation", Icons.Rounded.BookmarkBorder, AccentBlue)
-                GstActionButton("Share Result", Icons.Rounded.Share, Color(0xFF7C4DFF))
-                GstActionButton("Download PDF", Icons.Rounded.Download, AccentGreen)
-                GstActionButton("Clear All", Icons.Rounded.DeleteOutline, Color(0xFFE53935))
-            }
+          }
         }
-    }
+    )
+  }
+}
 }
 
 @Composable

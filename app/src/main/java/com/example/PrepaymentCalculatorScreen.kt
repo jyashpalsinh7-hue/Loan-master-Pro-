@@ -72,10 +72,10 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
     var isPremiumUnlocked by remember { mutableStateOf(false) }
     var showPremiumCalculator by remember { mutableStateOf<String?>(null) }
 
-    val p = loanAmount.toDoubleOrNull() ?: 0.0
-    val rate = interestRate.toDoubleOrNull() ?: 0.0
-    val terms = tenureYears.toDoubleOrNull() ?: 0.0
-    val prePay = prepaymentAmount.toDoubleOrNull() ?: 0.0
+    val p = loanAmount.safeToDouble()
+    val rate = interestRate.safeToDouble()
+    val terms = tenureYears.safeToDouble().coerceIn(0.0, 100.0)
+    val prePay = prepaymentAmount.safeToDouble()
 
     val r = if (rate > 0) (rate / 12) / 100 else 0.0
     val n = terms * 12
@@ -241,7 +241,8 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                                     .fillMaxWidth()
                                     .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true),
                                 readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) }
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                                infoText = "Choose between making a single lump sum payment or paying extra every month."
                             )
                             ExposedDropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }, containerColor = surfaceColor) {
                                 DropdownMenuItem(text = { Text("One-time Lump Sum", color = textColor) }, onClick = { prepayType = "One-time Lump Sum"; typeExpanded = false })
@@ -769,34 +770,19 @@ fun AutoResizeTextFieldPrepay(
     label: String,
     modifier: Modifier = Modifier,
     readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    infoText: String? = null
 ) {
-    val inputLength = value.length
-    val scaledFontSize = when {
-        inputLength >= 12 -> 14.sp
-        else -> 16.sp
-    }
-    
-    OutlinedTextField(
+    PremiumInputField(
+        label = label,
         value = value,
         onValueChange = onValueChange,
+        icon = Icons.Rounded.Edit, // Default generic edit icon
+        iconTint = Color(0xFF3B82F6),
+        modifier = modifier,
         readOnly = readOnly,
-        label = { Text(label, color = Color.Gray, fontSize = 12.sp, maxLines = 1, softWrap = false) },
-        modifier = modifier.height(60.dp),
-        singleLine = true,
-        maxLines = 1,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        textStyle = LocalTextStyle.current.copy(fontSize = scaledFontSize, color = Color.White),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color(0xFF3B82F6),
-            unfocusedBorderColor = Color(0xFF152238).copy(alpha=0.5f),
-            focusedContainerColor = Color(0xFF0B132B),
-            unfocusedContainerColor = Color(0xFF0B132B)
-        ),
-        trailingIcon = trailingIcon,
-        shape = RoundedCornerShape(8.dp)
+        infoText = infoText,
+        trailingContent = trailingIcon
     )
 }
 

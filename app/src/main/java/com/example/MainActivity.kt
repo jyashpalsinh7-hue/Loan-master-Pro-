@@ -44,10 +44,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                val navController = rememberNavController()
+            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+            var isDarkTheme by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(systemDark) }
+
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.example.ui.theme.LocalThemeToggle provides { isDarkTheme = !isDarkTheme },
+                com.example.ui.theme.LocalThemeMode provides isDarkTheme
+            ) {
+                MyApplicationTheme(darkTheme = isDarkTheme) {
+                    val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "home") {
-                    composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }, onNavigateToFd = { navController.navigate("fd") }, onNavigateToCurrency = { navController.navigate("currency") }, onNavigateToEligibility = { navController.navigate("eligibility") }, onNavigateToPrepayment = { navController.navigate("prepayment") }) }
+                    composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }, onNavigateToFd = { navController.navigate("fd") }, onNavigateToCurrency = { navController.navigate("currency") }, onNavigateToEligibility = { navController.navigate("eligibility") }, onNavigateToPrepayment = { navController.navigate("prepayment") }, onNavigateToSettings = { navController.navigate("settings") }) }
                     composable("emi") { EmiCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("compare") { LoanComparisonScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("sip") { SipCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
@@ -57,16 +64,18 @@ class MainActivity : ComponentActivity() {
                     composable("currency") { CurrencyConverterScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("eligibility") { LoanEligibilityScreen() }
                     composable("prepayment") { PrepaymentCalculatorScreen() }
+                    composable("settings") { SettingsScreen(onNavigateBack = { navController.popBackStack() }) }
                 }
+            }
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}) {
+fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}) {
     Scaffold(
-        topBar = { AppTopBar() },
+        topBar = { AppTopBar(onNavigateToSettings) },
         bottomBar = { AppBottomBar() },
         containerColor = BackgroundDark
     ) { innerPadding ->
@@ -88,7 +97,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
 }
 
 @Composable
-fun AppTopBar() {
+fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,7 +109,7 @@ fun AppTopBar() {
             imageVector = Icons.Rounded.Menu,
             contentDescription = "Menu",
             tint = TextPrimary,
-            modifier = Modifier.size(28.dp).testTag("menu_icon")
+            modifier = Modifier.size(28.dp).testTag("menu_icon").clickable { onNavigateToSettings() }
         )
         Spacer(modifier = Modifier.width(16.dp))
         

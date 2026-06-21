@@ -46,13 +46,12 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var monthlySip by remember { mutableDoubleStateOf(10000.0) }
-    var expectedReturnPa by remember { mutableDoubleStateOf(12.0) }
-    var investmentPeriodYears by remember { mutableDoubleStateOf(20.0) }
-    var stepUpAnnual by remember { mutableDoubleStateOf(0.0) }
+    var monthlySipText by remember { mutableStateOf("10000") }
+    var expectedReturnPaText by remember { mutableStateOf("12") }
+    var investmentPeriodYearsText by remember { mutableStateOf("20") }
+    var stepUpAnnualText by remember { mutableStateOf("0") }
 
-    var editingField by remember { mutableStateOf<String?>(null) }
-    var editValue by remember { mutableStateOf("") }
+
 
     val formatInr = { value: Double ->
         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
@@ -65,53 +64,29 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
         if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
-    val p = monthlySip
-    val r = expectedReturnPa / 12 / 100
-    val n = investmentPeriodYears * 12
-    val maturityValue = if (r > 0) p * (((1 + r).pow(n) - 1) / r) * (1 + r) else p * n
-    val totalInvested = p * n
+    val initialP = monthlySipText.safeToDouble()
+    val annualReturnRate = expectedReturnPaText.safeToDouble() / 100.0
+    val monthlyReturnRate = annualReturnRate / 12.0
+    val years = investmentPeriodYearsText.safeToDouble().coerceIn(0.0, 100.0)
+    val stepUpRate = stepUpAnnualText.safeToDouble() / 100.0
+    val totalMonths = (years * 12).toInt()
+
+    var maturityValue = 0.0
+    var totalInvested = 0.0
+    var currentMonthlySip = initialP
+
+    for (m in 1..totalMonths) {
+        totalInvested += currentMonthlySip
+        maturityValue = (maturityValue + currentMonthlySip) * (1 + monthlyReturnRate)
+        if (m % 12 == 0) {
+            currentMonthlySip += currentMonthlySip * stepUpRate
+        }
+    }
+    
     val totalReturns = maturityValue - totalInvested
     val wealthGain = if (totalInvested > 0) (totalReturns / totalInvested) * 100 else 0.0
 
-    if (editingField != null) {
-        AlertDialog(
-            onDismissRequest = { editingField = null },
-            title = { Text("Edit $editingField", color = TextPrimary) },
-            text = {
-                OutlinedTextField(
-                    value = editValue,
-                    onValueChange = { editValue = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentYellow,
-                        unfocusedBorderColor = CardStroke
-                    )
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val parsed = editValue.toDoubleOrNull() ?: 0.0
-                        when (editingField) {
-                            "Monthly SIP" -> monthlySip = parsed
-                            "Expected Return" -> expectedReturnPa = parsed
-                            "Investment Period" -> investmentPeriodYears = parsed
-                            "Step-up" -> stepUpAnnual = parsed
-                        }
-                        editingField = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark)
-                ) { Text("Save", fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingField = null }) { Text("Cancel", color = TextSecondary) }
-            },
-            containerColor = SurfaceDark
-        )
-    }
+
 
     Scaffold(
         topBar = {
@@ -140,47 +115,49 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
         bottomBar = { AppBottomBar(selectedRoute = "calculators") },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
-            // Inputs
-            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = maturityValue,
+                headerSection = {
+                   // No header section specific content defined top-level before inputs
+                },
+                inputControlsSection = {
+                    // Inputs
+                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
                 if (sizeClass == WindowWidthSizeClass.Compact) {
                     PremiumInputField(
-                        label = "Monthly SIP", value = formatDec(monthlySip).removeSuffix(".00"), onValueChange = { monthlySip = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Monthly SIP", value = monthlySipText, onValueChange = { monthlySipText = it },
                         icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Expected Return (p.a.)", value = formatDec(expectedReturnPa).removeSuffix(".00"), onValueChange = { expectedReturnPa = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Expected Return (p.a.)", value = expectedReturnPaText, onValueChange = { expectedReturnPaText = it },
                         icon = Icons.Rounded.Percent, iconTint = AccentPurple, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Investment Period", value = formatDec(investmentPeriodYears).removeSuffix(".00"), onValueChange = { investmentPeriodYears = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Investment Period", value = investmentPeriodYearsText, onValueChange = { investmentPeriodYearsText = it },
                         icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Step-up (Annual)", value = formatDec(stepUpAnnual).removeSuffix(".00"), onValueChange = { stepUpAnnual = it.toDoubleOrNull() ?: 0.0 },
-                        icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                        label = "Step-up (Annual)", value = stepUpAnnualText, onValueChange = { stepUpAnnualText = it },
+                        icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth(),
+                        infoText = "The percentage by which you plan to increase your SIP amount every year to match your income growth."
                     )
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Monthly SIP", value = formatDec(monthlySip).removeSuffix(".00"), onValueChange = { monthlySip = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Monthly SIP", value = monthlySipText, onValueChange = { monthlySipText = it },
                                 icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Expected Return (p.a.)", value = formatDec(expectedReturnPa).removeSuffix(".00"), onValueChange = { expectedReturnPa = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Expected Return (p.a.)", value = expectedReturnPaText, onValueChange = { expectedReturnPaText = it },
                                 icon = Icons.Rounded.Percent, iconTint = AccentPurple, sizeClass = sizeClass
                             )
                         }
@@ -188,31 +165,34 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Investment Period", value = formatDec(investmentPeriodYears).removeSuffix(".00"), onValueChange = { investmentPeriodYears = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Investment Period", value = investmentPeriodYearsText, onValueChange = { investmentPeriodYearsText = it },
                                 icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Step-up (Annual)", value = formatDec(stepUpAnnual).removeSuffix(".00"), onValueChange = { stepUpAnnual = it.toDoubleOrNull() ?: 0.0 },
-                                icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass
+                                label = "Step-up (Annual)", value = stepUpAnnualText, onValueChange = { stepUpAnnualText = it },
+                                icon = Icons.Rounded.TrendingUp, iconTint = AccentYellow, suffix = "%", sizeClass = sizeClass,
+                                infoText = "The percentage by which you plan to increase your SIP amount every year to match your income growth."
                             )
                         }
                     }
                 }
             }
-
-            // Hero Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceDark)
-                    .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
-                    .padding(16.dp)
-            ) {
-                Column {
+        },
+        resultsSection = {
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+                // Hero Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SurfaceDark)
+                        .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Column {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(modifier = Modifier.weight(0.65f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -440,9 +420,17 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                     
                     val yearsList = listOf(5.0, 10.0, 15.0, 20.0)
                     yearsList.forEachIndexed { index, y ->
-                        val tMonths = y * 12
-                        val tInvested = p * tMonths
-                        val tMat = if (r > 0) p * (((1 + r).pow(tMonths) - 1) / r) * (1 + r) else p * tMonths
+                        val tMonths = (y * 12).toInt()
+                        var tMat = 0.0
+                        var tInvested = 0.0
+                        var currentP = initialP
+                        for (m in 1..tMonths) {
+                            tInvested += currentP
+                            tMat = (tMat + currentP) * (1 + monthlyReturnRate)
+                            if (m % 12 == 0) {
+                                currentP += currentP * stepUpRate
+                            }
+                        }
                         val tRet = tMat - tInvested
                         val isLast = index == yearsList.size - 1
                         val color = if (isLast) AccentGreen else TextPrimary
@@ -470,8 +458,11 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                 SipActionButton("Download Report", "Save as PDF", Icons.Rounded.Download, AccentGreen)
                 SipActionButton("Share Results", "Share Projection", Icons.Rounded.Share, AccentYellow)
             }
+          }
         }
-    }
+    )
+  }
+}
 }
 
 @Composable

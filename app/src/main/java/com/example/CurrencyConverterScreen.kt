@@ -429,19 +429,14 @@ fun EditableCurrencyRow(flag: String, code: String, name: String, rate: Double, 
             Text(code, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(name, color = Color(0xFFB0BEC5), fontSize = 10.sp)
         }
-        OutlinedTextField(
+        PremiumInputField(
+            label = "",
             value = formatDec(convertedValue),
             onValueChange = {},
             readOnly = true,
-            textStyle = TextStyle(color = CurrNeonGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.End),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = CurrAccentBlue,
-                unfocusedBorderColor = CurrCardStrokeColor,
-                focusedContainerColor = CurrBgColor,
-                unfocusedContainerColor = CurrBgColor
-            ),
-            modifier = Modifier.width(140.dp).height(50.dp)
+            icon = Icons.Rounded.MonetizationOn,
+            iconTint = CurrAccentBlue,
+            modifier = Modifier.width(180.dp)
         )
     }
 }

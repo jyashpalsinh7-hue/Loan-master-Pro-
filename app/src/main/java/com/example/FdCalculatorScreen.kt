@@ -46,12 +46,13 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var depositAmount by remember { mutableDoubleStateOf(100000.0) }
-    var interestRatePa by remember { mutableDoubleStateOf(7.5) }
-    var tenureYears by remember { mutableDoubleStateOf(5.0) }
+    var depositAmountText by remember { mutableStateOf("100000") }
+    var interestRatePaText by remember { mutableStateOf("7.5") }
+    var tenureYearsText by remember { mutableStateOf("5") }
+    var compoundingFrequency by remember { mutableStateOf("Quarterly") }
+    var showCompoundingDropdown by remember { mutableStateOf(false) }
 
-    var editingField by remember { mutableStateOf<String?>(null) }
-    var editValue by remember { mutableStateOf("") }
+
 
     val formatInr = { value: Double ->
         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
@@ -64,54 +65,23 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
         if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
-    val p = depositAmount
-    val r = interestRatePa / 100
-    val t = tenureYears
-    val n = 4.0 // Compounding quarterly
+    val p = depositAmountText.safeToDouble()
+    val r = interestRatePaText.safeToDouble() / 100
+    val t = tenureYearsText.safeToDouble().coerceIn(0.0, 100.0)
+    val n = when (compoundingFrequency) {
+        "Yearly" -> 1.0
+        "Half-Yearly" -> 2.0
+        "Quarterly" -> 4.0
+        "Monthly" -> 12.0
+        else -> 4.0
+    }
     
     val maturityValue = p * (1 + r / n).pow(n * t)
     val totalInvested = p
     val totalReturns = maturityValue - totalInvested
     val wealthGain = if (totalInvested > 0) (totalReturns / totalInvested) * 100 else 0.0
 
-    if (editingField != null) {
-        AlertDialog(
-            onDismissRequest = { editingField = null },
-            title = { Text("Edit $editingField", color = TextPrimary) },
-            text = {
-                OutlinedTextField(
-                    value = editValue,
-                    onValueChange = { editValue = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentYellow,
-                        unfocusedBorderColor = CardStroke
-                    )
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val parsed = editValue.toDoubleOrNull() ?: 0.0
-                        when (editingField) {
-                            "Deposit" -> depositAmount = parsed
-                            "Interest Rate" -> interestRatePa = parsed
-                            "Tenure" -> tenureYears = parsed
-                        }
-                        editingField = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark)
-                ) { Text("Save", fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingField = null }) { Text("Cancel", color = TextSecondary) }
-            },
-            containerColor = SurfaceDark
-        )
-    }
+
 
     Scaffold(
         topBar = {
@@ -140,47 +110,64 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
         bottomBar = { AppBottomBar(selectedRoute = "calculators") },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
         ) {
-            // Inputs
-            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+            ResponsiveScreenWrapper(
+                widthSizeClass = sizeClass,
+                animationTriggerState = maturityValue,
+                headerSection = { },
+                inputControlsSection = {
+                    // Inputs
+                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
                 if (sizeClass == WindowWidthSizeClass.Compact) {
                     PremiumInputField(
-                        label = "Deposit Amount", value = formatDec(depositAmount).removeSuffix(".00"), onValueChange = { depositAmount = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Deposit Amount", value = depositAmountText, onValueChange = { depositAmountText = it },
                         icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
                         icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
-                        label = "Tenure (Years)", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                        label = "Tenure (Years)", value = tenureYearsText, onValueChange = { tenureYearsText = it },
                         icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
                     )
-                    PremiumInputField(
-                        label = "Compounding", value = "Quarterly", onValueChange = {}, 
-                        icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
-                    )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        PremiumInputField(
+                            label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
+                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth(),
+                            infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
+                        )
+                        DropdownMenu(
+                            expanded = showCompoundingDropdown,
+                            onDismissRequest = { showCompoundingDropdown = false },
+                            modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
+                        ) {
+                            listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option, color = TextPrimary) },
+                                    onClick = {
+                                        compoundingFrequency = option
+                                        showCompoundingDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Deposit Amount", value = formatDec(depositAmount).removeSuffix(".00"), onValueChange = { depositAmount = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Deposit Amount", value = depositAmountText, onValueChange = { depositAmountText = it },
                                 icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Interest Rate (p.a.)", value = formatDec(interestRatePa).removeSuffix(".00"), onValueChange = { interestRatePa = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
                                 icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass
                             )
                         }
@@ -188,26 +175,44 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Tenure (Years)", value = formatDec(tenureYears).removeSuffix(".00"), onValueChange = { tenureYears = it.toDoubleOrNull() ?: 0.0 },
+                                label = "Tenure (Years)", value = tenureYearsText, onValueChange = { tenureYearsText = it },
                                 icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
-                                label = "Compounding", value = "Quarterly", onValueChange = {}, 
-                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass
+                                label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
+                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass,
+                                infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
                             )
+                            DropdownMenu(
+                                expanded = showCompoundingDropdown,
+                                onDismissRequest = { showCompoundingDropdown = false },
+                                modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
+                            ) {
+                                listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = TextPrimary) },
+                                        onClick = {
+                                            compoundingFrequency = option
+                                            showCompoundingDropdown = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-
-            // Hero Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceDark)
+        },
+        resultsSection = {
+            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+                // Hero Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SurfaceDark)
                     .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
                     .padding(20.dp)
             ) {
@@ -236,7 +241,7 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val effectiveYield = (totalReturns / totalInvested) / tenureYears * 100
+                                val effectiveYield = if (totalInvested > 0 && t > 0) (totalReturns / totalInvested) / t * 100 else 0.0
                                 Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Total Returns: ${formatDec((totalReturns / totalInvested) * 100)}%", color = AccentGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -280,7 +285,7 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Effective Yield (CAGR)", color = TextSecondary, fontSize = 12.sp)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("${formatDec(interestRatePa)}%", color = AccentBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("${formatDec(interestRatePaText.toDoubleOrNull() ?: 0.0)}%", color = AccentBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -511,9 +516,11 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                     }
                 }
             }
-
+          }
         }
-    }
+    )
+  }
+}
 }
 
 @Composable
