@@ -67,6 +67,10 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
     var interestRate by remember { mutableStateOf("8.5") }
     var tenureYears by remember { mutableStateOf("15") }
     var prepaymentAmount by remember { mutableStateOf("100000") }
+    
+    var showUnlockDialog by remember { mutableStateOf(false) }
+    var isPremiumUnlocked by remember { mutableStateOf(false) }
+    var showPremiumCalculator by remember { mutableStateOf<String?>(null) }
 
     val p = loanAmount.toDoubleOrNull() ?: 0.0
     val rate = interestRate.toDoubleOrNull() ?: 0.0
@@ -524,12 +528,139 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                 Text("Premium Tools", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                item { PremiumToolCard(Icons.Rounded.ReceiptLong, accentBlue, "Amortization\nSchedule") }
-                item { PremiumToolCard(Icons.Rounded.CompareArrows, accentPurple, "Compare\nStrategies") }
-                item { PremiumToolCard(Icons.Rounded.DynamicFeed, accentOrange, "Multiple Prepayment\nPlanner") }
-                item { PremiumToolCard(Icons.Rounded.PictureAsPdf, Color(0xFFEC4899), "PDF Report\n& Share") }
+                val handlePremiumClick = { toolId: String ->
+                    if (isPremiumUnlocked) showPremiumCalculator = toolId
+                    else showUnlockDialog = true
+                }
+                item { PremiumToolCard(Icons.Rounded.ReceiptLong, accentBlue, "Amortization\nSchedule", onClick = { handlePremiumClick("amortization") }) }
+                item { PremiumToolCard(Icons.Rounded.CompareArrows, accentPurple, "Compare\nStrategies", onClick = { handlePremiumClick("compare") }) }
+                item { PremiumToolCard(Icons.Rounded.DynamicFeed, accentOrange, "Multiple Prepayment\nPlanner", onClick = { handlePremiumClick("planner") }) }
+                item { PremiumToolCard(Icons.Rounded.PictureAsPdf, Color(0xFFEC4899), "PDF Report\n& Share", onClick = { handlePremiumClick("pdf") }) }
             }
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+    
+    if (showUnlockDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnlockDialog = false },
+            containerColor = surfaceColor,
+            titleContentColor = textColor,
+            textContentColor = textSecondary,
+            title = {
+                Text("Unlock Premium Tools", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("Access advanced calculators and insights like Amortization Schedule and Compare Strategies by watching a short ad.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isPremiumUnlocked = true
+                        showUnlockDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = accentBlue, contentColor = Color.White)
+                ) {
+                    Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnlockDialog = false }) {
+                    Text("Cancel", color = textColor)
+                }
+            }
+        )
+    }
+
+    if (showPremiumCalculator != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showPremiumCalculator = null },
+            containerColor = surfaceColor
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxWidth().verticalScroll(rememberScrollState())) {
+                when (showPremiumCalculator) {
+                    "amortization" -> {
+                        Text("Amortization Schedule", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Detailed breakdown of your prepayment impact over time.", color = textSecondary, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        // Header
+                        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                            Text("Year", color = textSecondary, modifier = Modifier.weight(1f))
+                            Text("Principal", color = textSecondary, modifier = Modifier.weight(1f))
+                            Text("Interest", color = textSecondary, modifier = Modifier.weight(1f))
+                            Text("Balance", color = textSecondary, modifier = Modifier.weight(1f))
+                        }
+                        // Dummy calculation
+                        var bal = p
+                        var year = 1
+                        while (bal > 0 && year <= terms) {
+                            val interest = bal * rate / 100
+                            val prin = (emi * 12) - interest + if (year == 1) prePay else 0.0
+                            bal = maxOf(0.0, bal - prin)
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                Text("$year", color = textColor, modifier = Modifier.weight(1f))
+                                Text(formatMoney(prin), color = accentGreen, modifier = Modifier.weight(1f))
+                                Text(formatMoney(interest), color = accentOrange, modifier = Modifier.weight(1f))
+                                Text(formatMoney(bal), color = textColor, modifier = Modifier.weight(1f))
+                            }
+                            year++
+                        }
+                    }
+                    "compare" -> {
+                        Text("Compare Prepayment Strategies", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("See how different prepayment percentages affect your savings.", color = textSecondary, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        val options = listOf(5.0, 10.0, 20.0)
+                        options.forEach { pct ->
+                            val prepayOpt = p * (pct / 100)
+                            val newB = p - prepayOpt
+                            val newT = if (newB > 0 && r > 0 && (emi - newB * r) > 0) Math.log(emi / (emi - newB * r)) / Math.log(1 + r) else n
+                            val newInt = (emi * newT) - newB
+                            val optSaved = originalTotalInterest - newInt
+                            Card(colors = CardDefaults.cardColors(containerColor = bgColor), modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text("Prepay ${pct.toInt()}% (${formatMoney(prepayOpt)})", color = textColor, fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("Interest Saved: ${formatMoney(optSaved)}", color = accentGreen)
+                                    Text("New Tenure: ${formatMonths(newT)}", color = accentPurple)
+                                }
+                            }
+                        }
+                    }
+                    "planner" -> {
+                        Text("Multiple Prepayment Planner", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Plan your yearly bonuses or periodic increments.", color = textSecondary, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Card(colors = CardDefaults.cardColors(containerColor = bgColor), modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Example: Prepaying ${formatMoney(50000.0)} every year", color = textColor)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                val yearlyPrepay = 50000.0
+                                var currB = p
+                                var m = 0
+                                var intPaid = 0.0
+                                while(currB > 0) {
+                                    intPaid += currB * r
+                                    var principalPaid = emi - (currB * r)
+                                    if (m % 12 == 0 && m > 0) principalPaid += yearlyPrepay
+                                    currB -= principalPaid
+                                    m++
+                                }
+                                val totalSaved = originalTotalInterest - intPaid
+                                Text("Interest Saved: ${formatMoney(totalSaved)}", color = accentGreen, fontWeight = FontWeight.Bold)
+                                Text("Years Reduced: ${(n - m) / 12} Years", color = accentBlue, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    else -> {
+                        Text("Feature coming soon!", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
 }
@@ -611,13 +742,18 @@ fun RecomRow(text: String) {
 }
 
 @Composable
-fun PremiumToolCard(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, title: String) {
-    Card(modifier = Modifier.width(160.dp).height(64.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF152238)), shape = RoundedCornerShape(12.dp)) {
+fun PremiumToolCard(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, title: String, onClick: () -> Unit = {}) {
+    Card(
+        modifier = Modifier.width(160.dp).height(64.dp).clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = ResponsiveUtils.SurfaceColor),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, ResponsiveUtils.CardStroke)
+    ) {
         Row(modifier = Modifier.padding(horizontal = 12.dp).fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text(title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+            Text(title, color = ResponsiveUtils.TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(16.dp))
         }
     }
 }
