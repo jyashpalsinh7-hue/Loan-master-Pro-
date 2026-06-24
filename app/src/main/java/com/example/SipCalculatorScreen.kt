@@ -31,6 +31,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
@@ -119,7 +121,7 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
         ) {
             SipTopBar(onNavigateBack)
             InputsSection(amountText, returnRateText, yearsText, stepUpText, { amountText = it }, { returnRateText = it }, { yearsText = it }, { stepUpText = it }, isWide)
-            HeroCard(totalInvested, totalGain, maturityValue, returnRate, isWide)
+            HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide)
             
             if (isWide) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -226,7 +228,7 @@ private fun InputsSection(
 @Composable
 private fun CustomInput(label: String, value: String, onValueChange: (String) -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, prefix: String = "", suffix: String = "") {
     Column {
-        Text(label, color = TextSec, fontSize = 13.sp, lineHeight = 16.sp, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(label, color = TextSec, fontSize = 13.sp, lineHeight = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
         Box(
             modifier = Modifier.fillMaxWidth().height(56.dp).background(Color.Transparent).border(1.dp, StrokeNavy, RoundedCornerShape(8.dp)),
@@ -259,12 +261,12 @@ private fun CustomInput(label: String, value: String, onValueChange: (String) ->
 private fun HeroStat(label: String, value: String, color: Color = Color.White, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.Top) {
-            Text(label, color = TextSec, fontSize = 12.sp, lineHeight = 16.sp, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Text(label, color = TextSec, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(4.dp))
             Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(12.dp).padding(top = 2.dp))
         }
         Spacer(Modifier.height(4.dp))
-        Text(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else "${globalCurrencySymbol}$value", color = color, fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold)
+        AutoSizeText(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else "${globalCurrencySymbol}$value", color = color, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 
@@ -275,7 +277,20 @@ fun formatMoneyExact(value: Double): String {
 }
 
 @Composable
-private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Double, isWide: Boolean) {
+private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Double, years: Int, isWide: Boolean) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val heroFontSize = when {
+        screenWidth >= 480 -> 42.sp
+        screenWidth >= 393 -> 38.sp
+        else -> 34.sp
+    }
+    val heroLineHeight = when {
+        screenWidth >= 480 -> 48.sp
+        screenWidth >= 393 -> 44.sp
+        else -> 40.sp
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -288,18 +303,25 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Estimated Maturity Value", color = TextSec, fontSize = 14.sp)
+                        Text("Estimated Maturity Value", color = TextSec, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.width(6.dp))
                         Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(14.dp))
                     }
                     Spacer(Modifier.height(8.dp))
-                    Text(
+                    AutoSizeText(
                         "${globalCurrencySymbol}${formatMoneyExact(maturity)}", 
                         color = GoldAccent, 
-                        fontSize = 42.sp, 
-                        lineHeight = 46.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = heroFontSize, 
+                        lineHeight = heroLineHeight,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1
                     )
+                    Spacer(Modifier.height(4.dp))
+                    val adjustedValue = maturity / Math.pow(1 + 0.06, years.toDouble())
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha=0.05f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                        Text("Real Value Today: ", color = TextSec, fontSize = 11.sp, maxLines = 1)
+                        Text("${globalCurrencySymbol}${formatMoneyObj(adjustedValue)}", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    }
                 }
                 
                 // Piggy bank icon with glow
@@ -493,43 +515,35 @@ private fun LifestyleFundsSection(isWide: Boolean, maturityValue: Double, years:
 
 @Composable
 private fun LifeCard(title: String, targetAmount: Double, maturityValue: Double, years: Int, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
+    val percent = ((maturityValue / targetAmount) * 100).toInt()
     val progress = (maturityValue / targetAmount).coerceAtMost(1.0)
-    val percent = (progress * 100).toInt()
     val shortAmount = (targetAmount - maturityValue).coerceAtLeast(0.0)
-    
-    val yearlyGrowth = maturityValue / Math.max(1, years)
-    val yearsRemaining = if (shortAmount > 0 && yearlyGrowth > 0) shortAmount / yearlyGrowth else 0.0
-    val yearsStr = String.format("%.1f", yearsRemaining)
 
     Column(
-        modifier = modifier.clip(RoundedCornerShape(20.dp))
+        modifier = modifier.clip(RoundedCornerShape(16.dp))
             .background(Brush.linearGradient(listOf(Color(0xFF1E293B), Color(0xFF0F172A))))
-            .border(1.dp, Color.White.copy(alpha=0.1f), RoundedCornerShape(20.dp))
-            .padding(20.dp),
+            .border(1.dp, Color.White.copy(alpha=0.1f), RoundedCornerShape(16.dp))
+            .padding(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(BluePrimary.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = BluePrimary, modifier = Modifier.size(20.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = BluePrimary, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.height(12.dp))
-        Text(title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(12.dp))
         
-        Text("Goal Achievement: $percent%", color = if (percent >= 100) GreenSuccess else GoldAccent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(4.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape).background(Color.White.copy(alpha=0.1f))) {
-            Box(modifier = Modifier.fillMaxWidth(progress.toFloat()).height(6.dp).clip(CircleShape).background(if (percent >= 100) GreenSuccess else BluePrimary))
+        Text("$percent% Achieved", color = if (percent >= 100) GreenSuccess else GoldAccent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(6.dp))
+        Box(modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape).background(Color.White.copy(alpha=0.1f))) {
+            Box(modifier = Modifier.fillMaxWidth(progress.toFloat()).height(4.dp).clip(CircleShape).background(if (percent >= 100) GreenSuccess else BluePrimary))
         }
         
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
         if (shortAmount > 0) {
-            Text("Amount Short: ${globalCurrencySymbol}${formatMoneyObj(shortAmount)}", color = TextSec, fontSize = 12.sp)
-            Spacer(Modifier.height(4.dp))
-            Text("Years Remaining: $yearsStr", color = TextSec, fontSize = 12.sp)
+            Text("${globalCurrencySymbol}${formatMoneyObj(shortAmount)} Short", color = TextSec, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         } else {
-            Text("Status: Goal Achieved!", color = GreenSuccess, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(4.dp))
-            Text("Ready to fund", color = TextSec, fontSize = 12.sp)
+            Text("Goal Reached", color = GreenSuccess, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -549,18 +563,18 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int) {
         Spacer(Modifier.height(24.dp))
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Future Corpus", color = TextSec, fontSize = 14.sp)
-            Text(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text("Future Corpus", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Inflation Adjusted", color = TextSec, fontSize = 14.sp)
-            Text(globalCurrencySymbol + formatMoneyExact(adjustedValue), color = GoldAccent, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text("Inflation Adjusted", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            AutoSizeText(globalCurrencySymbol + formatMoneyExact(adjustedValue), color = GoldAccent, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Value Lost", color = TextSec, fontSize = 14.sp)
-            Text("- " + globalCurrencySymbol + formatMoneyExact(valueLost), color = Color(0xFFF87171), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text("Value Lost", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            AutoSizeText("- " + globalCurrencySymbol + formatMoneyExact(valueLost), color = Color(0xFFF87171), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         
         Spacer(Modifier.height(20.dp))
@@ -601,32 +615,32 @@ private fun WealthOpportunityCard(maturityValue: Double) {
         Spacer(Modifier.height(24.dp))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Current Corpus", color = TextSec, fontSize = 12.sp, lineHeight = 16.sp)
+                Text("Current Corpus", color = TextSec, fontSize = 11.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
-                Text(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
-            Box(modifier = Modifier.width(1.dp).height(50.dp).background(StrokeNavy))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(StrokeNavy))
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1.3f)) {
-                Text("Potential Corpus", color = TextSec, fontSize = 12.sp, lineHeight = 16.sp)
+                Text("Potential Corpus", color = TextSec, fontSize = 11.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
                     val formatted = formatMoneyExact(potentialCorpus)
                     val blurredText = if (formatted.length > 5) formatted.take(2) + ",XX,XXX" else "XX,XXX"
-                    Text(globalCurrencySymbol + blurredText, color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp))
+                    AutoSizeText(globalCurrencySymbol + blurredText, color = GoldAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
                 }
             }
-            Box(modifier = Modifier.width(1.dp).height(50.dp).background(StrokeNavy))
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1.1f)) {
-                Text("Potential Gain", color = TextSec, fontSize = 12.sp, lineHeight = 16.sp)
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(StrokeNavy))
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
+                Text("Potential Gain", color = TextSec, fontSize = 11.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
                     val formattedGain = formatMoneyExact(potentialGain)
                     val blurredGain = if (formattedGain.length > 5) formattedGain.take(1) + ",XX,XXX" else "X,XXX"
-                    Text("+" + globalCurrencySymbol + blurredGain, color = GreenSuccess, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp))
+                    AutoSizeText("+" + globalCurrencySymbol + blurredGain, color = GreenSuccess, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
                 }
             }
         }
@@ -649,25 +663,27 @@ private fun WealthOpportunityCard(maturityValue: Double) {
             Button(
                 onClick = {}, modifier = Modifier.weight(1f).height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = NavyBg.copy(alpha=0.6f), contentColor = Color.White),
-                shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, StrokeNavy)
+                shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, StrokeNavy),
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                   Text("Watch Ad", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                   Text("Unlock AI Insight", fontSize = 11.sp, color = TextSec)
+                   Text("Watch Ad", fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                   Text("Unlock AI Insight", fontSize = 9.sp, color = TextSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             Button(
                 onClick = {}, modifier = Modifier.weight(1f).height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GoldAccent, contentColor = NavyBg),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                   Text("Premium", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                   Text("Unlimited AI Insights", fontSize = 11.sp, color = NavyBg.copy(alpha=0.8f))
+                   Text("Premium", fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                   Text("Unlimited AI Insights", fontSize = 9.sp, color = NavyBg.copy(alpha=0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -684,11 +700,11 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
         }
         Spacer(Modifier.height(24.dp))
         Row(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 12.dp)) {
-            Text("Yr", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(0.4f))
-            Text("Invest", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.1f))
-            Text("Total", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f))
-            Text("Returns", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f))
-            Text("Schedule", color = BluePrimary, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+            Text("Yr", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Invested", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Total", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Returns", color = TextSec, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Corpus", color = BluePrimary, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         
         val rowsToDisplay = listOf(1, 5, 10).mapNotNull { targetYear ->
@@ -696,11 +712,11 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
         }
         rowsToDisplay.forEach { data ->
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
-                Text(data.year.toString(), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(0.4f))
-                Text(globalCurrencySymbol + formatMoneyObj(data.investedForYear), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.1f))
-                Text(globalCurrencySymbol + formatMoneyObj(data.totalInvested), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f))
-                Text(globalCurrencySymbol + formatMoneyObj(data.returns), color = GreenSuccess, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f))
-                Text(globalCurrencySymbol + formatMoneyObj(data.maturity), color = GoldAccent, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                Text(data.year.toString(), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(globalCurrencySymbol + formatMoneyObj(data.investedForYear), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(globalCurrencySymbol + formatMoneyObj(data.totalInvested), color = Color.White, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(globalCurrencySymbol + formatMoneyObj(data.returns), color = GreenSuccess, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(globalCurrencySymbol + formatMoneyObj(data.maturity), color = GoldAccent, fontSize = 12.sp, lineHeight = 16.sp, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             HorizontalDivider(color = StrokeNavy)
         }
@@ -711,13 +727,50 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha=0.05f)).padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("$remainingYears More Years Hidden", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.weight(1f))
-                androidx.compose.material3.Button(onClick = {}, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = GoldAccent), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp), modifier = Modifier.height(32.dp)) {
-                    Text("Unlock", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("$remainingYears More Hidden", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp))
+                androidx.compose.material3.Button(onClick = {}, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = GoldAccent), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp), modifier = Modifier.height(32.dp)) {
+                    Text("Unlock", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
         }
     }
 }
 
+@Composable
+fun AutoSizeText(
+    text: String,
+    color: Color = Color.White,
+    fontSize: TextUnit = 16.sp,
+    fontWeight: FontWeight = FontWeight.Normal,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    modifier: Modifier = Modifier,
+    maxLines: Int = 1
+) {
+    var scaledFontSize by androidx.compose.runtime.remember(text, fontSize) { androidx.compose.runtime.mutableStateOf(fontSize) }
+    var scaledLineHeight by androidx.compose.runtime.remember(lineHeight) { androidx.compose.runtime.mutableStateOf(lineHeight) }
+    var readyToDraw by androidx.compose.runtime.remember(text) { androidx.compose.runtime.mutableStateOf(false) }
+
+    Text(
+        text = text,
+        color = color,
+        fontSize = scaledFontSize,
+        fontWeight = fontWeight,
+        lineHeight = scaledLineHeight,
+        maxLines = maxLines,
+        softWrap = false,
+        modifier = modifier.drawWithContent {
+            if (readyToDraw) drawContent()
+        },
+        onTextLayout = { textLayoutResult ->
+            if (textLayoutResult.hasVisualOverflow) {
+                scaledFontSize *= 0.9f
+                if (scaledLineHeight != TextUnit.Unspecified) {
+                    scaledLineHeight *= 0.9f
+                }
+            } else {
+                readyToDraw = true
+            }
+        }
+    )
+}
