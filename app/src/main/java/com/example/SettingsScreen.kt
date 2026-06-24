@@ -20,7 +20,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 
 private val BgColor = Color(0xFF020B2D)
 private val CardColor = Color(0xFF071D4D)
@@ -33,7 +36,17 @@ private val DestructiveRed = Color(0xFFE53935)
 private val NavBackground = Color(0xFF0A1128)
 
 @Composable
-fun SettingsScreen(onNavigateBack: () -> Unit = {}) {
+fun SettingsScreen(onNavigateBack: () -> Unit = {}, viewModel: SettingsViewModel) {
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
+    val keepHistoryEnabled by viewModel.keepHistoryEnabled.collectAsStateWithLifecycle()
+    val remindersEnabled by viewModel.remindersEnabled.collectAsStateWithLifecycle()
+    val emiDueDay by viewModel.emiDueDay.collectAsStateWithLifecycle()
+    val emiReminderHour by viewModel.emiReminderTimeHour.collectAsStateWithLifecycle()
+    val emiReminderMinute by viewModel.emiReminderTimeMinute.collectAsStateWithLifecycle()
+    val emiReminderDays by viewModel.emiReminderDays.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = { SettingsTopBar(onNavigateBack) },
         bottomBar = { SettingsBottomBar() },
@@ -46,10 +59,10 @@ fun SettingsScreen(onNavigateBack: () -> Unit = {}) {
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            item { AppearanceSection() }
-            item { LanguageSection() }
-            item { DefaultCurrencySection() }
-            item { PreferencesSection() }
+            item { LanguageSection(language, viewModel::setLanguage) }
+            item { DefaultCurrencySection(currency, viewModel::setCurrency) }
+            item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
+            item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }
             item { DataBackupSection() }
             item { AboutSupportSection() }
             item { AccountSyncSection() }
@@ -100,43 +113,9 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
     }
 }
 
-@Composable
-private fun AppearanceSection() {
-    var isDark by remember { mutableStateOf(true) }
-    SectionCard(title = "Appearance") {
-        Row(Modifier.fillMaxWidth().clickable { isDark = true }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.DarkMode, contentDescription = null, tint = if (isDark) PrimaryBlue else TextSecondary, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Dark Mode", color = TextPrimary, fontSize = 16.sp)
-                Text("Use dark theme", color = TextSecondary, fontSize = 12.sp)
-            }
-            RadioButton(
-                selected = isDark,
-                onClick = { isDark = true },
-                colors = RadioButtonDefaults.colors(selectedColor = PrimaryBlue, unselectedColor = TextSecondary)
-            )
-        }
-        Row(Modifier.fillMaxWidth().clickable { isDark = false }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.LightMode, contentDescription = null, tint = if (!isDark) PrimaryBlue else TextSecondary, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Light Mode", color = TextPrimary, fontSize = 16.sp)
-                Text("Use light theme", color = TextSecondary, fontSize = 12.sp)
-            }
-            RadioButton(
-                selected = !isDark,
-                onClick = { isDark = false },
-                colors = RadioButtonDefaults.colors(selectedColor = PrimaryBlue, unselectedColor = TextSecondary)
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LanguageSection() {
-    var selectedLang by remember { mutableStateOf("English") }
+private fun LanguageSection(selectedLang: String, onLanguageChange: (String) -> Unit) {
     val languages = listOf("English", "हिंदी", "ગુજરાતી")
     
     SectionCard(title = "Language") {
@@ -156,7 +135,7 @@ private fun LanguageSection() {
                         .clip(RoundedCornerShape(20.dp))
                         .background(if (isSelected) PrimaryBlue.copy(alpha = 0.2f) else BgColor)
                         .border(1.dp, if (isSelected) PrimaryBlue else BorderColor, RoundedCornerShape(20.dp))
-                        .clickable { selectedLang = lang }
+                        .clickable { onLanguageChange(lang) }
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -173,9 +152,8 @@ private fun LanguageSection() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DefaultCurrencySection() {
-    var selectedCurrency by remember { mutableStateOf("INR (₹)") }
-    val currencies = listOf("INR (₹)", "USD ($)", "AED (د.إ)", "EUR (€)", "GBP (£)")
+private fun DefaultCurrencySection(selectedCurrency: String, onCurrencyChange: (String) -> Unit) {
+    val currencies = listOf("INR (₹)", "USD (\$)", "AED (د.إ)", "EUR (€)", "GBP (£)")
     
     SectionCard(title = "Default Currency") {
         Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -195,7 +173,7 @@ private fun DefaultCurrencySection() {
                         .clip(RoundedCornerShape(20.dp))
                         .background(if (isSelected) highlightColor.copy(alpha = 0.2f) else BgColor)
                         .border(1.dp, if (isSelected) highlightColor else BorderColor, RoundedCornerShape(20.dp))
-                        .clickable { selectedCurrency = currency }
+                        .clickable { onCurrencyChange(currency) }
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -236,10 +214,12 @@ private fun SettingsRow(
 }
 
 @Composable
-private fun PreferencesSection() {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var keepHistoryEnabled by remember { mutableStateOf(true) }
-    
+private fun PreferencesSection(
+    notificationsEnabled: Boolean,
+    keepHistoryEnabled: Boolean,
+    onNotificationsChange: (Boolean) -> Unit,
+    onKeepHistoryChange: (Boolean) -> Unit
+) {
     SectionCard(title = "Preferences") {
         SettingsRow(
             icon = Icons.Rounded.Numbers,
@@ -260,7 +240,7 @@ private fun PreferencesSection() {
             trailingContent = {
                 Switch(
                     checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it },
+                    onCheckedChange = { onNotificationsChange(it) },
                     colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
                 )
             }
@@ -272,11 +252,188 @@ private fun PreferencesSection() {
             trailingContent = {
                 Switch(
                     checked = keepHistoryEnabled,
-                    onCheckedChange = { keepHistoryEnabled = it },
+                    onCheckedChange = { onKeepHistoryChange(it) },
                     colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
                 )
             }
         )
+}
+}
+
+fun getOrdinal(n: Int): String {
+    if (n in 11..13) return "th"
+    return when (n % 10) {
+        1 -> "st"
+        2 -> "nd"
+        3 -> "rd"
+        else -> "th"
+    }
+}
+
+@Composable
+private fun RemindersSection(
+    remindersEnabled: Boolean,
+    onRemindersChange: (Boolean) -> Unit,
+    emiDueDay: Int,
+    onEmiDueDayChange: (Int) -> Unit,
+    reminderHour: Int,
+    reminderMinute: Int,
+    onReminderTimeChange: (Int, Int) -> Unit,
+    emiReminderDays: Set<String>,
+    onEmiReminderDaysChange: (Set<String>) -> Unit
+) {
+    var showDayPicker by remember { mutableStateOf(false) }
+    var showFrequencyPicker by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    fun showTimePicker() {
+        android.app.TimePickerDialog(
+            context,
+            { _, hourOfDay, minute -> 
+                onReminderTimeChange(hourOfDay, minute)
+            },
+            reminderHour,
+            reminderMinute,
+            false // 12 hour format
+        ).show()
+    }
+
+    SectionCard(title = "Reminders") {
+        if (showDayPicker) {
+            AlertDialog(
+                onDismissRequest = { showDayPicker = false },
+                title = { Text("Select EMI Due Day", color = TextPrimary) },
+                text = {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(48.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)
+                    ) {
+                        items(31) { index ->
+                            val day = index + 1
+                            val isSelected = day == emiDueDay
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) PrimaryBlue else Color.Transparent)
+                                    .clickable {
+                                        onEmiDueDayChange(day)
+                                        showDayPicker = false
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(day.toString(), color = if (isSelected) Color.White else TextPrimary)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDayPicker = false }) {
+                        Text("Close", color = PrimaryBlue)
+                    }
+                },
+                containerColor = BgColor
+            )
+        }
+
+        if (showFrequencyPicker) {
+            val frequencyOptions = listOf(
+                "0" to "Same Day",
+                "1" to "1 Day Before",
+                "2" to "2 Days Before",
+                "3" to "3 Days Before",
+                "4" to "4 Days Before",
+                "5" to "5 Days Before",
+                "7" to "7 Days Before"
+            )
+            AlertDialog(
+                onDismissRequest = { showFrequencyPicker = false },
+                title = { Text("Reminder Frequency", color = TextPrimary) },
+                text = {
+                    LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
+                        items(frequencyOptions.size) { index ->
+                            val option = frequencyOptions[index]
+                            val isSelected = emiReminderDays.contains(option.first)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val newDays = if (isSelected) {
+                                            emiReminderDays - option.first
+                                        } else {
+                                            emiReminderDays + option.first
+                                        }
+                                        onEmiReminderDaysChange(newDays.ifEmpty { setOf("0") })
+                                    }
+                                    .padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = null,
+                                    colors = CheckboxDefaults.colors(checkedColor = PrimaryBlue)
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(option.second, color = TextPrimary)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showFrequencyPicker = false }) {
+                        Text("Close", color = PrimaryBlue)
+                    }
+                },
+                containerColor = BgColor
+            )
+        }
+
+        SettingsRow(
+            icon = Icons.Rounded.Alarm,
+            title = "EMI Reminders",
+            subtitle = "Get notified before your next EMI is due",
+            trailingContent = {
+                Switch(
+                    checked = remindersEnabled,
+                    onCheckedChange = { onRemindersChange(it) },
+                    colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
+                )
+            }
+        )
+        if (remindersEnabled) {
+            SettingsRow(
+                icon = Icons.Rounded.CalendarMonth,
+                title = "EMI Due Date",
+                subtitle = "${emiDueDay}${getOrdinal(emiDueDay)} of every month",
+                onClick = { showDayPicker = true },
+                trailingContent = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary) }
+            )
+            val frequencyText = emiReminderDays.map {
+                if (it == "0") "Same Day" else "$it Days Before"
+            }.joinToString(", ")
+
+            SettingsRow(
+                icon = Icons.Rounded.Event,
+                title = "Reminder Frequency",
+                subtitle = frequencyText,
+                onClick = { showFrequencyPicker = true },
+                trailingContent = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary) }
+            )
+            val isPM = reminderHour >= 12
+            val displayHour = if (reminderHour % 12 == 0) 12 else reminderHour % 12
+            val displayMinute = String.format(java.util.Locale.US, "%02d", reminderMinute)
+            val timeString = "$displayHour:$displayMinute ${if(isPM) "PM" else "AM"}"
+
+            SettingsRow(
+                icon = Icons.Rounded.AccessTime,
+                title = "Reminder Time",
+                subtitle = timeString,
+                onClick = { showTimePicker() },
+                trailingContent = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TextSecondary) }
+            )
+        }
     }
 }
 

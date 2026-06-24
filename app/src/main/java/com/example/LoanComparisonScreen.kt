@@ -67,7 +67,7 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
 
     val processedLoans = remember(loansCache.toList()) {
         val mapped = loansCache.map { loan ->
-            // Instead of just relying on repayment amount, let's normalize cost to "Cost per ₹1,00,000 borrowed"
+            // Instead of just relying on repayment amount, let's normalize cost to "Cost per ${com.example.globalCurrencySymbol}1,00,000 borrowed"
             // This is fairer if the user enters different loan amounts.
             // Also factor in processing fees.
             val loanAmountSafe = if (loan.loanAmount > 0.0) loan.loanAmount else 1.0
@@ -625,7 +625,7 @@ fun LoanCard(loan: LoanOffer, onEdit: () -> Unit, modifier: Modifier = Modifier)
                 Text(loan.bankName, color = TextSecondary, fontSize = 12.sp)
             }
             Text("${loan.interestRate}%  •  ${loan.tenureYears} Years", color = TextSecondary, fontSize = 12.sp)
-            Text(localFormatMoney(loan.loanAmount), color = TextSecondary, fontSize = 14.sp)
+            Text(localFormatMoney(loan.loanAmount, extractCurrencySymbol(LocalCurrency.current)), color = TextSecondary, fontSize = 14.sp)
         }
         
         if (loan.isBest) {
@@ -682,10 +682,10 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                 val rows = listOf(
                     Triple(Icons.Rounded.Percent, "Interest Rate (p.a.)") { l: LoanOffer -> "${l.interestRate}%" },
                     Triple(Icons.Rounded.CalendarToday, "Tenure") { l: LoanOffer -> "${l.tenureYears} Years" },
-                    Triple(Icons.Rounded.CurrencyRupee, "Monthly EMI") { l: LoanOffer -> localFormatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.tenureYears)) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Interest") { l: LoanOffer -> localFormatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears)) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Payment") { l: LoanOffer -> localFormatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears)) },
-                    Triple(Icons.Rounded.Description, "Processing Fee") { l: LoanOffer -> localFormatMoney(l.processingFee) },
+                    Triple(Icons.Rounded.CurrencyRupee, "Monthly EMI") { l: LoanOffer -> localFormatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.CurrencyRupee, "Total Interest") { l: LoanOffer -> localFormatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.CurrencyRupee, "Total Payment") { l: LoanOffer -> localFormatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.Description, "Processing Fee") { l: LoanOffer -> localFormatMoney(l.processingFee, com.example.globalCurrencySymbol) },
                     Triple(Icons.Rounded.Settings, "Effective Interest Rate") { l: LoanOffer -> "${l.interestRate + 0.22}%" }, // simplified effective logic for mockup
                     Triple(Icons.Rounded.Schedule, "Prepayment Charges") { l: LoanOffer -> "${l.prepaymentCharges.toInt()}%" }
                 )
@@ -836,7 +836,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
         return FinancialAdvice(
             title = "No loans available.",
             subtitle = "Please add at least one loan to get insights.",
-            savingsText = "₹0",
+            savingsText = "${com.example.globalCurrencySymbol}0",
             showPremium = false
         )
     }
@@ -1021,10 +1021,8 @@ fun EmptyStateIllustration() {
     }
 }
 
-private fun localFormatMoney(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    format.maximumFractionDigits = 0
-    return format.format(amount).replace("₹", "₹") 
+private fun localFormatMoney(amount: Double, currencySym: String = com.example.globalCurrencySymbol): String {
+    return formatMoney(amount, com.example.globalCurrencySymbol)
 }
 
 private fun localCalculateEMI(principal: Double, rate: Double, years: Int): Double {

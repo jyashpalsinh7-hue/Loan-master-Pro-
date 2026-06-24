@@ -39,6 +39,23 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.CardStroke
 import com.example.ui.theme.SurfaceDark
 
+import java.text.NumberFormat
+import java.util.Locale
+
+var globalCurrencySymbol: String = "₹"
+
+fun extractCurrencySymbol(currencyString: String): String {
+    return currencyString.substringAfter("(", "₹").removeSuffix(")")
+}
+
+fun formatMoney(amt: Double, currencySym: String = globalCurrencySymbol): String {
+    if (amt <= 0) return "${currencySym}0"
+    val format = NumberFormat.getCurrencyInstance(Locale("en", "US")) // Always use en-US to avoid locale-specific symbols
+    format.maximumFractionDigits = 0
+    // Replace the default symbol with our custom one
+    return format.format(amt).replace("$", currencySym)
+}
+
 @Composable
 fun AutoResizedText(
     text: String,
@@ -258,15 +275,6 @@ fun ResponsiveScreenWrapper(
         ) {
             androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) {
                 headerSection()
-            }
-            val isDark = com.example.ui.theme.LocalThemeMode.current
-            val toggleTheme = com.example.ui.theme.LocalThemeToggle.current
-            androidx.compose.material3.IconButton(onClick = toggleTheme) {
-                androidx.compose.material3.Icon(
-                    imageVector = if (isDark) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
-                    contentDescription = "Toggle Theme",
-                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
-                )
             }
         }
     }

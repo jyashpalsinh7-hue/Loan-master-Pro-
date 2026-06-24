@@ -670,7 +670,7 @@ fun ConverterSummaryCard(baseAmount: String, exchangeRate: Double, baseCurrency:
                 Icon(Icons.Rounded.Info, contentDescription = null, tint = Color(0xFFB0BEC5), modifier = Modifier.size(12.dp))
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("₹0.00", color = Color.White, fontSize = 13.sp)
+                Text("${com.example.globalCurrencySymbol}0.00", color = Color.White, fontSize = 13.sp)
                 Text("(No markup applied)", color = Color(0xFFB0BEC5), fontSize = 10.sp)
             }
         }
@@ -700,11 +700,11 @@ fun RecentConversionsList() {
         Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CurrSurfaceColor).border(1.dp, CurrCardStrokeColor, RoundedCornerShape(12.dp))
         ) {
-            RecentRow("🇺🇸", "INR \u2192 USD", "20 May 2025, 09:41 AM", "₹10,000.00", "$119.85", CurrNeonGreen)
+            RecentRow("🇺🇸", "INR \u2192 USD", "20 May 2025, 09:41 AM", "${com.example.globalCurrencySymbol}10,000.00", "$119.85", CurrNeonGreen)
             HorizontalDivider(color = CurrCardStrokeColor)
-            RecentRow("🇪🇺", "INR \u2192 EUR", "19 May 2025, 06:22 PM", "₹10,000.00", "€109.81", CurrNeonGreen)
+            RecentRow("🇪🇺", "INR \u2192 EUR", "19 May 2025, 06:22 PM", "${com.example.globalCurrencySymbol}10,000.00", "€109.81", CurrNeonGreen)
             HorizontalDivider(color = CurrCardStrokeColor)
-            RecentRow("🇦🇪", "INR \u2192 AED", "19 May 2025, 03:45 PM", "₹10,000.00", "د.إ 440.02", CurrNeonGreen)
+            RecentRow("🇦🇪", "INR \u2192 AED", "19 May 2025, 03:45 PM", "${com.example.globalCurrencySymbol}10,000.00", "د.إ 440.02", CurrNeonGreen)
         }
     }
 }

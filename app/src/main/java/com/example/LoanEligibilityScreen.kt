@@ -63,11 +63,8 @@ fun LoanEligibilityScreen() {
     val dangerRed = Color(0xFFEF4444)
     val textColor = ResponsiveUtils.TextPrimary
     val textSecondary = ResponsiveUtils.TextSecondary
-
     val formatMoney = { amount: Double ->
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-        format.maximumFractionDigits = 0
-        format.format(amount)
+        com.example.formatMoney(amount, com.example.globalCurrencySymbol)
     }
 
     var selectedLoanProfile by remember { mutableStateOf(loanProfiles[0]) }
@@ -269,7 +266,7 @@ fun LoanEligibilityScreen() {
                     AutoResizeTextField(
                         value = monthlyIncome,
                         onValueChange = { monthlyIncome = it },
-                        label = "Monthly Income (₹)",
+                        label = "Monthly Income (${com.example.globalCurrencySymbol})",
                         modifier = mod,
                         leadingIcon = { Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = brightBlue) }
                     )
@@ -278,7 +275,7 @@ fun LoanEligibilityScreen() {
                     AutoResizeTextField(
                         value = existingEMIs,
                         onValueChange = { existingEMIs = it },
-                        label = "Existing EMIs (₹)",
+                        label = "Existing EMIs (${com.example.globalCurrencySymbol})",
                         modifier = mod,
                         leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
                     )
@@ -310,7 +307,7 @@ fun LoanEligibilityScreen() {
                         AutoResizeTextField(
                             value = coBorrowerIncome,
                             onValueChange = { coBorrowerIncome = it },
-                            label = "Co-Borrower Income (₹)",
+                            label = "Co-Borrower Income (${com.example.globalCurrencySymbol})",
                             modifier = mod,
                             leadingIcon = { Icon(Icons.Rounded.Group, contentDescription = null, tint = brightBlue) }
                         )
@@ -319,7 +316,7 @@ fun LoanEligibilityScreen() {
                         AutoResizeTextField(
                             value = coBorrowerEMIs,
                             onValueChange = { coBorrowerEMIs = it },
-                            label = "Co-Borrower EMIs (₹)",
+                            label = "Co-Borrower EMIs (${com.example.globalCurrencySymbol})",
                             modifier = mod,
                             leadingIcon = { Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = brightBlue) }
                         )
@@ -635,7 +632,7 @@ fun LoanEligibilityScreen() {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("+ ₹10,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, fontSize = 10.sp) }
+                                Column { Text("+ ${com.example.globalCurrencySymbol}10,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, fontSize = 10.sp) }
                             }
                         }
                     },
@@ -647,7 +644,7 @@ fun LoanEligibilityScreen() {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("- ₹5,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, fontSize = 10.sp) }
+                                Column { Text("- ${com.example.globalCurrencySymbol}5,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, fontSize = 10.sp) }
                             }
                         }
                     }

@@ -37,21 +37,36 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.*
+
+import androidx.compose.runtime.compositionLocalOf
+
+val LocalLanguage = compositionLocalOf { "English" }
+val LocalCurrency = compositionLocalOf { "INR (₹)" }
+val LocalNotificationsEnabled = compositionLocalOf { true }
+val LocalKeepHistoryEnabled = compositionLocalOf { true }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
-            var isDarkTheme by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(systemDark) }
+            val settingsViewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val language by settingsViewModel.language.collectAsStateWithLifecycle()
+            val currency by settingsViewModel.currency.collectAsStateWithLifecycle()
+            val notificationsEnabled by settingsViewModel.notificationsEnabled.collectAsStateWithLifecycle()
+            val keepHistoryEnabled by settingsViewModel.keepHistoryEnabled.collectAsStateWithLifecycle()
+
+            globalCurrencySymbol = extractCurrencySymbol(currency)
 
             androidx.compose.runtime.CompositionLocalProvider(
-                com.example.ui.theme.LocalThemeToggle provides { isDarkTheme = !isDarkTheme },
-                com.example.ui.theme.LocalThemeMode provides isDarkTheme
+                LocalLanguage provides language,
+                LocalCurrency provides currency,
+                LocalNotificationsEnabled provides notificationsEnabled,
+                LocalKeepHistoryEnabled provides keepHistoryEnabled
             ) {
-                MyApplicationTheme(darkTheme = isDarkTheme) {
+                MyApplicationTheme {
                     val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "home") {
                     composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }, onNavigateToFd = { navController.navigate("fd") }, onNavigateToCurrency = { navController.navigate("currency") }, onNavigateToEligibility = { navController.navigate("eligibility") }, onNavigateToPrepayment = { navController.navigate("prepayment") }, onNavigateToSettings = { navController.navigate("settings") }) }
@@ -64,7 +79,7 @@ class MainActivity : ComponentActivity() {
                     composable("currency") { CurrencyConverterScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("eligibility") { LoanEligibilityScreen() }
                     composable("prepayment") { PrepaymentCalculatorScreen() }
-                    composable("settings") { SettingsScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("settings") { SettingsScreen(onNavigateBack = { navController.popBackStack() }, viewModel = settingsViewModel) }
                 }
             }
             }

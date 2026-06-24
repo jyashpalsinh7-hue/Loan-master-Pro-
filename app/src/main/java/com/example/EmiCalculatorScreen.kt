@@ -67,13 +67,6 @@ data class MonthlyAmortization(
 )
 
 // ==================== HELPER FUNCTIONS ====================
-fun formatMoney(amt: Double): String {
-    if (amt <= 0) return "₹0"
-    val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    format.maximumFractionDigits = 0
-    return format.format(amt)
-}
-
 fun calculateEMI(principal: Double, annualRate: Double, months: Int): Double {
     if (principal <= 0 || annualRate <= 0 || months <= 0) return 0.0
     val r = annualRate / 12 / 100

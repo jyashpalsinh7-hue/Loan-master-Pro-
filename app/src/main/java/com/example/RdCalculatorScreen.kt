@@ -51,13 +51,8 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
     var tenureYearsText by remember { mutableStateOf("5") }
     var compoundingFrequency by remember { mutableStateOf("Quarterly") }
     var showCompoundingDropdown by remember { mutableStateOf(false) }
-
-
-
     val formatInr = { value: Double ->
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-        format.maximumFractionDigits = 0
-        format.format(value).replace("₹", "₹")
+        formatMoney(value, com.example.globalCurrencySymbol)
     }
     
     val formatDec = { value: Double ->

@@ -47,11 +47,8 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
     val heroCardTint = Color(0xFF0F291E)
     val textColor = ResponsiveUtils.TextPrimary
     val textSecondary = ResponsiveUtils.TextSecondary
-
     val formatMoney = { amount: Double ->
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-        format.maximumFractionDigits = 0
-        format.format(amount)
+        com.example.formatMoney(amount, com.example.globalCurrencySymbol)
     }
 
     val formatMonths = { totalMonths: Double ->
@@ -253,7 +250,7 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                         AutoResizeTextFieldPrepay(
                             value = prepaymentAmount,
                             onValueChange = { prepaymentAmount = it },
-                            label = "Prepayment Amount (₹)",
+                            label = "Prepayment Amount (${com.example.globalCurrencySymbol})",
                             modifier = Modifier.fillMaxWidth(),
                             trailingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = textSecondary, modifier = Modifier.size(16.dp)) }
                         )
@@ -395,7 +392,7 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                                         drawArc(color = accentOrange, startAngle = -90f + (360f * ogPrinPct), sweepAngle = 360f * (1-ogPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", originalTotalPayment/100000)}L", color = textColor)
+                                        AutoResizeChartText(text = "${com.example.globalCurrencySymbol}${String.format(Locale.US, "%.2f", originalTotalPayment/100000)}L", color = textColor)
                                         Text("${(ogPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
                                     Text("Without Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
@@ -409,7 +406,7 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                                         drawArc(color = accentOrange.copy(alpha=0.5f), startAngle = -90f + (360f * newPrinPct), sweepAngle = 360f * (1-newPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        AutoResizeChartText(text = "₹${String.format(Locale.US, "%.2f", (p+newTotalInterest)/100000)}L", color = textColor)
+                                        AutoResizeChartText(text = "${com.example.globalCurrencySymbol}${String.format(Locale.US, "%.2f", (p+newTotalInterest)/100000)}L", color = textColor)
                                         Text("${(newPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
                                     Text("With Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
@@ -453,8 +450,8 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                                     drawLine(color = textSecondary.copy(alpha=0.5f), start=Offset(prepayX, 0f), end=Offset(prepayX, h), strokeWidth=2f, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
                                 }
                                 // Axis labels
-                                Text("₹${(p/100000).toInt()}L", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopStart).offset(y=(-4).dp, x=(-4).dp))
-                                //Text("₹0", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomStart))
+                                Text("${com.example.globalCurrencySymbol}${(p/100000).toInt()}L", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopStart).offset(y=(-4).dp, x=(-4).dp))
+                                //Text("${com.example.globalCurrencySymbol}0", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomStart))
                                 Row(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).offset(y=16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("0 Yr", color = textSecondary, fontSize = 8.sp)
                                 Text("5 Yr", color = textSecondary, fontSize = 8.sp)
@@ -486,12 +483,12 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(modifier = Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ₹50,000", sub = "Prepayment", save = "Save ₹4.19L", red = "Reduce by 2.1 Yrs", selected = false, icon = Icons.Rounded.Savings)
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ₹1,00,000", sub = "Prepayment", save = "Save ₹8.45L", red = "Reduce by 4.2 Yrs", selected = true, icon = Icons.Rounded.Payments)
+                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}50,000", sub = "Prepayment", save = "Save ${com.example.globalCurrencySymbol}4.19L", red = "Reduce by 2.1 Yrs", selected = false, icon = Icons.Rounded.Savings)
+                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}1,00,000", sub = "Prepayment", save = "Save ${com.example.globalCurrencySymbol}8.45L", red = "Reduce by 4.2 Yrs", selected = true, icon = Icons.Rounded.Payments)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ₹5,000", sub = "Extra EMI", save = "Save ₹10.27L", red = "Reduce by 5.3 Yrs", selected = false, icon = Icons.Rounded.MonetizationOn)
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "Prepay", sub = "Every Year", save = "Save ₹9.15L", red = "Reduce by 4.7 Yrs", selected = false, icon = Icons.Rounded.Event)
+                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}5,000", sub = "Extra EMI", save = "Save ${com.example.globalCurrencySymbol}10.27L", red = "Reduce by 5.3 Yrs", selected = false, icon = Icons.Rounded.MonetizationOn)
+                            ScenarioChip(modifier = Modifier.weight(1f), title = "Prepay", sub = "Every Year", save = "Save ${com.example.globalCurrencySymbol}9.15L", red = "Reduce by 4.7 Yrs", selected = false, icon = Icons.Rounded.Event)
                         }
                     }
                     
@@ -502,8 +499,8 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
                             Icon(Icons.Rounded.Stars, contentDescription = null, tint = accentGreen, modifier = Modifier.size(20.dp))
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        RecomRow("Prepay ₹1,00,000 today")
-                        RecomRow("Save ₹8.45L in interest")
+                        RecomRow("Prepay ${com.example.globalCurrencySymbol}1,00,000 today")
+                        RecomRow("Save ${com.example.globalCurrencySymbol}8.45L in interest")
                         RecomRow("Reduce tenure by 4.2 years")
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(

@@ -51,13 +51,8 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
     var tenureYearsText by remember { mutableStateOf("5") }
     var compoundingFrequency by remember { mutableStateOf("Quarterly") }
     var showCompoundingDropdown by remember { mutableStateOf(false) }
-
-
-
     val formatInr = { value: Double ->
-        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-        format.maximumFractionDigits = 0
-        format.format(value).replace("₹", "₹")
+        formatMoney(value, com.example.globalCurrencySymbol)
     }
     
     val formatDec = { value: Double ->
@@ -462,7 +457,7 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                     WhatIfActionButton("+1%", "Rate", Icons.Rounded.TrendingUp, AccentGreen)
                     WhatIfActionButton("-1%", "Rate", Icons.Rounded.TrendingDown, Color(0xFFE53935))
                     WhatIfActionButton("+2 Years", "Tenure", Icons.Rounded.Event, Color(0xFF8E24AA))
-                    WhatIfActionButton("+₹50,000", "Deposit", Icons.Rounded.AccountBalanceWallet, AccentYellow)
+                    WhatIfActionButton("+${com.example.globalCurrencySymbol}50,000", "Deposit", Icons.Rounded.AccountBalanceWallet, AccentYellow)
                 }
             }
 
@@ -489,9 +484,9 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                 Column(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     Row(modifier = Modifier.defaultMinSize(minWidth = 380.dp).fillMaxWidth().background(CardStroke.copy(alpha = 0.5f)).padding(vertical = 10.dp, horizontal = 16.dp)) {
                         Text("Year", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f).padding(horizontal = 4.dp))
-                        Text("Deposit (₹)", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.Center)
-                        Text("Interest (₹)", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.End)
-                        Text("Maturity Value (₹)", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.End)
+                        Text("Deposit (${com.example.globalCurrencySymbol})", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.Center)
+                        Text("Interest (${com.example.globalCurrencySymbol})", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.End)
+                        Text("Maturity Value (${com.example.globalCurrencySymbol})", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1.5f).padding(horizontal = 4.dp), textAlign = TextAlign.End)
                     }
                     
                     val yearsList = listOf(1.0, 2.0, 3.0, 4.0, 5.0) // Matching the screenshot exactly

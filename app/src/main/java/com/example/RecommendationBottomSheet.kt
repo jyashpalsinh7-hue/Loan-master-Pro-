@@ -135,7 +135,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.Savings,
                         title = "Interest Saved",
-                        value = "₹" + formatMoney(interestSaved).replace("₹", ""),
+                        value = com.example.globalCurrencySymbol + formatMoney(interestSaved).replace(com.example.globalCurrencySymbol, ""),
                         accentColor = greenAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -144,7 +144,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.MoneyOff,
                         title = "Additional Interest Cost",
-                        value = "₹" + formatMoney(-interestSaved).replace("₹", ""),
+                        value = com.example.globalCurrencySymbol + formatMoney(-interestSaved).replace(com.example.globalCurrencySymbol, ""),
                         accentColor = redAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -175,7 +175,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.TrendingUp,
                         title = "Extra EMI Required",
-                        value = "₹" + formatMoney(extraEmi).replace("₹", "") + " /mo",
+                        value = com.example.globalCurrencySymbol + formatMoney(extraEmi).replace(com.example.globalCurrencySymbol, "") + " /mo",
                         accentColor = Color(0xFFFFC328),
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -184,7 +184,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.TrendingDown,
                         title = "EMI Reduced By",
-                        value = "₹" + formatMoney(-extraEmi).replace("₹", "") + " /mo",
+                        value = com.example.globalCurrencySymbol + formatMoney(-extraEmi).replace(com.example.globalCurrencySymbol, "") + " /mo",
                         accentColor = greenAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
