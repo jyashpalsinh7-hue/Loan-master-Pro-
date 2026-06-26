@@ -48,12 +48,55 @@ fun extractCurrencySymbol(currencyString: String): String {
     return currencyString.substringAfter("(", "₹").removeSuffix(")")
 }
 
+private val moneyFormat = NumberFormat.getCurrencyInstance(Locale("en", "US")).apply {
+    maximumFractionDigits = 0
+}
+
 fun formatMoney(amt: Double, currencySym: String = globalCurrencySymbol): String {
     if (amt <= 0) return "${currencySym}0"
-    val format = NumberFormat.getCurrencyInstance(Locale("en", "US")) // Always use en-US to avoid locale-specific symbols
-    format.maximumFractionDigits = 0
     // Replace the default symbol with our custom one
-    return format.format(amt).replace("$", currencySym)
+    return moneyFormat.format(amt).replace("$", currencySym)
+}
+
+@Composable
+fun AutoSizeText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    minTextSize: TextUnit = 12.sp,
+    maxTextSize: TextUnit = TextUnit.Unspecified,
+    fontWeight: FontWeight? = null,
+    maxLines: Int = 1,
+) {
+    var textStyle by remember(text, maxTextSize, fontWeight, color) { mutableStateOf(TextStyle(fontSize = maxTextSize, fontWeight = fontWeight, color = color)) }
+    var readyToDraw by remember(text) { mutableStateOf(false) }
+
+    Text(
+        text = text,
+        modifier = modifier.drawWithContent {
+            if (readyToDraw) drawContent()
+        },
+        style = textStyle,
+        color = color,
+        maxLines = maxLines,
+        softWrap = false,
+        overflow = TextOverflow.Visible,
+        onTextLayout = { textLayoutResult ->
+            if (!readyToDraw) {
+                if (textLayoutResult.hasVisualOverflow && textStyle.fontSize > minTextSize) {
+                    val nextSize = (textStyle.fontSize.value * 0.9f).sp
+                    if (nextSize >= minTextSize) {
+                        textStyle = textStyle.copy(fontSize = nextSize)
+                    } else {
+                        textStyle = textStyle.copy(fontSize = minTextSize)
+                        readyToDraw = true
+                    }
+                } else {
+                    readyToDraw = true
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -65,33 +108,14 @@ fun AutoResizedText(
     fontWeight: FontWeight? = null,
     maxLines: Int = 1,
 ) {
-    var textStyle by remember(text, fontSize, fontWeight, color) { mutableStateOf(TextStyle(fontSize = fontSize, fontWeight = fontWeight, color = color)) }
-    var readyToDraw by remember(text) { mutableStateOf(false) }
-
-    Text(
+    AutoSizeText(
         text = text,
-        modifier = modifier.drawWithContent {
-            if (readyToDraw) drawContent()
-        },
-        style = textStyle,
+        modifier = modifier,
         color = color,
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
-        onTextLayout = { textLayoutResult ->
-            if (!readyToDraw) {
-                if ((textLayoutResult.didOverflowWidth || textLayoutResult.didOverflowHeight) && textStyle.fontSize > 10.sp) {
-                    val nextSize = (textStyle.fontSize.value * 0.9f).sp
-                    if (nextSize >= 10.sp) {
-                        textStyle = textStyle.copy(fontSize = nextSize)
-                    } else {
-                        textStyle = textStyle.copy(fontSize = 10.sp)
-                        readyToDraw = true
-                    }
-                } else {
-                    readyToDraw = true
-                }
-            }
-        }
+        minTextSize = 10.sp,
+        maxTextSize = fontSize,
+        fontWeight = fontWeight,
+        maxLines = maxLines
     )
 }
 
@@ -123,26 +147,27 @@ fun PremiumInputField(
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     trailingContent: @Composable (() -> Unit)? = null,
     suffix: String = "",
-    sizeClass: com.example.WindowWidthSizeClass = com.example.WindowWidthSizeClass.Compact,
+    sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null,
     infoText: String? = null,
     errorMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
-    var showInfoDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    val colors = androidx.compose.material3.MaterialTheme.colorScheme
 
     if (showInfoDialog && infoText != null) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showInfoDialog = false },
-            title = { Text(label, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
-            text = { Text(infoText, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant) },
+            title = { Text(label, color = colors.onSurface) },
+            text = { Text(infoText, color = colors.onSurfaceVariant) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = { showInfoDialog = false }) {
-                    Text("Got it", color = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                    Text("Got it", color = colors.primary)
                 }
             },
-            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface
+            containerColor = colors.surface
         )
     }
 
@@ -155,21 +180,28 @@ fun PremiumInputField(
     }
     val finalErrorMessage = errorMessage ?: internalError
 
-    val handleValueChange: (String) -> Unit = { newValue ->
-        // Prevent negative values
-        val sanitized = newValue.replace("-", "").replace(",", "")
-        onValueChange(sanitized)
+    val handleValueChange: (String) -> Unit = remember(onValueChange) {
+        { newValue ->
+            val sanitized = newValue.replace("-", "").replace(",", "")
+            onValueChange(sanitized)
+        }
     }
+
+    val hasError = finalErrorMessage != null
+    val strokeColor = if (hasError) colors.error else colors.outlineVariant
+    val textColor = if (hasError) colors.error else colors.onSurface
+    val iconColor = if (hasError) colors.error else iconTint
+    val cursorColor = if (hasError) colors.error else colors.primary
 
     androidx.compose.foundation.layout.Column(modifier = modifier) {
         androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+            Text(label, color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
             if (infoText != null) {
                 androidx.compose.foundation.layout.Spacer(Modifier.width(4.dp))
                 androidx.compose.material3.Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Rounded.Info,
+                    imageVector = Icons.Rounded.Info,
                     contentDescription = "Info about $label",
-                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    tint = colors.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier
                         .size(14.dp)
                         .clickable(
@@ -182,8 +214,8 @@ fun PremiumInputField(
         androidx.compose.foundation.layout.Spacer(Modifier.height(6.dp))
         androidx.compose.material3.Surface(
             shape = RoundedCornerShape(12.dp),
-            color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, if (finalErrorMessage != null) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant),
+            color = colors.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, strokeColor),
             modifier = Modifier.fillMaxWidth()
         ) {
             androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
@@ -193,34 +225,34 @@ fun PremiumInputField(
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Icon(imageVector = icon, contentDescription = null, tint = if (finalErrorMessage != null) androidx.compose.material3.MaterialTheme.colorScheme.error else iconTint, modifier = Modifier.size(com.example.ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                    androidx.compose.material3.Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
                     androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
                     androidx.compose.foundation.text.BasicTextField(
                         value = value,
                         onValueChange = handleValueChange,
                         readOnly = readOnly,
                         enabled = onClick == null,
-                        textStyle = TextStyle(color = if (finalErrorMessage != null) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass)),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(if (finalErrorMessage != null) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.primary),
+                        textStyle = TextStyle(color = textColor, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(cursorColor),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
                     ) { innerTextField ->
                         androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                             if (value.isEmpty()) {
-                                Text("0", color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass))
+                                Text("0", color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                             }
                             innerTextField()
                         }
                     }
                     if (suffix.isNotEmpty()) {
-                        Text(suffix, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = com.example.ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
+                        Text(suffix, color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
                     }
                     if (trailingContent != null) {
                         trailingContent()
                     } else {
                         trailingIcon?.let {
-                            androidx.compose.material3.Icon(imageVector = it, contentDescription = null, tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(com.example.ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                            androidx.compose.material3.Icon(imageVector = it, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
                         }
                     }
                 }
@@ -235,7 +267,7 @@ fun PremiumInputField(
         }
         if (finalErrorMessage != null) {
             androidx.compose.foundation.layout.Spacer(Modifier.height(4.dp))
-            Text(finalErrorMessage, color = androidx.compose.material3.MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp))
+            Text(finalErrorMessage, color = colors.error, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp))
         }
     }
 }
@@ -271,7 +303,7 @@ fun ResponsiveScreenWrapper(
         androidx.compose.foundation.layout.Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) {
                 headerSection()
@@ -279,14 +311,14 @@ fun ResponsiveScreenWrapper(
         }
     }
 
-    if (widthSizeClass == WindowWidthSizeClass.Expanded) {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-                .padding(horizontal = ResponsiveUtils.horizontalPadding(widthSizeClass), vertical = 16.dp)
-        ) {
-            globalHeader()
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(scrollState)
+            .padding(horizontal = ResponsiveUtils.horizontalPadding(widthSizeClass), vertical = 16.dp)
+    ) {
+        globalHeader()
+        if (widthSizeClass == WindowWidthSizeClass.Expanded) {
             androidx.compose.foundation.layout.Spacer(Modifier.height(24.dp))
             androidx.compose.foundation.layout.Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -299,15 +331,7 @@ fun ResponsiveScreenWrapper(
                     animatedResults()
                 }
             }
-        }
-    } else {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-                .padding(horizontal = ResponsiveUtils.horizontalPadding(widthSizeClass), vertical = 16.dp)
-        ) {
-            globalHeader()
+        } else {
             androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
             inputControlsSection()
             androidx.compose.foundation.layout.Spacer(Modifier.height(24.dp))
@@ -315,6 +339,7 @@ fun ResponsiveScreenWrapper(
         }
     }
 }
+
 @Composable
 fun ResponsiveCard(
     modifier: Modifier = Modifier,

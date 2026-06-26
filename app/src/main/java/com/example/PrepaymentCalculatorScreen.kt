@@ -1,78 +1,69 @@
 package com.example
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact) {
+fun PrepaymentCalculatorScreen(onNavigateBack: () -> Unit = {}) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTablet = configuration.screenWidthDp >= 600
+
     val bgColor = ResponsiveUtils.BgColor
     val surfaceColor = ResponsiveUtils.SurfaceColor
-    val accentBlue = Color(0xFF3B82F6)
+    val primaryColor = ResponsiveUtils.PrimaryAccent
+    val secondaryColor = ResponsiveUtils.SecondaryAccent
     val accentGreen = Color(0xFF4ADE80)
     val accentOrange = Color(0xFFF97316)
-    val accentPurple = Color(0xFFA855F7)
-    val heroCardTint = Color(0xFF0F291E)
-    val textColor = ResponsiveUtils.TextPrimary
-    val textSecondary = ResponsiveUtils.TextSecondary
-    val formatMoney = { amount: Double ->
-        com.example.formatMoney(amount, com.example.globalCurrencySymbol)
-    }
-
-    val formatMonths = { totalMonths: Double ->
-        val m = Math.round(totalMonths).toInt()
-        val years = m / 12
-        val months = m % 12
-        if (years > 0 && months > 0) "$years Years $months Months"
-        else if (years > 0) "$years Years"
-        else "$months Months"
-    }
-
+    
     var loanAmount by remember { mutableStateOf("5000000") }
     var interestRate by remember { mutableStateOf("8.5") }
     var tenureYears by remember { mutableStateOf("15") }
     var prepaymentAmount by remember { mutableStateOf("100000") }
-    
+    var monthlyPrepayment by remember { mutableStateOf("0") }
+    var annualPrepayment by remember { mutableStateOf("0") }
+    var strategy by remember { mutableStateOf("Tenure") } // "Tenure" or "EMI"
+    var showAmortization by remember { mutableStateOf(false) }
+    var isAiUnlocked by remember { mutableStateOf(false) }
     var showUnlockDialog by remember { mutableStateOf(false) }
-    var isPremiumUnlocked by remember { mutableStateOf(false) }
-    var showPremiumCalculator by remember { mutableStateOf<String?>(null) }
 
     val p = loanAmount.safeToDouble()
     val rate = interestRate.safeToDouble()
     val terms = tenureYears.safeToDouble().coerceIn(0.0, 100.0)
     val prePay = prepaymentAmount.safeToDouble()
+    val monthlyPrepay = monthlyPrepayment.safeToDouble()
+    val annualPrepay = annualPrepayment.safeToDouble()
 
     val r = if (rate > 0) (rate / 12) / 100 else 0.0
     val n = terms * 12
@@ -82,775 +73,785 @@ fun PrepaymentCalculatorScreen(sizeClass: WindowWidthSizeClass = WindowWidthSize
     val originalTotalInterest = originalTotalPayment - p
     
     val newPrincipal = p - prePay
-    val newTenureMonths = if (newPrincipal > 0 && emi > 0 && r > 0 && (emi - newPrincipal * r) > 0) {
-        Math.log(emi / (emi - newPrincipal * r)) / Math.log(1 + r)
-    } else n
+    var newEmi = emi
+    var newTenureMonths = n
+    var newTotalInterest = 0.0
 
-    val newTotalInterest = (emi * newTenureMonths) - newPrincipal
-    val interestSaved = if (originalTotalInterest > newTotalInterest) originalTotalInterest - newTotalInterest else 0.0
-    val tenureReducedMonths = if (n > newTenureMonths) n - newTenureMonths else 0.0
-    val roiPercentage = if (prePay > 0) (interestSaved / prePay) * 100 else 0.0
-
-    Scaffold(
-        containerColor = bgColor,
-        bottomBar = {
-            NavigationBar(
-                containerColor = bgColor,
-                contentColor = textSecondary,
-                tonalElevation = 0.dp,
-                modifier = Modifier.border(1.dp, surfaceColor)
-            ) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
-                    label = { Text("Home", fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Calculate, contentDescription = "Calculate") },
-                    label = { Text("Calculate", fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = accentPurple,
-                        selectedTextColor = accentPurple,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-                    label = { Text("History", fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Article, contentDescription = "Reports") },
-                    label = { Text("Reports", fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings", fontSize = 10.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
+    if (newPrincipal <= 0) {
+        newEmi = 0.0
+        newTenureMonths = 0.0
+        newTotalInterest = 0.0
+    } else {
+        if (strategy == "EMI") {
+            newEmi = if (r > 0 && n > 0) newPrincipal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) else newPrincipal / n
+            newTenureMonths = n
+            newTotalInterest = (newEmi * n) - newPrincipal
+        } else {
+            // Complex simulation for both monthly and annual extra payments
+            newEmi = emi + monthlyPrepay
+            if (annualPrepay == 0.0) {
+                if (r > 0 && newEmi > newPrincipal * r) {
+                    newTenureMonths = Math.log(newEmi / (newEmi - newPrincipal * r)) / Math.log(1 + r)
+                } else if (r == 0.0 && newEmi > 0) {
+                    newTenureMonths = newPrincipal / newEmi
+                } else {
+                    newTenureMonths = n
+                }
+                newTotalInterest = (newEmi * newTenureMonths) - newPrincipal
+            } else {
+                // Iterative approach to find actual tenure and interest
+                var bal = newPrincipal
+                var months = 0
+                var totInt = 0.0
+                while (bal > 0.01 && months <= n * 2) {
+                    val interestForMonth = bal * r
+                    totInt += interestForMonth
+                    var principalForMonth = newEmi - interestForMonth
+                    
+                    if (bal < principalForMonth) {
+                        principalForMonth = bal
+                    }
+                    bal -= principalForMonth
+                    
+                    // Annual prepayment at the end of each year (month 12, 24, 36...)
+                    if ((months + 1) % 12 == 0 && bal > 0.01) {
+                        val extra = if (bal < annualPrepay) bal else annualPrepay
+                        bal -= extra
+                    }
+                    months++
+                }
+                newTenureMonths = months.toDouble()
+                newTotalInterest = totInt
             }
         }
+    }
+
+    val interestSaved = if (originalTotalInterest > newTotalInterest) originalTotalInterest - newTotalInterest else 0.0
+    val tenureReducedMonths = if (n > newTenureMonths) n - newTenureMonths else 0.0
+    val emiReduced = if (emi > newEmi) emi - newEmi else 0.0
+
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(bgColor).statusBarsPadding()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp).clickable { onNavigateBack() }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "Prepayment",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        },
+        containerColor = bgColor
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(bgColor)
-                .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
+                .padding(horizontal = if (isTablet) 32.dp else 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // A. Top App Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    tint = textColor,
-                    modifier = Modifier.clickable { }
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Loan Prepayment Calculator", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                    Text("See how prepayments help you save interest & reduce tenure", color = textSecondary, fontSize = 12.sp, maxLines = 1)
-                }
-                Icon(Icons.Rounded.StarBorder, contentDescription = "Star", tint = Color(0xFFFBBF24), modifier = Modifier.size(24.dp).clickable { })
-                Spacer(modifier = Modifier.width(16.dp))
-                Icon(Icons.Rounded.Share, contentDescription = "Share", tint = textColor, modifier = Modifier.size(24.dp).clickable { })
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            // Hero Card: Interest Saved
+            item {
+                PrepaymentHeroCard(interestSaved, tenureReducedMonths, emiReduced, strategy, accentGreen, surfaceColor)
             }
 
-            // B. Top Split Dashboard
-            PrepayDashboardCards(
-                sizeClass = sizeClass,
-                leftCard = { cardModifier ->
-                    // Left Card
-                    Card(
-                        modifier = cardModifier,
-                        colors = CardDefaults.cardColors(containerColor = surfaceColor),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Description, contentDescription = null, tint = accentBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Loan Details", color = accentBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            // Input Fields
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(surfaceColor)
+                        .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(24.dp))
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Loan Details", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    
+                    PremiumInputField("Outstanding Loan Amount", "₹", loanAmount) { loanAmount = it }
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField("Interest Rate", "%", interestRate) { interestRate = it }
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        // Detail Rows
-                        DetailRowEditable(icon = Icons.Rounded.CalendarToday, label = "Current Loan Amount", value = formatMoney(p), onClick = { })
-                        DetailRowEditable(icon = Icons.Rounded.Percent, label = "Interest Rate (p.a.)", value = "$interestRate%", onClick = { })
-                        DetailRowEditable(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(n), onClick = { })
-                        DetailRowEditable(icon = Icons.Rounded.CalendarToday, label = "Current EMI", value = formatMoney(emi), onClick = { })
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = accentPurple, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Prepayment Details", color = accentPurple, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        var typeExpanded by remember { mutableStateOf(false) }
-                        var prepayType by remember { mutableStateOf("One-time Lump Sum") }
-                        ExposedDropdownMenuBox(
-                            expanded = typeExpanded,
-                            onExpandedChange = { typeExpanded = it },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            AutoResizeTextFieldPrepay(
-                                value = prepayType,
-                                onValueChange = {},
-                                label = "Prepayment Type",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true),
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
-                                infoText = "Choose between making a single lump sum payment or paying extra every month."
-                            )
-                            ExposedDropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }, containerColor = surfaceColor) {
-                                DropdownMenuItem(text = { Text("One-time Lump Sum", color = textColor) }, onClick = { prepayType = "One-time Lump Sum"; typeExpanded = false })
-                                DropdownMenuItem(text = { Text("Monthly Extra EMI", color = textColor) }, onClick = { prepayType = "Monthly Extra EMI"; typeExpanded = false })
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        AutoResizeTextFieldPrepay(
-                            value = prepaymentAmount,
-                            onValueChange = { prepaymentAmount = it },
-                            label = "Prepayment Amount (${com.example.globalCurrencySymbol})",
-                            modifier = Modifier.fillMaxWidth(),
-                            trailingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = textSecondary, modifier = Modifier.size(16.dp)) }
-                        )
-                    }
-                    }
-                },
-                rightCard = { cardModifier ->
-                    // Right Card (Hero)
-                    Card(
-                        modifier = cardModifier,
-                        colors = CardDefaults.cardColors(containerColor = heroCardTint),
-                        shape = RoundedCornerShape(12.dp),
-                        border = borderIf(true, accentGreen.copy(alpha=0.3f))
-                    ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp).fillMaxHeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("TOTAL INTEREST SAVED", color = accentGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(Icons.Rounded.Info, contentDescription = null, tint = accentGreen, modifier = Modifier.size(12.dp))
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AutoResizeHeroTextPrep(
-                            text = formatMoney(interestSaved),
-                            color = accentGreen,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().height(160.dp)) {
-                            Icon(Icons.Rounded.Savings, contentDescription = null, tint = accentGreen.copy(alpha=0.8f), modifier = Modifier.size(80.dp))
-                            Icon(Icons.Rounded.ArrowUpward, contentDescription = null, tint = accentGreen, modifier = Modifier.size(40.dp).offset(x=40.dp, y=(-40).dp))
-                            Icon(Icons.Rounded.MonetizationOn, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(30.dp).offset(x=(-40).dp, y=20.dp))
-                            Icon(Icons.Rounded.MonetizationOn, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(20.dp).offset(x=(-50).dp, y=(-10).dp))
-                        }
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(accentGreen.copy(alpha = 0.1f)).border(1.dp, accentGreen, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = accentGreen, modifier = Modifier.size(12.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Great Decision! You are on the right track.", color = accentGreen, fontSize = 9.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
-                } // close rightCard
-            )
-
-            // C. Comparison Section
-            Text("Without Prepayment vs With Prepayment", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                PrepayDashboardCards(
-                    sizeClass = sizeClass,
-                    leftCard = { cardModifier ->
-                        Card(modifier = cardModifier, colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Without Prepayment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(originalTotalPayment), valueColor = textColor)
-                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(originalTotalInterest), valueColor = accentOrange)
-                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(n), valueColor = accentBlue)
-                                ComparisonRow(icon = Icons.Rounded.Money, label = "EMI", value = formatMoney(emi), valueColor = textColor)
-                            }
-                        }
-                    },
-                    rightCard = { cardModifier ->
-                        Card(modifier = cardModifier, colors = CardDefaults.cardColors(containerColor = heroCardTint.copy(alpha=0.5f)), shape = RoundedCornerShape(12.dp), border = borderIf(true, accentGreen.copy(alpha=0.3f))) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("With Prepayment", color = accentGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                ComparisonRow(icon = Icons.Rounded.CalendarToday, label = "Total Payment", value = formatMoney(p + newTotalInterest), valueColor = accentGreen)
-                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Total Interest", value = formatMoney(newTotalInterest), valueColor = accentGreen)
-                                ComparisonRow(icon = Icons.Rounded.Schedule, label = "Remaining Tenure", value = formatMonths(newTenureMonths), valueColor = accentGreen)
-                                ComparisonRow(icon = Icons.Rounded.Money, label = "EMI (After Prepayment)", value = formatMoney(emi), valueColor = textColor)
-                            }
-                        }
-                    }
-                )
-                if (sizeClass != WindowWidthSizeClass.Compact) {
-                    Box(
-                        modifier = Modifier.size(32.dp).clip(CircleShape).background(Color(0xFF1E1B4B)).border(1.dp, accentPurple.copy(alpha=0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("VS", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-
-            // D. 3 Metric Cards
-            if (sizeClass == WindowWidthSizeClass.Compact) {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.Event, iconTint = accentBlue, title = "Tenure Reduced", value = formatMonths(tenureReducedMonths), valueColor = accentBlue, subtext = String.format(Locale.US, "%.1f%% reduction", if(n>0) (tenureReducedMonths/n)*100 else 0.0))
-                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.Savings, iconTint = Color(0xFFFBBF24), title = "Interest Saved", value = formatMoney(interestSaved), valueColor = accentGreen, subtext = String.format(Locale.US, "%.1f%% of total interest", if(originalTotalInterest>0) (interestSaved/originalTotalInterest)*100 else 0.0))
-                    MetricCard(modifier = Modifier.fillMaxWidth(), icon = Icons.Rounded.PieChart, iconTint = accentPurple, title = "ROI on Prepayment", value = String.format(Locale.US, "%.0f%%", roiPercentage), valueColor = accentPurple, subtext = "High return on prepayment")
-                }
-            } else {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Event, iconTint = accentBlue, title = "Tenure Reduced", value = formatMonths(tenureReducedMonths), valueColor = accentBlue, subtext = String.format(Locale.US, "%.1f%% reduction", if(n>0) (tenureReducedMonths/n)*100 else 0.0))
-                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.Savings, iconTint = Color(0xFFFBBF24), title = "Interest Saved", value = formatMoney(interestSaved), valueColor = accentGreen, subtext = String.format(Locale.US, "%.1f%% of total interest", if(originalTotalInterest>0) (interestSaved/originalTotalInterest)*100 else 0.0))
-                    MetricCard(modifier = Modifier.weight(1f), icon = Icons.Rounded.PieChart, iconTint = accentPurple, title = "ROI on Prepayment", value = String.format(Locale.US, "%.0f%%", roiPercentage), valueColor = accentPurple, subtext = "High return on prepayment")
-                }
-            }
-
-            // E. Charts Section
-            PrepayDashboardCards(
-                sizeClass = sizeClass,
-                leftCard = { cardMod ->
-                    Card(modifier = cardMod.height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Break-up of Total Payment", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Principal", color = textSecondary, fontSize = 10.sp)
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentOrange))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Interest", color = textSecondary, fontSize = 10.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                                val ogPrinPct = if(originalTotalPayment>0) (p / originalTotalPayment).toFloat() else 0f
-                                val newPrinPct = if(p + newTotalInterest > 0) (p / (p + newTotalInterest)).toFloat() else 0f
-                                
-                                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                                    Canvas(modifier = Modifier.fillMaxSize()) {
-                                        drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * ogPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                        drawArc(color = accentOrange, startAngle = -90f + (360f * ogPrinPct), sweepAngle = 360f * (1-ogPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                    }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        AutoResizeChartText(text = "${com.example.globalCurrencySymbol}${String.format(Locale.US, "%.2f", originalTotalPayment/100000)}L", color = textColor)
-                                        Text("${(ogPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                    Text("Without Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
-                                }
-                                
-                                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = textSecondary, modifier = Modifier.size(24.dp))
-                                
-                                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                                    Canvas(modifier = Modifier.fillMaxSize()) {
-                                        drawArc(color = accentBlue, startAngle = -90f, sweepAngle = 360f * newPrinPct, useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                        drawArc(color = accentOrange.copy(alpha=0.5f), startAngle = -90f + (360f * newPrinPct), sweepAngle = 360f * (1-newPrinPct), useCenter = false, style = Stroke(width = 24f, cap = StrokeCap.Round))
-                                    }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        AutoResizeChartText(text = "${com.example.globalCurrencySymbol}${String.format(Locale.US, "%.2f", (p+newTotalInterest)/100000)}L", color = textColor)
-                                        Text("${(newPrinPct*100).toInt()}%", color = accentBlue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                    Text("With Prepayment", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y=20.dp))
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                },
-                rightCard = { cardMod ->
-                    Card(modifier = cardMod.height(180.dp), colors = CardDefaults.cardColors(containerColor = surfaceColor), shape = RoundedCornerShape(12.dp)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Loan Balance Over Time", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentBlue))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Original Loan", color = textSecondary, fontSize = 10.sp)
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accentGreen))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("With Prepayment", color = textSecondary, fontSize = 10.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    val w = size.width
-                                    val h = size.height
-                                    
-                                    val p1 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.5f, h*0.2f, w, h) }
-                                    drawPath(p1, color = accentBlue, style = Stroke(width = 4f))
-                                    
-                                    val prepayX = w * (newTenureMonths.toFloat() / n.toFloat())
-                                    val p2 = Path().apply { moveTo(0f, 0f); quadraticBezierTo(w*0.2f, h*0.4f, prepayX, h) }
-                                    drawPath(p2, color = accentGreen, style = Stroke(width = 6f))
-                                    
-                                    drawLine(color = textSecondary.copy(alpha=0.5f), start=Offset(prepayX, 0f), end=Offset(prepayX, h), strokeWidth=2f, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
-                                }
-                                // Axis labels
-                                Text("${com.example.globalCurrencySymbol}${(p/100000).toInt()}L", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopStart).offset(y=(-4).dp, x=(-4).dp))
-                                //Text("${com.example.globalCurrencySymbol}0", color = textSecondary, fontSize = 8.sp, modifier = Modifier.align(Alignment.BottomStart))
-                                Row(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter).offset(y=16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("0 Yr", color = textSecondary, fontSize = 8.sp)
-                                Text("5 Yr", color = textSecondary, fontSize = 8.sp)
-                                Text("10 Yr", color = textSecondary, fontSize = 8.sp)
-                                Text("15 Yr", color = textSecondary, fontSize = 8.sp)
-                            }
-                            
-                            // Tooltip
-                            Box(modifier = Modifier.align(Alignment.TopEnd).offset(x=8.dp, y=20.dp).clip(RoundedCornerShape(4.dp)).background(heroCardTint).border(1.dp, accentGreen.copy(alpha=0.5f), RoundedCornerShape(4.dp)).padding(4.dp)) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("Loan closed", color = textColor, fontSize = 8.sp)
-                                    Text("~ ${String.format(Locale.US, "%.1f", tenureReducedMonths/12)} Years", color = accentGreen, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                    Text("earlier", color = accentGreen, fontSize = 8.sp)
-                                }
-                            }
-                        }
-                    } // close Column
-                } // close Card
-                } // close rightCard lambda
-            ) // close PrepayDashboardCards
-
-            // F. Scenarios & Recommendations
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text("What If?", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Try Different Prepayment Scenarios", color = textSecondary, fontSize = 12.sp)
-            }
-            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Column(modifier = Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}50,000", sub = "Prepayment", save = "Save ${com.example.globalCurrencySymbol}4.19L", red = "Reduce by 2.1 Yrs", selected = false, icon = Icons.Rounded.Savings)
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}1,00,000", sub = "Prepayment", save = "Save ${com.example.globalCurrencySymbol}8.45L", red = "Reduce by 4.2 Yrs", selected = true, icon = Icons.Rounded.Payments)
-                        }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "+ ${com.example.globalCurrencySymbol}5,000", sub = "Extra EMI", save = "Save ${com.example.globalCurrencySymbol}10.27L", red = "Reduce by 5.3 Yrs", selected = false, icon = Icons.Rounded.MonetizationOn)
-                            ScenarioChip(modifier = Modifier.weight(1f), title = "Prepay", sub = "Every Year", save = "Save ${com.example.globalCurrencySymbol}9.15L", red = "Reduce by 4.7 Yrs", selected = false, icon = Icons.Rounded.Event)
+                        Box(modifier = Modifier.weight(1f)) {
+                            PremiumInputField("Remaining Tenure", "Yrs", tenureYears) { tenureYears = it }
                         }
                     }
                     
-                    Card(modifier = Modifier.weight(1f).height(248.dp), colors = CardDefaults.cardColors(containerColor = heroCardTint.copy(alpha=0.5f)), shape = RoundedCornerShape(12.dp), border = borderIf(true, accentGreen.copy(alpha=0.5f))) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Best Recommendation", color = accentGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Icon(Icons.Rounded.Stars, contentDescription = null, tint = accentGreen, modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        RecomRow("Prepay ${com.example.globalCurrencySymbol}1,00,000 today")
-                        RecomRow("Save ${com.example.globalCurrencySymbol}8.45L in interest")
-                        RecomRow("Reduce tenure by 4.2 years")
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = { },
-                            modifier = Modifier.fillMaxWidth().height(40.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = accentGreen, contentColor = bgColor),
-                            contentPadding = PaddingValues(0.dp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = ResponsiveUtils.CardStroke)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text("Prepayment Details", color = primaryColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.Black.copy(alpha = 0.2f)).padding(4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (strategy == "Tenure") primaryColor else Color.Transparent)
+                                .clickable { strategy = "Tenure" }
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.RocketLaunch, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Great Choice!", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Reduce Tenure", color = if (strategy == "Tenure") Color.White else ResponsiveUtils.TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (strategy == "EMI") primaryColor else Color.Transparent)
+                                .clickable { strategy = "EMI" }
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Reduce EMI", color = if (strategy == "EMI") Color.White else ResponsiveUtils.TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    PremiumInputField("Lump Sum Prepayment", "₹", prepaymentAmount) { prepaymentAmount = it }
+                    
+                    // Slider for Lump Sum
+                    val maxSliderValue = if (p > 0) p.toFloat() else 10000000f
+                    val currentSliderValue = prePay.toFloat().coerceIn(0f, maxSliderValue)
+                    Slider(
+                        value = currentSliderValue,
+                        onValueChange = { prepaymentAmount = it.toInt().toString() },
+                        valueRange = 0f..maxSliderValue,
+                        colors = SliderDefaults.colors(
+                            thumbColor = primaryColor,
+                            activeTrackColor = primaryColor,
+                            inactiveTrackColor = primaryColor.copy(alpha = 0.2f)
+                        )
+                    )
+
+                    if (strategy == "Tenure") {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                PremiumInputField("Monthly Extra", "₹", monthlyPrepayment) { monthlyPrepayment = it }
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                PremiumInputField("Annual Extra", "₹", annualPrepayment) { annualPrepayment = it }
+                            }
                         }
                     }
                 }
             }
-}
 
-            // G. Premium Tools
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Premium Tools", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            }
-            LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                val handlePremiumClick = { toolId: String ->
-                    if (isPremiumUnlocked) showPremiumCalculator = toolId
-                    else showUnlockDialog = true
+            // Comparison Cards
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ComparisonCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Without Prepayment",
+                        totalInterest = originalTotalInterest,
+                        color = accentOrange,
+                        surfaceColor = surfaceColor
+                    )
+                    ComparisonCard(
+                        modifier = Modifier.weight(1f),
+                        title = "With Prepayment",
+                        totalInterest = newTotalInterest,
+                        color = accentGreen,
+                        surfaceColor = surfaceColor
+                    )
                 }
-                item { PremiumToolCard(Icons.Rounded.ReceiptLong, accentBlue, "Amortization\nSchedule", onClick = { handlePremiumClick("amortization") }) }
-                item { PremiumToolCard(Icons.Rounded.CompareArrows, accentPurple, "Compare\nStrategies", onClick = { handlePremiumClick("compare") }) }
-                item { PremiumToolCard(Icons.Rounded.DynamicFeed, accentOrange, "Multiple Prepayment\nPlanner", onClick = { handlePremiumClick("planner") }) }
-                item { PremiumToolCard(Icons.Rounded.PictureAsPdf, Color(0xFFEC4899), "PDF Report\n& Share", onClick = { handlePremiumClick("pdf") }) }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Visual Chart
+            item {
+                PrepaymentChartCard(
+                    originalPrincipal = p,
+                    originalInterest = originalTotalInterest,
+                    newPrincipal = p,
+                    newInterest = newTotalInterest,
+                    surfaceColor = surfaceColor,
+                    primaryColor = primaryColor,
+                    accentOrange = accentOrange,
+                    accentGreen = accentGreen
+                )
+            }
+
+            item {
+                Button(
+                    onClick = { showAmortization = true },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                ) {
+                    Icon(Icons.Rounded.TableChart, contentDescription = null, tint = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("View Amortization Schedule", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            item {
+                // Premium locked AI Insights card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF2D1B4E), Color(0xFF1E1136))
+                            )
+                        )
+                        .border(1.dp, Color(0xFF6B21A8), RoundedCornerShape(24.dp))
+                        .clickable { if (!isAiUnlocked) showUnlockDialog = true }
+                        .padding(20.dp)
+                ) {
+                    if (isAiUnlocked) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF6B21A8).copy(alpha = 0.3f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Rounded.AutoAwesome, contentDescription = "AI Insights", tint = Color(0xFFC084FC), modifier = Modifier.size(20.dp))
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("AI Strategy Unlocked", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            val bestMonth = 1
+                            val delayLoss = prePay * r // rough estimate of interest lost by delaying one month
+                            
+                            Text("Optimal Prepayment Month: Month $bestMonth", color = Color(0xFF4ADE80), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Mathematically, the earlier you prepay, the more principal you reduce. Prepaying ₹${com.example.formatMoney(prePay)} in Month 1 saves maximum interest. Delaying this prepayment by just one year will cost you approximately ₹${com.example.formatMoney(delayLoss * 12)} in additional interest.", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp, lineHeight = 20.sp)
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF6B21A8).copy(alpha = 0.3f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.AutoAwesome, contentDescription = "AI Insights", tint = Color(0xFFC084FC))
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("AI Smart Strategy", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.Rounded.Lock, contentDescription = "Locked", tint = Color(0xFFFCD34D), modifier = Modifier.size(14.dp))
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Find the optimal month to prepay for maximum interest savings.", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color(0xFFC084FC))
+                        }
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
-    
+
+    if (showAmortization) {
+        AmortizationBottomSheet(
+            p = p,
+            prePay = prePay,
+            monthlyPrepay = monthlyPrepay,
+            annualPrepay = annualPrepay,
+            r = r,
+            n = n,
+            originalEmi = emi,
+            strategy = strategy,
+            isUnlocked = isAiUnlocked,
+            onUnlockClick = { showUnlockDialog = true },
+            onDismiss = { showAmortization = false }
+        )
+    }
+
     if (showUnlockDialog) {
         AlertDialog(
             onDismissRequest = { showUnlockDialog = false },
-            containerColor = surfaceColor,
-            titleContentColor = textColor,
-            textContentColor = textSecondary,
             title = {
-                Text("Unlock Premium Tools", fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color.Yellow)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Unlock Premium Features", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
             },
-            text = {
-                Text("Access advanced calculators and insights like Amortization Schedule and Compare Strategies by watching a short ad.")
-            },
+            text = { Text("Watch a short ad or upgrade to Premium to unlock AI Smart Strategy and PDF Export of the Amortization schedule.", color = ResponsiveUtils.TextSecondary, fontSize = 14.sp) },
             confirmButton = {
                 Button(
-                    onClick = {
-                        isPremiumUnlocked = true
-                        showUnlockDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = accentBlue, contentColor = Color.White)
+                    onClick = { 
+                        isAiUnlocked = true 
+                        showUnlockDialog = false 
+                    }, 
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC084FC)),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold)
+                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Watch Ad", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showUnlockDialog = false }) {
-                    Text("Cancel", color = textColor)
+                OutlinedButton(
+                    onClick = { 
+                        isAiUnlocked = true 
+                        showUnlockDialog = false 
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFC084FC)),
+                    border = BorderStroke(1.dp, Color(0xFFC084FC)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color(0xFFC084FC), modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Buy Premium")
+                }
+            },
+            containerColor = ResponsiveUtils.SurfaceColor
+        )
+    }
+}
+
+@Composable
+fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiReduced: Double, strategy: String, accentColor: Color, surfaceColor: Color) {
+    val formatMoney = { amount: Double ->
+        com.example.formatMoney(amount, "₹")
+    }
+    
+    val years = (tenureReducedMonths / 12).toInt()
+    val months = (tenureReducedMonths % 12).toInt()
+    val tenureText = if (years > 0 && months > 0) "$years Yrs $months Mos"
+    else if (years > 0) "$years Yrs"
+    else "$months Mos"
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF0D3B23), surfaceColor)))
+            .border(1.dp, accentColor.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
+            .padding(24.dp)
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Savings, contentDescription = null, tint = accentColor, modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("TOTAL INTEREST SAVED", color = accentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            AutoSizeText(
+                text = formatMoney(interestSaved),
+                color = accentColor,
+                minTextSize = 24.sp,
+                maxTextSize = 48.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val icon = if(strategy == "Tenure") Icons.Rounded.Event else Icons.Rounded.AccountBalanceWallet
+                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                val savedText = if (strategy == "Tenure") "Tenure Reduced by: $tenureText" else "EMI Reduced by: ${formatMoney(emiReduced)}"
+                Text(savedText, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable
+fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, color: Color, surfaceColor: Color) {
+    val formatMoney = { amount: Double ->
+        com.example.formatMoney(amount, "₹")
+    }
+    
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(surfaceColor)
+            .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(title, color = ResponsiveUtils.TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(formatMoney(totalInterest), color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text("Total Interest", color = ResponsiveUtils.TextSecondary, fontSize = 10.sp)
+    }
+}
+
+@Composable
+fun PremiumInputField(label: String, symbol: String, value: String, onValueChange: (String) -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    
+    Column {
+        Text(label, color = ResponsiveUtils.TextSecondary, fontSize = 14.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.Black.copy(alpha = 0.2f))
+                .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            textStyle = TextStyle(
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            interactionSource = interactionSource,
+            decorationBox = { innerTextField ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (symbol.isNotEmpty() && symbol == "₹") {
+                        Text(symbol, color = ResponsiveUtils.PrimaryAccent, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (value.isEmpty()) {
+                            Text("0", color = Color.White.copy(alpha = 0.3f), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                        innerTextField()
+                    }
+                    if (symbol.isNotEmpty() && symbol == "%" || symbol == "Yrs") {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(symbol, color = ResponsiveUtils.PrimaryAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         )
     }
-
-    if (showPremiumCalculator != null) {
-        ModalBottomSheet(
-            onDismissRequest = { showPremiumCalculator = null },
-            containerColor = surfaceColor
-        ) {
-            Column(modifier = Modifier.padding(16.dp).fillMaxWidth().verticalScroll(rememberScrollState())) {
-                when (showPremiumCalculator) {
-                    "amortization" -> {
-                        Text("Amortization Schedule", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("Detailed breakdown of your prepayment impact over time.", color = textSecondary, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        // Header
-                        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                            Text("Year", color = textSecondary, modifier = Modifier.weight(1f))
-                            Text("Principal", color = textSecondary, modifier = Modifier.weight(1f))
-                            Text("Interest", color = textSecondary, modifier = Modifier.weight(1f))
-                            Text("Balance", color = textSecondary, modifier = Modifier.weight(1f))
-                        }
-                        // Dummy calculation
-                        var bal = p
-                        var year = 1
-                        while (bal > 0 && year <= terms) {
-                            val interest = bal * rate / 100
-                            val prin = (emi * 12) - interest + if (year == 1) prePay else 0.0
-                            bal = maxOf(0.0, bal - prin)
-                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                                Text("$year", color = textColor, modifier = Modifier.weight(1f))
-                                Text(formatMoney(prin), color = accentGreen, modifier = Modifier.weight(1f))
-                                Text(formatMoney(interest), color = accentOrange, modifier = Modifier.weight(1f))
-                                Text(formatMoney(bal), color = textColor, modifier = Modifier.weight(1f))
-                            }
-                            year++
-                        }
-                    }
-                    "compare" -> {
-                        Text("Compare Prepayment Strategies", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("See how different prepayment percentages affect your savings.", color = textSecondary, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        val options = listOf(5.0, 10.0, 20.0)
-                        options.forEach { pct ->
-                            val prepayOpt = p * (pct / 100)
-                            val newB = p - prepayOpt
-                            val newT = if (newB > 0 && r > 0 && (emi - newB * r) > 0) Math.log(emi / (emi - newB * r)) / Math.log(1 + r) else n
-                            val newInt = (emi * newT) - newB
-                            val optSaved = originalTotalInterest - newInt
-                            Card(colors = CardDefaults.cardColors(containerColor = bgColor), modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text("Prepay ${pct.toInt()}% (${formatMoney(prepayOpt)})", color = textColor, fontWeight = FontWeight.Bold)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text("Interest Saved: ${formatMoney(optSaved)}", color = accentGreen)
-                                    Text("New Tenure: ${formatMonths(newT)}", color = accentPurple)
-                                }
-                            }
-                        }
-                    }
-                    "planner" -> {
-                        Text("Multiple Prepayment Planner", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("Plan your yearly bonuses or periodic increments.", color = textSecondary, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Card(colors = CardDefaults.cardColors(containerColor = bgColor), modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Example: Prepaying ${formatMoney(50000.0)} every year", color = textColor)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                val yearlyPrepay = 50000.0
-                                var currB = p
-                                var m = 0
-                                var intPaid = 0.0
-                                while(currB > 0) {
-                                    intPaid += currB * r
-                                    var principalPaid = emi - (currB * r)
-                                    if (m % 12 == 0 && m > 0) principalPaid += yearlyPrepay
-                                    currB -= principalPaid
-                                    m++
-                                }
-                                val totalSaved = originalTotalInterest - intPaid
-                                Text("Interest Saved: ${formatMoney(totalSaved)}", color = accentGreen, fontWeight = FontWeight.Bold)
-                                Text("Years Reduced: ${(n - m) / 12} Years", color = accentBlue, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                    else -> {
-                        Text("Feature coming soon!", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-    }
 }
 
 @Composable
-fun DetailRowEditable(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String, onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(14.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(label, color = Color.Gray, fontSize = 12.sp, maxLines = 1)
-        Spacer(modifier = Modifier.weight(1f))
-        Text(value, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, textAlign = TextAlign.End)
-        Spacer(modifier = Modifier.width(8.dp))
-        Icon(Icons.Rounded.Edit, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp).clickable { onClick() })
-    }
-}
+fun PrepaymentChartCard(
+    originalPrincipal: Double,
+    originalInterest: Double,
+    newPrincipal: Double,
+    newInterest: Double,
+    surfaceColor: Color,
+    primaryColor: Color,
+    accentOrange: Color,
+    accentGreen: Color
+) {
+    val originalTotal = originalPrincipal + originalInterest
+    val newTotal = newPrincipal + newInterest
 
-@Composable
-fun ComparisonRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String, valueColor: Color) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(label, color = Color.Gray, fontSize = 10.sp, maxLines = 1)
-        Spacer(modifier = Modifier.weight(1f))
-        Text(value, color = valueColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, textAlign = TextAlign.End, softWrap = false)
-    }
-}
+    val ogPrinPct = if (originalTotal > 0) (originalPrincipal / originalTotal).toFloat() else 0f
+    val ogIntPct = if (originalTotal > 0) (originalInterest / originalTotal).toFloat() else 0f
+    
+    val newPrinPct = if (newTotal > 0) (newPrincipal / newTotal).toFloat() else 0f
+    val newIntPct = if (newTotal > 0) (newInterest / newTotal).toFloat() else 0f
 
-@Composable
-fun MetricCard(modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector, iconTint: Color, title: String, value: String, valueColor: Color, subtext: String) {
-    Card(modifier = modifier.height(100.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF152238)), shape = RoundedCornerShape(12.dp)) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(title, color = Color.White, fontSize = 10.sp, maxLines = 1)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            AutoResizeChartText(text = value, color = valueColor)
-            Text(subtext, color = Color.Gray, fontSize = 9.sp, maxLines = 1)
-        }
-    }
-}
-
-@Composable
-fun ScenarioChip(modifier: Modifier = Modifier, title: String, sub: String, save: String, red: String, selected: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Box(modifier = modifier) {
-        Card(
-            modifier = Modifier.fillMaxWidth().height(120.dp),
-            colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFF3B82F6).copy(alpha=0.1f) else Color(0xFF152238)),
-            border = borderIf(selected, Color(0xFF3B82F6)),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(modifier = Modifier.padding(12.dp).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, contentDescription = null, tint = if(selected) Color(0xFF3B82F6) else Color.Gray, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(title, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                }
-                Text(sub, color = Color.Gray, fontSize = 9.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(save, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                Text(red, color = Color.Gray, fontSize = 8.sp, maxLines = 1)
-            }
-        }
-        if (selected) {
-            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF3B82F6), modifier = Modifier.align(Alignment.TopEnd).offset(x=(6).dp, y=(-6).dp).size(20.dp).background(Color.White, CircleShape))
-        }
-    }
-}
-
-@Composable
-fun RecomRow(text: String) {
-    Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF4ADE80), modifier = Modifier.size(14.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text, color = Color.White, fontSize = 11.sp)
-    }
-}
-
-@Composable
-fun PremiumToolCard(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, title: String, onClick: () -> Unit = {}) {
-    Card(
-        modifier = Modifier.width(160.dp).height(64.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = ResponsiveUtils.SurfaceColor),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, ResponsiveUtils.CardStroke)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(surfaceColor)
+            .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(24.dp))
+            .padding(20.dp)
     ) {
-        Row(modifier = Modifier.padding(horizontal = 12.dp).fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(title, color = ResponsiveUtils.TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(16.dp))
+        Text("Payment Breakdown", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Without Prepayment
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(modifier = Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+                    Canvas(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+                        drawArc(color = primaryColor, startAngle = -90f, sweepAngle = 360f * ogPrinPct, useCenter = false, style = Stroke(width = 30f, cap = StrokeCap.Round))
+                        drawArc(color = accentOrange, startAngle = -90f + (360f * ogPrinPct), sweepAngle = 360f * ogIntPct, useCenter = false, style = Stroke(width = 30f, cap = StrokeCap.Round))
+                    }
+                    Text("${(ogIntPct*100).toInt()}%", color = accentOrange, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Standard", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
+                Text(com.example.formatMoney(originalTotal, "₹"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+            
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(32.dp))
+            
+            // With Prepayment
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(modifier = Modifier.size(100.dp), contentAlignment = Alignment.Center) {
+                    Canvas(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+                        drawArc(color = primaryColor, startAngle = -90f, sweepAngle = 360f * newPrinPct, useCenter = false, style = Stroke(width = 30f, cap = StrokeCap.Round))
+                        drawArc(color = accentGreen, startAngle = -90f + (360f * newPrinPct), sweepAngle = 360f * newIntPct, useCenter = false, style = Stroke(width = 30f, cap = StrokeCap.Round))
+                    }
+                    Text("${(newIntPct*100).toInt()}%", color = accentGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Prepayment", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
+                Text(com.example.formatMoney(newTotal, "₹"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(primaryColor))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Principal", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
+            }
+            Spacer(modifier = Modifier.width(24.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(accentOrange))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Interest", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
+            }
         }
     }
 }
 
-fun borderIf(condition: Boolean, color: Color): androidx.compose.foundation.BorderStroke? {
-    return if (condition) androidx.compose.foundation.BorderStroke(1.dp, color) else null
-}
+data class AmortizationRow(
+    val month: Int,
+    val payment: Double,
+    val principal: Double,
+    val interest: Double,
+    val balance: Double,
+    val isPrepayment: Boolean = false,
+    val label: String = ""
+)
 
-@Composable
-fun AutoResizeTextFieldPrepay(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    infoText: String? = null
-) {
-    PremiumInputField(
-        label = label,
-        value = value,
-        onValueChange = onValueChange,
-        icon = Icons.Rounded.Edit, // Default generic edit icon
-        iconTint = Color(0xFF3B82F6),
-        modifier = modifier,
-        readOnly = readOnly,
-        infoText = infoText,
-        trailingContent = trailingIcon
-    )
-}
-
-@Composable
-fun AutoResizeHeroTextPrep(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    var scaledFontSize by remember(text) { mutableStateOf(48.sp) }
-    
-    Text(
-        text = text,
-        color = color,
-        fontSize = scaledFontSize,
-        fontWeight = FontWeight.ExtraBold,
-        maxLines = 1,
-        softWrap = false,
-        onTextLayout = { textLayoutResult ->
-            if (textLayoutResult.hasVisualOverflow && scaledFontSize > 16.sp) {
-                scaledFontSize = (scaledFontSize.value - 2f).sp
-            }
-        },
-        modifier = modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-fun AutoResizeChartText(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    var scaledFontSize by remember(text) { mutableStateOf(16.sp) }
-    
-    Text(
-        text = text,
-        color = color,
-        fontSize = scaledFontSize,
-        fontWeight = FontWeight.Bold,
-        maxLines = 1,
-        softWrap = false,
-        onTextLayout = { textLayoutResult ->
-            if (textLayoutResult.hasVisualOverflow && scaledFontSize > 8.sp) {
-                scaledFontSize = (scaledFontSize.value - 1f).sp
-            }
-        },
-        modifier = modifier
-    )
-}
-
-fun Modifier.borderIf(condition: Boolean, color: Color): Modifier = 
-    if (condition) this.border(1.dp, color, RoundedCornerShape(12.dp)) else this
-
-@Composable
-fun PrepayDashboardCards(
-    sizeClass: WindowWidthSizeClass,
-    leftCard: @Composable (Modifier) -> Unit,
-    rightCard: @Composable (Modifier) -> Unit
-) {
-    if (sizeClass == WindowWidthSizeClass.Compact) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-            leftCard(Modifier.fillMaxWidth())
-            rightCard(Modifier.fillMaxWidth())
+fun generateStandardSchedule(p: Double, r: Double, n: Double, emi: Double): List<AmortizationRow> {
+    var balance = p
+    val schedule = mutableListOf<AmortizationRow>()
+    for (i in 1..n.toInt()) {
+        val interest = balance * r
+        var principal = emi - interest
+        if (balance < principal) {
+            principal = balance
         }
-    } else {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            leftCard(Modifier.weight(1f))
-            rightCard(Modifier.weight(1f))
+        balance -= principal
+        schedule.add(AmortizationRow(i, principal + interest, principal, interest, if (balance < 0) 0.0 else balance, false, "EMI"))
+        if (balance <= 0) break
+    }
+    return schedule
+}
+
+fun generatePrepaymentSchedule(p: Double, prePay: Double, monthlyPrepay: Double, annualPrepay: Double, r: Double, n: Double, emi: Double, strategy: String): List<AmortizationRow> {
+    var balance = p
+    val schedule = mutableListOf<AmortizationRow>()
+    
+    if (prePay > 0) {
+        val actualPrepay = if (balance < prePay) balance else prePay
+        balance -= actualPrepay
+        schedule.add(AmortizationRow(0, actualPrepay, actualPrepay, 0.0, balance, true, "Lump Sum"))
+    }
+
+    if (balance <= 0) return schedule
+
+    var currentEmi = emi
+    if (strategy == "EMI") {
+        currentEmi = if (r > 0 && n > 0) balance * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) else balance / n
+    }
+
+    var month = 1
+    while (balance > 0.01 && month <= n.toInt() * 2) {
+        val interest = balance * r
+        var principal = currentEmi - interest
+        if (balance < principal) {
+            principal = balance
+            currentEmi = principal + interest
+        }
+        balance -= principal
+        schedule.add(AmortizationRow(month, currentEmi, principal, interest, if (balance < 0) 0.0 else balance, false, "EMI"))
+        
+        if (strategy == "Tenure" && monthlyPrepay > 0 && balance > 0.01) {
+            val extraPrepay = if (balance < monthlyPrepay) balance else monthlyPrepay
+            balance -= extraPrepay
+            schedule.add(AmortizationRow(month, extraPrepay, extraPrepay, 0.0, if (balance < 0) 0.0 else balance, true, "Extra Pay"))
+        }
+
+        if (strategy == "Tenure" && annualPrepay > 0 && balance > 0.01 && month % 12 == 0) {
+            val extraPrepay = if (balance < annualPrepay) balance else annualPrepay
+            balance -= extraPrepay
+            schedule.add(AmortizationRow(month, extraPrepay, extraPrepay, 0.0, if (balance < 0) 0.0 else balance, true, "Annual Pay"))
+        }
+
+        month++
+    }
+    return schedule
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AmortizationBottomSheet(
+    p: Double, prePay: Double, monthlyPrepay: Double, annualPrepay: Double, r: Double, n: Double, originalEmi: Double, strategy: String,
+    isUnlocked: Boolean = false, onUnlockClick: () -> Unit = {}, onDismiss: () -> Unit
+) {
+    var isStandard by remember { mutableStateOf(true) }
+    
+    val standardSchedule = remember(p, r, n, originalEmi) {
+        generateStandardSchedule(p, r, n, originalEmi)
+    }
+    val prepaySchedule = remember(p, prePay, monthlyPrepay, annualPrepay, r, n, originalEmi, strategy) {
+        generatePrepaymentSchedule(p, prePay, monthlyPrepay, annualPrepay, r, n, originalEmi, strategy)
+    }
+    
+    val schedule = if (isStandard) standardSchedule else prepaySchedule
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = ResponsiveUtils.SurfaceColor,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Amortization Schedule",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                val context = androidx.compose.ui.platform.LocalContext.current
+                // Premium Feature Button
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            if (isUnlocked) Brush.horizontalGradient(listOf(Color(0xFF059669), Color(0xFF10B981)))
+                            else Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
+                        )
+                        .clickable { 
+                            if (!isUnlocked) {
+                                onUnlockClick()
+                            } else {
+                                android.widget.Toast.makeText(context, "PDF Exported Successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Export", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    if (!isUnlocked) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Rounded.WorkspacePremium, contentDescription = "Premium", tint = Color.Yellow, modifier = Modifier.size(12.dp))
+                    }
+                }
+            }
+            
+            // Toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .padding(4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isStandard) ResponsiveUtils.PrimaryAccent else Color.Transparent)
+                        .clickable { isStandard = true }
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Standard", color = if (isStandard) Color.White else ResponsiveUtils.TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (!isStandard) ResponsiveUtils.PrimaryAccent else Color.Transparent)
+                        .clickable { isStandard = false }
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Prepayment", color = if (!isStandard) Color.White else ResponsiveUtils.TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Mon", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(0.5f))
+                Text("Principal", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                Text("Interest", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                Text("Balance", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+            }
+            HorizontalDivider(color = ResponsiveUtils.CardStroke)
+            
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f, fill = false).heightIn(max = 400.dp)
+            ) {
+                items(schedule) { row ->
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(if (row.month == 0) "-" else "${row.month}", color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(0.5f))
+                            Text(com.example.formatMoney(row.principal, "₹"), color = Color(0xFF4ADE80), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(if (row.interest > 0) com.example.formatMoney(row.interest, "₹") else "-", color = Color(0xFFF97316), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(com.example.formatMoney(row.balance, "₹"), color = Color.White, fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                        }
+                        if (row.label.isNotEmpty()) {
+                            Text(row.label, color = if (row.isPrepayment) ResponsiveUtils.PrimaryAccent else ResponsiveUtils.TextSecondary, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                    HorizontalDivider(color = ResponsiveUtils.CardStroke.copy(alpha = 0.5f))
+                }
+            }
         }
     }
 }
-

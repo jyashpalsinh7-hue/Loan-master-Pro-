@@ -212,7 +212,22 @@ fun LoanEligibilityScreen() {
                 }
                 Icon(Icons.Rounded.StarBorder, contentDescription = "Star", tint = warningYellow, modifier = Modifier.size(24.dp).clickable { })
                 Spacer(modifier = Modifier.width(16.dp))
-                Icon(Icons.Rounded.Share, contentDescription = "Share", tint = textColor, modifier = Modifier.size(24.dp).clickable { })
+                val context = androidx.compose.ui.platform.LocalContext.current
+                Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = textColor, modifier = Modifier.size(24.dp).clickable {
+                    ExportUtils.exportToPdf(
+                        context,
+                        "Loan Eligibility Report",
+                        listOf(
+                            "Monthly Income" to formatMoney(totalIncome),
+                            "Other EMIs" to formatMoney(totalExistingEmi),
+                            "Interest Rate" to "$interestRate%",
+                            "Loan Tenure" to "$tenureYears Years",
+                            "" to "",
+                            "Eligible Loan Amount" to formatMoney(eligibleLoanAmount),
+                            "Eligible EMI" to formatMoney(availableEmi.coerceAtLeast(0.0))
+                        )
+                    )
+                })
             }
 
             // 2. Employment Type Selector
@@ -727,16 +742,31 @@ fun LoanEligibilityScreen() {
                     }
                 },
                 content2 = { mod ->
+                    val context = androidx.compose.ui.platform.LocalContext.current
                     Button(
-                        onClick = { },
+                        onClick = {
+                            ExportUtils.exportToPdf(
+                                context,
+                                "Loan Eligibility Report",
+                                listOf(
+                                    "Monthly Income" to formatMoney(totalIncome),
+                                    "Other EMIs" to formatMoney(totalExistingEmi),
+                                    "Interest Rate" to "$interestRate%",
+                                    "Loan Tenure" to "$tenureYears Years",
+                                    "" to "",
+                                    "Eligible Loan Amount" to formatMoney(eligibleLoanAmount),
+                                    "Eligible EMI" to formatMoney(availableEmi.coerceAtLeast(0.0))
+                                )
+                            )
+                        },
                         modifier = mod.height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100), contentColor = textColor),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Share", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("Export PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             )

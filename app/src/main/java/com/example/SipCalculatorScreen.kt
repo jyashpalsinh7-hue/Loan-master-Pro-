@@ -111,6 +111,7 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
             interactionSource = remember { MutableInteractionSource() }, indication = null
         ) { focusManager.clearFocus() }
     ) { paddingValues ->
+        val context = androidx.compose.ui.platform.LocalContext.current
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -119,7 +120,25 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                 .padding(horizontal = if (isWide) 32.dp else 16.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            SipTopBar(onNavigateBack)
+            SipTopBar(
+                onNavigateBack = onNavigateBack,
+                onExportClick = {
+                    ExportUtils.exportToPdf(
+                        context,
+                        "SIP Calculator Report",
+                        listOf(
+                            "Monthly Investment" to amountText,
+                            "Expected Return Rate" to "$returnRateText%",
+                            "Time Period" to "$yearsText Years",
+                            "Annual Step-Up" to "$stepUpText%",
+                            "" to "",
+                            "Total Invested" to formatMoneyObj(totalInvested),
+                            "Est. Returns" to formatMoneyObj(totalGain),
+                            "Total Value" to formatMoneyObj(maturityValue)
+                        )
+                    )
+                }
+            )
             InputsSection(amountText, returnRateText, yearsText, stepUpText, { amountText = it }, { returnRateText = it }, { yearsText = it }, { stepUpText = it }, isWide)
             HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide)
             
@@ -159,7 +178,7 @@ private fun SipBottomNav() {
 }
 
 @Composable
-private fun SipTopBar(onNavigateBack: () -> Unit) {
+private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().statusBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
@@ -179,8 +198,8 @@ private fun SipTopBar(onNavigateBack: () -> Unit) {
             IconButton(onClick = {}, modifier = Modifier.size(48.dp).clip(CircleShape).border(1.dp, StrokeNavy, CircleShape)) {
                 Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favorite", tint = Color.White, modifier = Modifier.size(24.dp))
             }
-            IconButton(onClick = {}, modifier = Modifier.size(48.dp).clip(CircleShape).border(1.dp, StrokeNavy, CircleShape)) {
-                Icon(Icons.Rounded.Share, contentDescription = "Share", tint = Color.White, modifier = Modifier.size(24.dp))
+            IconButton(onClick = onExportClick, modifier = Modifier.size(48.dp).clip(CircleShape).border(1.dp, StrokeNavy, CircleShape)) {
+                Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = Color.White, modifier = Modifier.size(24.dp))
             }
         }
     }
@@ -266,14 +285,16 @@ private fun HeroStat(label: String, value: String, color: Color = Color.White, m
             Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(12.dp).padding(top = 2.dp))
         }
         Spacer(Modifier.height(4.dp))
-        AutoSizeText(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else "${globalCurrencySymbol}$value", color = color, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        AutoSizeText(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else "${globalCurrencySymbol}$value", color = color, maxTextSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 
+private val exactMoneyFormatter = java.text.NumberFormat.getNumberInstance(java.util.Locale("en", "IN")).apply {
+    maximumFractionDigits = 0
+}
+
 fun formatMoneyExact(value: Double): String {
-    val formatter = java.text.NumberFormat.getNumberInstance(java.util.Locale("en", "IN"))
-    formatter.maximumFractionDigits = 0
-    return formatter.format(value)
+    return exactMoneyFormatter.format(value)
 }
 
 @Composable
@@ -311,7 +332,8 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
                     AutoSizeText(
                         "${globalCurrencySymbol}${formatMoneyExact(maturity)}", 
                         color = GoldAccent, 
-                        fontSize = heroFontSize, 
+                        minTextSize = 18.sp,
+                        maxTextSize = heroFontSize, 
                         lineHeight = heroLineHeight,
                         fontWeight = FontWeight.ExtraBold,
                         maxLines = 1
@@ -564,17 +586,17 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int) {
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Future Corpus", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, maxTextSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Inflation Adjusted", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText(globalCurrencySymbol + formatMoneyExact(adjustedValue), color = GoldAccent, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText(globalCurrencySymbol + formatMoneyExact(adjustedValue), color = GoldAccent, maxTextSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Value Lost", color = TextSec, fontSize = 14.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText("- " + globalCurrencySymbol + formatMoneyExact(valueLost), color = Color(0xFFF87171), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText("- " + globalCurrencySymbol + formatMoneyExact(valueLost), color = Color(0xFFF87171), maxTextSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         
         Spacer(Modifier.height(20.dp))
@@ -617,7 +639,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("Current Corpus", color = TextSec, fontSize = 11.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
-                AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                AutoSizeText(globalCurrencySymbol + formatMoneyExact(maturityValue), color = Color.White, maxTextSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
             Box(modifier = Modifier.width(1.dp).height(40.dp).background(StrokeNavy))
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1.3f)) {
@@ -628,7 +650,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                     Spacer(Modifier.width(4.dp))
                     val formatted = formatMoneyExact(potentialCorpus)
                     val blurredText = if (formatted.length > 5) formatted.take(2) + ",XX,XXX" else "XX,XXX"
-                    AutoSizeText(globalCurrencySymbol + blurredText, color = GoldAccent, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
+                    AutoSizeText(globalCurrencySymbol + blurredText, color = GoldAccent, maxTextSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
                 }
             }
             Box(modifier = Modifier.width(1.dp).height(40.dp).background(StrokeNavy))
@@ -640,7 +662,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                     Spacer(Modifier.width(4.dp))
                     val formattedGain = formatMoneyExact(potentialGain)
                     val blurredGain = if (formattedGain.length > 5) formattedGain.take(1) + ",XX,XXX" else "X,XXX"
-                    AutoSizeText("+" + globalCurrencySymbol + blurredGain, color = GreenSuccess, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
+                    AutoSizeText("+" + globalCurrencySymbol + blurredGain, color = GreenSuccess, maxTextSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.blur(4.dp), maxLines = 1)
                 }
             }
         }
@@ -741,13 +763,14 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
 fun AutoSizeText(
     text: String,
     color: Color = Color.White,
-    fontSize: TextUnit = 16.sp,
+    minTextSize: TextUnit = 12.sp,
+    maxTextSize: TextUnit = 16.sp,
     fontWeight: FontWeight = FontWeight.Normal,
     lineHeight: TextUnit = TextUnit.Unspecified,
     modifier: Modifier = Modifier,
     maxLines: Int = 1
 ) {
-    var scaledFontSize by androidx.compose.runtime.remember(text, fontSize) { androidx.compose.runtime.mutableStateOf(fontSize) }
+    var scaledFontSize by androidx.compose.runtime.remember(text, maxTextSize) { androidx.compose.runtime.mutableStateOf(maxTextSize) }
     var scaledLineHeight by androidx.compose.runtime.remember(lineHeight) { androidx.compose.runtime.mutableStateOf(lineHeight) }
     var readyToDraw by androidx.compose.runtime.remember(text) { androidx.compose.runtime.mutableStateOf(false) }
 
@@ -759,14 +782,21 @@ fun AutoSizeText(
         lineHeight = scaledLineHeight,
         maxLines = maxLines,
         softWrap = false,
+        overflow = TextOverflow.Visible,
         modifier = modifier.drawWithContent {
             if (readyToDraw) drawContent()
         },
         onTextLayout = { textLayoutResult ->
-            if (textLayoutResult.hasVisualOverflow) {
-                scaledFontSize *= 0.9f
-                if (scaledLineHeight != TextUnit.Unspecified) {
-                    scaledLineHeight *= 0.9f
+            if (textLayoutResult.hasVisualOverflow && scaledFontSize > minTextSize) {
+                val nextSize = scaledFontSize * 0.9f
+                if (nextSize >= minTextSize) {
+                    scaledFontSize = nextSize
+                    if (scaledLineHeight != TextUnit.Unspecified) {
+                        scaledLineHeight *= 0.9f
+                    }
+                } else {
+                    scaledFontSize = minTextSize
+                    readyToDraw = true
                 }
             } else {
                 readyToDraw = true

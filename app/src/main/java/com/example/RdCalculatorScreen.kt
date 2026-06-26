@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +33,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.blur
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.ui.theme.*
 import java.text.NumberFormat
 import java.util.Locale
@@ -46,11 +49,16 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
+    var selectedTab by remember { mutableStateOf("Standard") }
     var monthlyDepositText by remember { mutableStateOf("5000") }
+    var targetAmountText by remember { mutableStateOf("100000") }
     var interestRatePaText by remember { mutableStateOf("6.5") }
     var tenureYearsText by remember { mutableStateOf("5") }
     var compoundingFrequency by remember { mutableStateOf("Quarterly") }
     var showCompoundingDropdown by remember { mutableStateOf(false) }
+    var isPremiumUnlocked by remember { mutableStateOf(false) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
+    
     val formatInr = { value: Double ->
         formatMoney(value, com.example.globalCurrencySymbol)
     }
@@ -60,7 +68,6 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         if (s.endsWith(".00")) s.substring(0, s.length - 3) else s
     }
 
-    val p = monthlyDepositText.safeToDouble()
     val annualRate = interestRatePaText.safeToDouble() / 100
     val t = tenureYearsText.safeToDouble().coerceIn(0.0, 100.0)
     val months = (t * 12).toInt()
@@ -73,20 +80,39 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> 4.0
     }
     
-    // RD calculation with different compounding frequencies
-    // M = P * \sum_{i=1}^{months} (1 + R/N)^{N * (months - i + 1)/12}
     var maturityValue = 0.0
-    if (annualRate > 0 && months > 0) {
-        for (i in 1..months) {
-            val remainingTimeYears = (months - i + 1) / 12.0
-            maturityValue += p * (1 + annualRate / n).pow(n * remainingTimeYears)
+    var calculatedMonthlyDeposit = 0.0
+    
+    if (selectedTab == "Standard") {
+        val p = monthlyDepositText.safeToDouble()
+        calculatedMonthlyDeposit = p
+        if (annualRate > 0 && months > 0) {
+            for (i in 1..months) {
+                val remainingTimeYears = (months - i + 1) / 12.0
+                maturityValue += p * (1 + annualRate / n).pow(n * remainingTimeYears)
+            }
+        } else {
+            maturityValue = p * months
         }
     } else {
-        maturityValue = p * months
+        val target = targetAmountText.safeToDouble()
+        maturityValue = target
+        if (annualRate > 0 && months > 0) {
+            var sumFactors = 0.0
+            for (i in 1..months) {
+                val remainingTimeYears = (months - i + 1) / 12.0
+                sumFactors += (1 + annualRate / n).pow(n * remainingTimeYears)
+            }
+            if (sumFactors > 0) {
+                calculatedMonthlyDeposit = target / sumFactors
+            }
+        } else if (months > 0) {
+            calculatedMonthlyDeposit = target / months
+        }
     }
     
-    val totalInvested = p * months
-    val totalReturns = maturityValue - totalInvested
+    val totalInvested = calculatedMonthlyDeposit * months
+    val totalReturns = if (maturityValue > totalInvested) maturityValue - totalInvested else 0.0
     val wealthGain = if (totalInvested > 0) (totalReturns / totalInvested) * 100 else 0.0
 
 
@@ -99,7 +125,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = "Back",
                         tint = TextPrimary,
                         modifier = Modifier.size(24.dp).clickable { onNavigateBack() }
@@ -111,7 +137,22 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     }
                     Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = "Favorite", tint = TextPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Icon(imageVector = Icons.Rounded.Share, contentDescription = "Share", tint = TextPrimary, modifier = Modifier.size(24.dp))
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(24.dp).clickable {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "RD Calculator Report",
+                            listOf(
+                                "Monthly Deposit" to formatInr(calculatedMonthlyDeposit),
+                                "Interest Rate" to "$interestRatePaText%",
+                                "Time Period" to "$tenureYearsText Years",
+                                "" to "",
+                                "Total Invested" to formatInr(totalInvested),
+                                "Total Returns" to formatInr(totalReturns),
+                                "Maturity Value" to formatInr(maturityValue)
+                            )
+                        )
+                    })
                 }
             }
         },
@@ -128,21 +169,60 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 animationTriggerState = maturityValue,
                 headerSection = { },
                 inputControlsSection = {
-                    // Inputs
                     Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
-                if (sizeClass == WindowWidthSizeClass.Compact) {
-                    PremiumInputField(
-                        label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
-                        icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
-                    )
-                    PremiumInputField(
-                        label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
-                        icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
-                    )
-                    PremiumInputField(
-                        label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
-                        icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
-                    )
+                        
+                        TabRow(
+                            selectedTabIndex = if (selectedTab == "Standard") 0 else 1,
+                            containerColor = Color.Transparent,
+                            contentColor = AccentBlue,
+                            indicator = { tabPositions ->
+                                TabRowDefaults.SecondaryIndicator(
+                                    modifier = Modifier.tabIndicatorOffset(tabPositions[if (selectedTab == "Standard") 0 else 1]),
+                                    color = AccentBlue
+                                )
+                            },
+                            divider = { HorizontalDivider(color = CardStroke) }
+                        ) {
+                            Tab(
+                                selected = selectedTab == "Standard",
+                                onClick = { selectedTab = "Standard" },
+                                text = { Text("Standard RD", color = if (selectedTab == "Standard") AccentBlue else TextSecondary) }
+                            )
+                            Tab(
+                                selected = selectedTab == "Goal Based",
+                                onClick = { selectedTab = "Goal Based" },
+                                text = { 
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Goal Based", color = if (selectedTab == "Goal Based") AccentBlue else TextSecondary)
+                                        if (!isPremiumUnlocked) {
+                                            Spacer(Modifier.width(4.dp))
+                                            Icon(Icons.Rounded.Lock, contentDescription = "Premium", tint = AccentYellow, modifier = Modifier.size(14.dp))
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                        
+                        if (sizeClass == WindowWidthSizeClass.Compact) {
+                            if (selectedTab == "Standard") {
+                                PremiumInputField(
+                                    label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
+                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                PremiumInputField(
+                                    label = "Target Amount", value = targetAmountText, onValueChange = { targetAmountText = it },
+                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            PremiumInputField(
+                                label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { interestRatePaText = it },
+                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                            )
+                            PremiumInputField(
+                                label = "Tenure", value = tenureYearsText, onValueChange = { tenureYearsText = it },
+                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                            )
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PremiumInputField(
                             label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
@@ -168,10 +248,17 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
-                            PremiumInputField(
-                                label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
-                                icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
-                            )
+                            if (selectedTab == "Standard") {
+                                PremiumInputField(
+                                    label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { monthlyDepositText = it },
+                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
+                                )
+                            } else {
+                                PremiumInputField(
+                                    label = "Target Amount", value = targetAmountText, onValueChange = { targetAmountText = it },
+                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue, sizeClass = sizeClass
+                                )
+                            }
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
@@ -214,8 +301,13 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
             }
         },
         resultsSection = {
-            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
-                // Hero Card
+            Box(modifier = Modifier.fillMaxWidth()) {
+                val isLocked = selectedTab == "Goal Based" && !isPremiumUnlocked
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)),
+                    modifier = if (isLocked) Modifier.fillMaxWidth().blur(12.dp) else Modifier.fillMaxWidth()
+                ) {
+                    // Hero Card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,14 +321,14 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(modifier = Modifier.weight(0.65f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Estimated Maturity Value", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 4.dp))
+                                Text(if (selectedTab == "Standard") "Estimated Maturity Value" else "Required Monthly Deposit", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 4.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
                             }
                             Spacer(modifier = Modifier.height(4.dp))
-                            val formattedMaturityValue = formatInr(maturityValue)
+                            val formattedHeroValue = if (selectedTab == "Standard") formatInr(maturityValue) else formatInr(calculatedMonthlyDeposit)
                             AutoResizedText(
-                                text = formattedMaturityValue,
+                                text = formattedHeroValue,
                                 color = AccentYellow,
                                 fontSize = 38.sp,
                                 fontWeight = FontWeight.ExtraBold,
@@ -314,12 +406,12 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(AccentBlue))
+                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(AccentYellow))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Maturity Value", color = TextSecondary, fontSize = 9.sp)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(AccentGreen))
+                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(AccentBlue))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Total Invested", color = TextSecondary, fontSize = 9.sp)
                         }
@@ -347,8 +439,8 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                                         moveTo(0f, h)
                                         cubicTo(w * 0.4f, h, w * 0.7f, h * 0.6f, w, 0f)
                                     }
-                                    drawPath(investedPath, color = AccentGreen, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
-                                    drawPath(maturityPath, color = AccentBlue, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
+                                    drawPath(investedPath, color = AccentBlue, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
+                                    drawPath(maturityPath, color = AccentYellow, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
                                 }
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -375,7 +467,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.size(100.dp), contentAlignment = Alignment.Center) {
                             val invPct = if (maturityValue > 0) (totalInvested / maturityValue).toFloat() else 1f
-                            Canvas(modifier = Modifier.fillMaxSize()) {
+                            Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
                                 val strokeWidth = 24.dp.toPx()
                                 drawArc(
                                     color = AccentBlue,
@@ -385,7 +477,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                                     style = Stroke(strokeWidth, cap = StrokeCap.Butt)
                                 )
                                 drawArc(
-                                    color = AccentYellow,
+                                    color = AccentGreen,
                                     startAngle = 90f + (360f * invPct),
                                     sweepAngle = 360f * (1 - invPct),
                                     useCenter = false,
@@ -398,7 +490,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                             val retPctStr = String.format(Locale.US, "%.1f%%", if (maturityValue > 0) (totalReturns/maturityValue)*100 else 0f)
                             RdLegend("Total Invested", formatInr(totalInvested), "($invPctStr)", AccentBlue, Modifier.padding(end = 8.dp))
                             Spacer(modifier = Modifier.height(12.dp))
-                            RdLegend("Total Returns", formatInr(totalReturns), "($retPctStr)", AccentYellow, Modifier.padding(end = 8.dp))
+                            RdLegend("Total Returns", formatInr(totalReturns), "($retPctStr)", AccentGreen, Modifier.padding(end = 8.dp))
                         }
                     }
                 }
@@ -417,7 +509,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Box(
-                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, CardStroke, RoundedCornerShape(6.dp)).clickable { }.padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, CardStroke, RoundedCornerShape(6.dp)).clickable { if (!isPremiumUnlocked) showUnlockDialog = true }.padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text("Explore Scenarios ->", color = TextPrimary, fontSize = 12.sp)
                 }
@@ -437,7 +529,7 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { }) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { if (!isPremiumUnlocked) showUnlockDialog = true }) {
                         Text("View Full Yearly Report", color = AccentBlue, fontSize = 12.sp)
                         Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(16.dp))
                     }
@@ -454,15 +546,15 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                     val yearsList = listOf(1.0, 3.0, 5.0, 10.0)
                     yearsList.forEachIndexed { index, y ->
                         val tMonths = (y * 12).toInt()
-                        val tInvested = p * tMonths
+                        val tInvested = calculatedMonthlyDeposit * tMonths
                         var tMat = 0.0
                         if (annualRate > 0 && tMonths > 0) {
                             for (i in 1..tMonths) {
                                 val remainingTimeYears = (tMonths - i + 1) / 12.0
-                                tMat += p * (1 + annualRate / n).pow(n * remainingTimeYears)
+                                tMat += calculatedMonthlyDeposit * (1 + annualRate / n).pow(n * remainingTimeYears)
                             }
                         } else {
-                            tMat = p * tMonths
+                            tMat = calculatedMonthlyDeposit * tMonths
                         }
                         val tRet = tMat - tInvested
                         val isLast = index == yearsList.size - 1
@@ -486,14 +578,96 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                RdActionButton("RD Schedule", "Monthly Breakdown", Icons.Rounded.DateRange, AccentBlue)
-                RdActionButton("Charts", "Visual Analysis", Icons.Rounded.PieChart, Color(0xFF7C4DFF))
-                RdActionButton("Download Report", "Save as PDF", Icons.Rounded.Download, AccentGreen)
-                RdActionButton("Share Results", "Share Projection", Icons.Rounded.Share, AccentYellow)
+                RdActionButton("RD Schedule", "Monthly Breakdown", Icons.Rounded.DateRange, AccentBlue) {
+                    if (!isPremiumUnlocked) showUnlockDialog = true
+                }
+                RdActionButton("Charts", "Visual Analysis", Icons.Rounded.PieChart, Color(0xFF7C4DFF)) {
+                    if (!isPremiumUnlocked) showUnlockDialog = true
+                }
+                RdActionButton("Download Report", "Save as PDF", Icons.Rounded.Download, AccentGreen) {
+                    if (!isPremiumUnlocked) showUnlockDialog = true
+                }
+                val context = androidx.compose.ui.platform.LocalContext.current
+                RdActionButton("Export PDF", "Save Report", Icons.Rounded.PictureAsPdf, AccentYellow) {
+                    ExportUtils.exportToPdf(
+                        context,
+                        "RD Calculator Report",
+                        listOf(
+                            "Monthly Deposit" to formatInr(calculatedMonthlyDeposit),
+                            "Interest Rate" to "$interestRatePaText%",
+                            "Time Period" to "$tenureYearsText Years",
+                            "" to "",
+                            "Total Invested" to formatInr(totalInvested),
+                            "Total Returns" to formatInr(totalReturns),
+                            "Maturity Value" to formatInr(maturityValue)
+                        )
+                    )
+                }
+            } // Closes Row for action buttons
+            } // Closes Column
+            
+            if (isLocked) {
+                Box(modifier = Modifier.matchParentSize().background(BackgroundDark.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(16.dp)).padding(24.dp).clickable { showUnlockDialog = true }
+                    ) {
+                        Box(modifier = Modifier.size(56.dp).clip(CircleShape).background(AccentYellow.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Lock, contentDescription = "Premium", tint = AccentYellow, modifier = Modifier.size(28.dp))
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Goal-Based RD is Premium", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Calculate exactly how much to invest.", color = TextSecondary, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showUnlockDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color(0xFF020B1F))
+                        ) {
+                            Text("Unlock Premium", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
           }
         }
     )
+    
+    if (showUnlockDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showUnlockDialog = false },
+            containerColor = Color(0xFF0D1B36),
+            titleContentColor = Color.White,
+            textContentColor = TextSecondary,
+            title = {
+                Text("Unlock Premium Features", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("Goal-Based RD calculations, detailed schedules, charts, and downloadable PDF reports are premium features. Watch a short ad or upgrade to Premium to unlock unlimited access!")
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        isPremiumUnlocked = true
+                        showUnlockDialog = false
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color(0xFF020B1F))
+                ) {
+                    Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        isPremiumUnlocked = true
+                        showUnlockDialog = false
+                    }
+                ) {
+                    Text("Buy Premium", color = AccentBlue)
+                }
+            }
+        )
+    }
   }
  }
 }
@@ -541,9 +715,9 @@ fun RdLegend(label: String, value: String, percentage: String, color: Color, mod
 }
 
 @Composable
-fun RdActionButton(title: String, subtitle: String, icon: ImageVector, color: Color) {
+fun RdActionButton(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit = {}) {
     Row(
-        modifier = Modifier.defaultMinSize(minWidth = 160.dp).clip(RoundedCornerShape(8.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(8.dp)).clickable { }.padding(12.dp),
+        modifier = Modifier.defaultMinSize(minWidth = 160.dp).clip(RoundedCornerShape(8.dp)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {

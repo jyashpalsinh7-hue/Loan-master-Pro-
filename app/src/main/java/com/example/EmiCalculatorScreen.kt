@@ -204,7 +204,7 @@ fun generateRecommendations(
         SmartRecommendation(
             id = "best_savings",
             title = "Best Savings",
-            description = "Save up to ${formatMoney(baseInterest - int1)}",
+            description = "Save ${formatMoney(baseInterest - int1)}",
             icon = Icons.Rounded.Savings,
             accentColor = Color(0xFF22C55E),
             currentEmi = baseEmi,
@@ -218,7 +218,7 @@ fun generateRecommendations(
         SmartRecommendation(
             id = "fastest_closure",
             title = "Fast Closure",
-            description = "Finish ${(totalMonths - m2) / 12} years early",
+            description = "Finish ${(totalMonths - m2) / 12} Years Early",
             icon = Icons.Rounded.Speed,
             accentColor = Color(0xFF2D7DFF),
             currentEmi = baseEmi,
@@ -246,7 +246,7 @@ fun generateRecommendations(
         SmartRecommendation(
             id = "ai_recommended",
             title = "AI Peak Plan",
-            description = "Top Score: Optimal Balance",
+            description = "Save ${formatMoney(baseInterest - int4)}\n& Close Faster",
             icon = Icons.Rounded.AutoAwesome,
             accentColor = Color(0xFF7C4DFF),
             currentEmi = baseEmi,
@@ -653,7 +653,22 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         }
                         Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
                         Spacer(Modifier.width(16.dp))
-                        Icon(imageVector = Icons.Rounded.Share, contentDescription = null, tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export to PDF", tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)).clickable {
+                            ExportUtils.exportToPdf(
+                                context,
+                                "EMI Calculator Report",
+                                listOf(
+                                    "Loan Amount" to formatMoney(loanAmount.toDouble()),
+                                    "Interest Rate" to "$interestRate%",
+                                    "Tenure" to "$tenureYears Years ${totalMonths % 12} Months",
+                                    "" to "",
+                                    "Monthly EMI" to formatMoney(monthlyEmi),
+                                    "Total Interest" to formatMoney(totalInterest),
+                                    "Total Payment" to formatMoney(totalPayment)
+                                )
+                            )
+                        })
                     }
                 },
                 inputControlsSection = {
@@ -786,62 +801,35 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
                                 Spacer(Modifier.height(24.dp))
 
-                                // LARGE DONUT CHART (Centered)
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val donutSize = if (isExpanded) 180.dp else 140.dp
-                                    val strokeWidth = if (isExpanded) 48f else 38f
-
-                                    Canvas(modifier = Modifier.size(donutSize)) {
-                                        val sweepPrincipal = (prinPct / 100f * 360f).toFloat()
-                                        drawArc(
-                                            color = blueAccent,
-                                            startAngle = -90f,
-                                            sweepAngle = sweepPrincipal,
-                                            useCenter = false,
-                                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                                        )
-                                        drawArc(
-                                            color = goldAccent,
-                                            startAngle = -90f + sweepPrincipal,
-                                            sweepAngle = (360f - sweepPrincipal),
-                                            useCenter = false,
-                                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                                        )
-                                    }
-
-                                    // Center text inside donut
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            "${prinPct.toInt()}%",
-                                            color = blueAccent,
-                                            fontSize = ResponsiveUtils.titleFontSize(sizeClass),
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text("Principal", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                                    }
-                                }
-
+                                // Cost Breakdown Stacked Bar
                                 Spacer(Modifier.height(16.dp))
-
-                                // Percentage labels below donut
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(Modifier.size(10.dp).background(blueAccent, CircleShape))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    val prinPctFloat = if (prinPct.isNaN() || prinPct.isInfinite()) 0f else prinPct.toFloat()
+                                    val intPctFloat = if (intPct.isNaN() || intPct.isInfinite()) 0f else intPct.toFloat()
+                                    Row(modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp))) {
+                                        if (prinPctFloat > 0) {
+                                            Box(modifier = Modifier.weight(prinPctFloat).fillMaxHeight().background(blueAccent))
+                                        }
+                                        if (intPctFloat > 0) {
+                                            Box(modifier = Modifier.weight(intPctFloat).fillMaxHeight().background(goldAccent))
+                                        }
                                     }
-                                    Spacer(Modifier.width(20.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(Modifier.size(10.dp).background(goldAccent, CircleShape))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                    Spacer(Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(Modifier.size(10.dp).background(blueAccent, CircleShape))
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                        }
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(Modifier.size(10.dp).background(goldAccent, CircleShape))
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                        }
                                     }
                                 }
 
@@ -916,9 +904,9 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                         }
                                         Icon(imageVector = rec.icon, contentDescription = null, tint = rec.accentColor, modifier = Modifier.size(28.dp))
                                         Spacer(Modifier.height(12.dp))
-                                        Text(rec.title, color = primaryText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                        Text(rec.title, color = secondaryText, fontSize = 12.sp)
                                         Spacer(Modifier.height(4.dp))
-                                        Text(rec.description, color = secondaryText, fontSize = 12.sp, lineHeight = 16.sp)
+                                        Text(rec.description, color = rec.accentColor, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp)
                                     }
                                 }
                             }
@@ -957,6 +945,17 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                             Spacer(Modifier.height(12.dp))
 
                             val scheduleData = if (yearBreakdown.size <= 4) yearBreakdown else yearBreakdown.take(3) + listOf(yearBreakdown.last())
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Year", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f))
+                                Text("EMI Paid", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                Text("Principal", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                Text("Interest", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                            }
+                            HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
 
                             scheduleData.forEachIndexed { index, row ->
                                 Row(
@@ -1040,17 +1039,31 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
                     // ==================== BOTTOM ACTIONS ====================
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)) {
+                        val context = androidx.compose.ui.platform.LocalContext.current
                         OutlinedButton(
                             onClick = { 
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                ExportUtils.exportToPdf(
+                                    context,
+                                    "EMI Calculator Report",
+                                    listOf(
+                                        "Loan Amount" to formatMoney(loanAmount.toDouble()),
+                                        "Interest Rate" to "$interestRate%",
+                                        "Tenure" to "$tenureYears Years ${totalMonths % 12} Months",
+                                        "" to "",
+                                        "Monthly EMI" to formatMoney(monthlyEmi),
+                                        "Total Interest" to formatMoney(totalInterest),
+                                        "Total Payment" to formatMoney(totalPayment)
+                                    )
+                                )
                             },
                             modifier = Modifier.weight(1f).height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             border = BorderStroke(1.dp, borderColor)
                         ) {
-                            Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                            Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)), tint = goldAccent)
                             Spacer(Modifier.width(8.dp))
-                            Text("Export PDF", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                            Text("Premium Report", fontSize = ResponsiveUtils.bodyFontSize(sizeClass), color = goldAccent)
                         }
                         Button(
                             onClick = { 

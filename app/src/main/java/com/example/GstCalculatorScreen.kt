@@ -101,6 +101,28 @@ fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f).padding(start = 8.dp)
                     )
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    IconButton(onClick = {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "GST Calculator Report",
+                            listOf(
+                                "Calculation Mode" to if(mode == GstMode.ADD) "Add GST" else "Remove GST",
+                                "Base Amount" to formatMoney(baseAmount, com.example.globalCurrencySymbol),
+                                "GST Rate" to "$actualRate%",
+                                "Cess Rate" to "$cessRate%",
+                                "" to "",
+                                "CGST" to formatMoney(cgst, com.example.globalCurrencySymbol),
+                                "SGST" to formatMoney(sgst, com.example.globalCurrencySymbol),
+                                "IGST" to formatMoney(igst, com.example.globalCurrencySymbol),
+                                "Total GST" to formatMoney(totalGst, com.example.globalCurrencySymbol),
+                                "Total Cess" to formatMoney(totalCess, com.example.globalCurrencySymbol),
+                                "Total Amount" to formatMoney(totalAmount, com.example.globalCurrencySymbol)
+                            )
+                        )
+                    }) {
+                        Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextSecondary)
+                    }
                     IconButton(onClick = { amountText = ""; customRateText = ""; cessRateText = ""; mode = GstMode.ADD }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Reset", tint = TextSecondary)
                     }
@@ -704,7 +726,7 @@ private fun AnimatedGstBreakupItem(label: String, value: Double, color: Color) {
         Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
         Spacer(modifier = Modifier.width(8.dp))
         Text(label, color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f))
-        Text(formatMoney(animatedValue.toDouble(), com.example.globalCurrencySymbol), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        AutoSizeText(formatMoney(animatedValue.toDouble(), com.example.globalCurrencySymbol), color = TextPrimary, minTextSize = 8.sp, maxTextSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.widthIn(max = 100.dp))
     }
 }
 

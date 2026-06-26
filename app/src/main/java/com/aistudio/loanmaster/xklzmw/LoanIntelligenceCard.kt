@@ -127,7 +127,7 @@ fun LoanIntelligenceCard(
     }
 
     val opportunities = remember(loanAmount, interestRate, tenureYears, monthlyEmi) {
-        val list = mutableListOf<String>()
+        val list = mutableListOf<Triple<String, String, String>>()
         val totalMonths = tenureYears * 12
         val r = (interestRate / 12) / 100
 
@@ -149,17 +149,25 @@ fun LoanIntelligenceCard(
         if (monthlyEmi > 0 && loanAmount > 0) {
             val (int1k, month1k) = simulate(1000.0)
             if (totalInterest - int1k > 0) {
-                val yearsSaved = (totalMonths - month1k) / 12
-                if (yearsSaved > 0) {
-                    list.add("Increasing EMI by ₹1,000/month could save ${CurrencyFormatter.formatMoney(totalInterest - int1k)} and close the loan $yearsSaved years earlier.")
+                val monthsSaved = totalMonths - month1k
+                if (monthsSaved > 0) {
+                    list.add(Triple(
+                        "Increase EMI by ₹1,000",
+                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - int1k)}",
+                        "Potential Closure: $monthsSaved Months Earlier"
+                    ))
                 }
             }
 
             val (int2k, month2k) = simulate(2000.0)
             if (totalInterest - int2k > 0) {
-                val yearsSaved = (totalMonths - month2k) / 12
-                if (yearsSaved > 0) {
-                    list.add("Increasing EMI by ₹2,000/month could save ${CurrencyFormatter.formatMoney(totalInterest - int2k)} and close the loan $yearsSaved years earlier.")
+                val monthsSaved = totalMonths - month2k
+                if (monthsSaved > 0) {
+                    list.add(Triple(
+                        "Increase EMI by ₹2,000",
+                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - int2k)}",
+                        "Potential Closure: $monthsSaved Months Earlier"
+                    ))
                 }
             }
 
@@ -170,7 +178,11 @@ fun LoanIntelligenceCard(
                 val newEmi = loanAmount * newR * (1 + newR).pow(totalMonths) / newDenom
                 val newTotalInt = (newEmi * totalMonths) - loanAmount
                 if (totalInterest - newTotalInt > 0) {
-                    list.add("A 1% lower interest rate could save approximately ${CurrencyFormatter.formatMoney(totalInterest - newTotalInt)}.")
+                    list.add(Triple(
+                        "Refinance at ${String.format("%.1f", newRate)}%",
+                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - newTotalInt)}",
+                        "Lower EMI by ${CurrencyFormatter.formatMoney(monthlyEmi - newEmi)}"
+                    ))
                 }
             }
         }
@@ -186,6 +198,8 @@ fun LoanIntelligenceCard(
     val secondaryText = Color(0xFFA8B3D1)
     val blueAccent = Color(0xFF2D7DFF)
     val goldAccent = Color(0xFFFFC328)
+    val accentGreen = Color(0xFF22C55E)
+    val accentPurple = Color(0xFF7C4DFF)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -342,9 +356,14 @@ fun LoanIntelligenceCard(
 
                     opportunities.forEach { opp ->
                         Row(verticalAlignment = Alignment.Top) {
-                            Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = goldAccent, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = goldAccent, modifier = Modifier.size(20.dp).padding(top = 2.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(opp, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = secondaryText)
+                            Column {
+                                Text(opp.first, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Bold, color = primaryText)
+                                Spacer(Modifier.height(2.dp))
+                                Text(opp.second, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = accentGreen)
+                                Text(opp.third, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = blueAccent)
+                            }
                         }
                     }
                 }

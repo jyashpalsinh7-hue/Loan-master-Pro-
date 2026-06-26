@@ -38,12 +38,206 @@ data class LoanOffer(
     val bankName: String,
     val interestRate: Double,
     val tenureYears: Int,
+    val tenureMonths: Int = 0,
     val loanAmount: Double,
     val processingFee: Double = 0.0,
     val prepaymentCharges: Double = 0.0,
     val color: Color,
     val isBest: Boolean = false
-)
+) {
+    val totalMonths: Int get() = tenureYears * 12 + tenureMonths
+}
+
+class LoanInputState(
+    initialAmount: String = "",
+    initialInterest: String = "",
+    initialYears: String = "",
+    initialMonths: String = ""
+) {
+    var amount by mutableStateOf(initialAmount)
+    var interest by mutableStateOf(initialInterest)
+    var years by mutableStateOf(initialYears)
+    var months by mutableStateOf(initialMonths)
+    
+    fun toLoanOffer(id: String, bankName: String, color: Color): LoanOffer {
+        return LoanOffer(
+            id = id,
+            bankName = bankName,
+            interestRate = interest.toDoubleOrNull() ?: 0.0,
+            tenureYears = years.toIntOrNull() ?: 0,
+            tenureMonths = months.toIntOrNull() ?: 0,
+            loanAmount = amount.toDoubleOrNull() ?: 0.0,
+            processingFee = 0.0,
+            prepaymentCharges = 0.0,
+            color = color
+        )
+    }
+    
+    fun clear() {
+        amount = ""
+        interest = ""
+        years = ""
+        months = ""
+    }
+}
+
+@Composable
+fun SideBySideLoanInputs(
+    loanAState: LoanInputState,
+    loanBState: LoanInputState,
+    onCompareClick: () -> Unit,
+    onResetClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFF061633))
+            .border(1.dp, CardStroke, RoundedCornerShape(24.dp))
+            .padding(20.dp)
+    ) {
+        Column {
+            Row(modifier = Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min)) {
+                LoanInputColumn(
+                    title = "Loan A",
+                    icon = Icons.Rounded.AccountBalance,
+                    iconTint = Color(0xFF3B82F6),
+                    state = loanAState,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(CardStroke)
+                )
+                
+                LoanInputColumn(
+                    title = "Loan B",
+                    icon = Icons.Rounded.AccountBalance,
+                    iconTint = Color(0xFF10B981),
+                    state = loanBState,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = onCompareClick,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue, contentColor = Color.White)
+                ) {
+                    Icon(Icons.Rounded.CompareArrows, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Compare Loans", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                IconButton(
+                    onClick = onResetClick,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(Color(0xFF0D1B36))
+                        .border(1.dp, CardStroke, androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Reset", tint = TextSecondary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LoanInputColumn(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    state: LoanInputState,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(20.dp))
+        
+        PremiumInputField(
+            value = state.amount,
+            onValueChange = { state.amount = it },
+            label = "Amount",
+            icon = Icons.Rounded.CurrencyRupee,
+            iconTint = iconTint,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(Modifier.height(16.dp))
+        PremiumInputField(
+            value = state.interest,
+            onValueChange = { state.interest = it },
+            label = "Interest Rate (p.a.)",
+            icon = Icons.Rounded.Percent,
+            iconTint = iconTint,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Spacer(Modifier.height(16.dp))
+        Text("Tenure", color = TextSecondary, fontSize = 12.sp)
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF0D1B36), // SurfaceDark equivalent
+                border = androidx.compose.foundation.BorderStroke(1.dp, CardStroke),
+                modifier = Modifier.weight(1f).height(48.dp)
+            ) {
+                Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = state.years,
+                        onValueChange = { state.years = it.filter { c -> c.isDigit() } },
+                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(AccentBlue)
+                    ) { inner ->
+                        Box {
+                            if (state.years.isEmpty()) Text("Years", color = TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            inner()
+                        }
+                    }
+                }
+            }
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF0D1B36),
+                border = androidx.compose.foundation.BorderStroke(1.dp, CardStroke),
+                modifier = Modifier.weight(1f).height(48.dp)
+            ) {
+                Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = state.months,
+                        onValueChange = { state.months = it.filter { c -> c.isDigit() } },
+                        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(AccentBlue)
+                    ) { inner ->
+                        Box {
+                            if (state.months.isEmpty()) Text("Months", color = TextSecondary, fontSize = 12.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            inner()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,40 +252,41 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
     val bgColor = ResponsiveUtils.BgColor
     val textColor = ResponsiveUtils.TextPrimary
 
-    val loansCache = remember {
-        mutableStateListOf(
-            LoanOffer("A", "Bank A", 0.0, 0, 0.0, 0.0, 0.0, Color(0xFF3B82F6)),
-            LoanOffer("B", "Bank B", 0.0, 0, 0.0, 0.0, 0.0, Color(0xFF8B5CF6))
+    val loanAState = remember { LoanInputState("1000000", "8.5", "5", "0") }
+    val loanBState = remember { LoanInputState("1000000", "8.0", "5", "0") }
+    var showResults by remember { mutableStateOf(false) }
+
+    val currentLoans = remember(
+        loanAState.amount, loanAState.interest, loanAState.years, loanAState.months,
+        loanBState.amount, loanBState.interest, loanBState.years, loanBState.months
+    ) {
+        listOf(
+            loanAState.toLoanOffer("A", "Loan A", Color(0xFF3B82F6)),
+            loanBState.toLoanOffer("B", "Loan B", Color(0xFF10B981))
         )
     }
 
-    val processedLoans = remember(loansCache.toList()) {
-        val mapped = loansCache.map { loan ->
-            // Instead of just relying on repayment amount, let's normalize cost to "Cost per ${com.example.globalCurrencySymbol}1,00,000 borrowed"
-            // This is fairer if the user enters different loan amounts.
-            // Also factor in processing fees.
-            val loanAmountSafe = if (loan.loanAmount > 0.0) loan.loanAmount else 1.0
-            val emi = localCalculateEMI(loanAmountSafe, loan.interestRate, loan.tenureYears)
-            val totalPayment = (emi * loan.tenureYears * 12) + loan.processingFee
-            val totalCostPer1L = (totalPayment / loanAmountSafe) * 100000.0
+    val processedLoans = remember(currentLoans, showResults) {
+        if (!showResults) emptyList()
+        else {
+            val mapped = currentLoans.map { loan ->
+                val loanAmountSafe = if (loan.loanAmount > 0.0) loan.loanAmount else 1.0
+                val emi = localCalculateEMI(loanAmountSafe, loan.interestRate, loan.totalMonths)
+                val totalPayment = (emi * loan.totalMonths) + loan.processingFee
+                val totalCostPer1L = (totalPayment / loanAmountSafe) * 100000.0
+                loan to totalCostPer1L
+            }
             
-            loan to totalCostPer1L
+            val validMapped = mapped.filter { it.first.loanAmount > 0.0 && it.first.interestRate > 0.0 && it.first.totalMonths > 0 }
+            val minCost = validMapped.minOfOrNull { it.second }
+            val bestLoanIds = if (minCost != null) {
+                validMapped.filter { Math.abs(it.second - minCost) < 1.0 }.map { it.first.id }.toSet()
+            } else emptySet()
+            
+            currentLoans.map { it.copy(isBest = it.id in bestLoanIds) }
         }
-        
-        val validMapped = mapped.filter { it.first.loanAmount > 0.0 && it.first.interestRate > 0.0 && it.first.tenureYears > 0 }
-        
-        // Find best cost
-        val minCost = validMapped.minOfOrNull { it.second }
-        
-        // A loan is 'Best' if its cost is effectively identical to the minimum cost (within small threshold)
-        val bestLoanIds = if (minCost != null) {
-            validMapped.filter { Math.abs(it.second - minCost) < 1.0 }.map { it.first.id }.toSet()
-        } else emptySet()
-        
-        loansCache.map { it.copy(isBest = it.id in bestLoanIds) }
     }
 
-    var editingLoan by remember { mutableStateOf<LoanOffer?>(null) }
     var showUnlockDialog by remember { mutableStateOf(false) }
     var isPremiumUnlocked by remember { mutableStateOf(false) }
     var selectedPremiumTool by remember { mutableStateOf<String?>(null) }
@@ -128,68 +323,27 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
         ) {
             var emiTrigger = 0.0
             if (processedLoans.isNotEmpty()) {
-                emiTrigger = processedLoans.sumOf { localCalculateEMI(it.loanAmount, it.interestRate, it.tenureYears) }
+                emiTrigger = processedLoans.sumOf { localCalculateEMI(it.loanAmount, it.interestRate, it.totalMonths) }
             }
             ResponsiveScreenWrapper(
                 widthSizeClass = sizeClass,
                 animationTriggerState = emiTrigger,
                 headerSection = { },
                 inputControlsSection = {
-                    // Loan Cards Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        processedLoans.forEach { loan ->
-                            LoanCard(loan = loan, onEdit = { editingLoan = loan }, modifier = Modifier.width(160.dp).height(130.dp))
+                    SideBySideLoanInputs(
+                        loanAState = loanAState,
+                        loanBState = loanBState,
+                        onCompareClick = { showResults = true },
+                        onResetClick = {
+                            loanAState.clear()
+                            loanBState.clear()
+                            showResults = false
                         }
-                        
-                        // Add Loan Card
-                        Box(
-                            modifier = Modifier
-                                .width(160.dp)
-                                .height(130.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(SurfaceDark.copy(alpha=0.5f))
-                                .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
-                                .clickable {
-                                    if (processedLoans.size >= 3 && !isPremiumUnlocked) {
-                                        showUnlockDialog = true
-                                    } else {
-                                        val baseLoan = processedLoans.firstOrNull { it.loanAmount > 0.0 }
-                                        val p = baseLoan?.loanAmount ?: 1000000.0
-                                        val r = baseLoan?.interestRate ?: 8.5
-                                        val t = baseLoan?.tenureYears ?: 10
-                                        val nextId = listOf("A", "B", "C", "D", "E").firstOrNull { id -> processedLoans.none { it.id == id } } ?: "D"
-                                        val colors = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), AccentYellow, Color(0xFF10B981), Color(0xFFF43F5E))
-                                        val colorIndex = processedLoans.size % colors.size
-                                        editingLoan = LoanOffer(nextId, "Bank $nextId", r, t, p, 0.0, 0.0, colors[colorIndex])
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(androidx.compose.foundation.shape.CircleShape)
-                                        .border(1.dp, AccentBlue, androidx.compose.foundation.shape.CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Rounded.Add, contentDescription = "Add", tint = AccentBlue)
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                Text("Add Loan", color = AccentBlue, fontSize = 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                            }
-                        }
-                    }
+                    )
                 },
                 resultsSection = {
                     Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
-                        val isAnyLoanAdded = processedLoans.any { it.loanAmount > 0.0 || it.interestRate > 0.0 || it.tenureYears > 0 }
+                        val isAnyLoanAdded = processedLoans.any { it.loanAmount > 0.0 || it.interestRate > 0.0 || it.totalMonths > 0 }
                         if (!isAnyLoanAdded) {
                             EmptyStateIllustration()
                         } else {
@@ -206,49 +360,64 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                             )
 
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                OutlinedButton(
+                                Button(
                                     onClick = { }, 
-                                    modifier = Modifier.weight(1f), 
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
-                                    border = BorderStroke(1.dp, CardStroke),
-                                    shape = RoundedCornerShape(12.dp),
-                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                    modifier = Modifier.weight(1f).height(64.dp), 
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF061633), contentColor = AccentBlue), 
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, CardStroke)
                                 ) { 
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                         Icon(Icons.Rounded.BookmarkBorder, contentDescription = null, modifier = Modifier.size(20.dp))
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Save Comparison", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("Save", fontSize = 12.sp, fontWeight = FontWeight.Bold) 
                                     }
                                 }
-                                OutlinedButton(
+                                Button(
                                     onClick = { }, 
-                                    modifier = Modifier.weight(1f), 
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
-                                    border = BorderStroke(1.dp, CardStroke),
-                                    shape = RoundedCornerShape(12.dp),
-                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                    modifier = Modifier.weight(1f).height(64.dp), 
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF061633), contentColor = AccentYellow), 
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, CardStroke)
                                 ) { 
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                         Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(20.dp))
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Share Result", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("Share", fontSize = 12.sp, fontWeight = FontWeight.Bold) 
                                     }
                                 }
-                                OutlinedButton(
-                                    onClick = { }, 
-                                    modifier = Modifier.weight(1f), 
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor), 
-                                    border = BorderStroke(1.dp, CardStroke),
-                                    shape = RoundedCornerShape(12.dp),
-                                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 4.dp)
+                                val context = androidx.compose.ui.platform.LocalContext.current
+                                Button(
+                                    onClick = {
+                                        val reportData = mutableListOf<Pair<String, String>>()
+                                        processedLoans.forEachIndexed { index, loan ->
+                                            val emi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.totalMonths)
+                                            val totalPayment = (emi * loan.totalMonths) + loan.processingFee
+                                            val totalInterest = totalPayment - loan.loanAmount
+                                            
+                                            reportData.add("Loan ${index + 1} (${loan.bankName})" to "")
+                                            reportData.add("Amount" to localFormatMoney(loan.loanAmount, com.example.globalCurrencySymbol))
+                                            reportData.add("Rate" to "${loan.interestRate}%")
+                                            reportData.add("Tenure" to "${loan.totalMonths} months")
+                                            reportData.add("Monthly EMI" to localFormatMoney(emi, com.example.globalCurrencySymbol))
+                                            reportData.add("Total Interest" to localFormatMoney(totalInterest, com.example.globalCurrencySymbol))
+                                            reportData.add("Total Payment" to localFormatMoney(totalPayment, com.example.globalCurrencySymbol))
+                                            reportData.add("" to "")
+                                        }
+                                        ExportUtils.exportToPdf(context, "Loan Comparison Report", reportData)
+                                    }, 
+                                    modifier = Modifier.weight(1f).height(64.dp), 
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF061633), contentColor = AccentGreen), 
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, CardStroke)
                                 ) { 
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                         Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(20.dp))
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Export PDF", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) 
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("PDF", fontSize = 12.sp, fontWeight = FontWeight.Bold) 
                                     }
                                 }
                             }
@@ -259,22 +428,6 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
         }
     }
 
-    editingLoan?.let { loan ->
-        LoanEditBottomSheet(
-            loan = loan,
-            onDismiss = { editingLoan = null },
-            onSave = { updatedLoan ->
-                val idx = loansCache.indexOfFirst { it.id == loan.id }
-                if (idx != -1) {
-                    loansCache[idx] = updatedLoan
-                } else {
-                    loansCache.add(updatedLoan)
-                }
-                editingLoan = null
-            }
-        )
-    }
-
     if (showUnlockDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showUnlockDialog = false },
@@ -282,7 +435,7 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
             titleContentColor = Color.White,
             textContentColor = TextSecondary,
             title = {
-                Text("Unlock Unlimited Loans", fontWeight = FontWeight.Bold)
+                Text("Unlock Premium", fontWeight = FontWeight.Bold)
             },
             text = {
                 Text("Comparing more than 3 loans is a premium feature. Watch a short ad or upgrade to Premium to unlock unlimited comparisons!")
@@ -290,14 +443,6 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
-                        val baseLoan = processedLoans.firstOrNull { it.loanAmount > 0.0 }
-                        val p = baseLoan?.loanAmount ?: 1000000.0
-                        val r = if (baseLoan != null && baseLoan.interestRate > 0.0) baseLoan.interestRate - 0.25 else 8.25
-                        val t = baseLoan?.tenureYears ?: 10
-                        val nextId = listOf("A", "B", "C", "D", "E").firstOrNull { id -> processedLoans.none { it.id == id } } ?: "D"
-                        val colors = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), AccentYellow, Color(0xFF10B981), Color(0xFFF43F5E))
-                        val colorIndex = processedLoans.size % colors.size
-                        loansCache.add(LoanOffer(nextId, "Premium Bank", r, t, p, 0.0, 0.0, colors[colorIndex]))
                         isPremiumUnlocked = true
                         showUnlockDialog = false
                     },
@@ -601,45 +746,58 @@ fun LoanEditBottomSheet(
 @Composable
 fun LoanCard(loan: LoanOffer, onEdit: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier) {
-        val animatedColor = if (loan.isBest) AccentYellow else loan.color.copy(alpha = 0.5f)
-        val bgColor = if (loan.isBest) AccentYellow.copy(alpha = 0.05f) else SurfaceDark
+        val strokeColor = if (loan.isBest) AccentYellow else loan.color.copy(alpha = 0.5f)
+        val bgColor = if (loan.isBest) AccentYellow.copy(alpha = 0.05f) else Color(0xFF0D1B36)
         
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(bgColor)
-                .border(if (loan.isBest) 2.dp else 1.dp, animatedColor, RoundedCornerShape(12.dp))
-                .padding(12.dp),
+                .border(if (loan.isBest) 2.dp else 1.dp, strokeColor, RoundedCornerShape(16.dp))
+                .clickable { onEdit() }
+                .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Loan ${loan.id}", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                IconButton(onClick = onEdit, modifier = Modifier.size(20.dp)) {
-                    Icon(Icons.Rounded.Edit, contentDescription = "Edit", tint = TextSecondary, modifier = Modifier.size(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(loan.color.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.AccountBalance, contentDescription = "Bank", tint = loan.color, modifier = Modifier.size(14.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(loan.bankName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                }
+                Icon(Icons.Rounded.Edit, contentDescription = "Edit", tint = TextSecondary.copy(alpha=0.5f), modifier = Modifier.size(16.dp))
+            }
+            
+            Column {
+                Text(localFormatMoney(loan.loanAmount, extractCurrencySymbol(LocalCurrency.current)), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("${loan.interestRate}%", color = AccentYellow, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(" • ${loan.tenureYears} Yrs", color = TextSecondary, fontSize = 12.sp)
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.AccountBalance, contentDescription = "Bank", tint = loan.color, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(loan.bankName, color = TextSecondary, fontSize = 12.sp)
-            }
-            Text("${loan.interestRate}%  •  ${loan.tenureYears} Years", color = TextSecondary, fontSize = 12.sp)
-            Text(localFormatMoney(loan.loanAmount, extractCurrencySymbol(LocalCurrency.current)), color = TextSecondary, fontSize = 14.sp)
         }
         
         if (loan.isBest) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .clip(RoundedCornerShape(bottomStart = 8.dp, topEnd = 12.dp))
+                    .clip(RoundedCornerShape(bottomStart = 12.dp, topEnd = 16.dp))
                     .background(AccentYellow)
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Black, modifier = Modifier.size(10.dp))
-                    Spacer(Modifier.width(2.dp))
-                    Text("Best", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Black, modifier = Modifier.size(12.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("BEST DEAL", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp)
                 }
             }
         }
@@ -649,7 +807,7 @@ fun LoanCard(loan: LoanOffer, onEdit: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 fun ComparisonTable(loans: List<LoanOffer>) {
     ResponsiveCard(
-        bgColor = SurfaceDark,
+        bgColor = Color(0xFF061633),
         borderColor = CardStroke
     ) {
         if (loans.isEmpty()) {
@@ -669,25 +827,28 @@ fun ComparisonTable(loans: List<LoanOffer>) {
             Column {
                 // Header Row
                 Row(
-                    modifier = Modifier.fillMaxWidth().background(Color(0xFF020B1F)).padding(horizontal = 12.dp, vertical = 14.dp),
+                    modifier = Modifier.fillMaxWidth().background(Color(0xFF020B1F)).padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Comparison Overview", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text("Comparison", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     loans.forEach { loan ->
-                        Text("Loan ${loan.id}", color = loan.color, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(loan.bankName, color = loan.color, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
                 HorizontalDivider(color = CardStroke)
 
                 val rows = listOf(
-                    Triple(Icons.Rounded.Percent, "Interest Rate (p.a.)") { l: LoanOffer -> "${l.interestRate}%" },
-                    Triple(Icons.Rounded.CalendarToday, "Tenure") { l: LoanOffer -> "${l.tenureYears} Years" },
-                    Triple(Icons.Rounded.CurrencyRupee, "Monthly EMI") { l: LoanOffer -> localFormatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Interest") { l: LoanOffer -> localFormatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Payment") { l: LoanOffer -> localFormatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.tenureYears), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.Percent, "Interest Rate") { l: LoanOffer -> "${l.interestRate}%" },
+                    Triple(Icons.Rounded.CalendarToday, "Tenure") { l: LoanOffer -> 
+                        if (l.tenureYears > 0 && l.tenureMonths > 0) "${l.tenureYears} Yrs ${l.tenureMonths} Mo"
+                        else if (l.tenureYears > 0) "${l.tenureYears} Yrs"
+                        else "${l.tenureMonths} Mo"
+                    },
+                    Triple(Icons.Rounded.CurrencyRupee, "Monthly EMI") { l: LoanOffer -> localFormatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.totalMonths), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.CurrencyRupee, "Total Interest") { l: LoanOffer -> localFormatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths), com.example.globalCurrencySymbol) },
+                    Triple(Icons.Rounded.CurrencyRupee, "Total Payment") { l: LoanOffer -> localFormatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths), com.example.globalCurrencySymbol) },
                     Triple(Icons.Rounded.Description, "Processing Fee") { l: LoanOffer -> localFormatMoney(l.processingFee, com.example.globalCurrencySymbol) },
-                    Triple(Icons.Rounded.Settings, "Effective Interest Rate") { l: LoanOffer -> "${l.interestRate + 0.22}%" }, // simplified effective logic for mockup
-                    Triple(Icons.Rounded.Schedule, "Prepayment Charges") { l: LoanOffer -> "${l.prepaymentCharges.toInt()}%" }
+                    Triple(Icons.Rounded.Settings, "Effective APR") { l: LoanOffer -> "${l.interestRate + 0.22}%" }
                 )
 
                 rows.forEachIndexed { index, data ->
@@ -695,22 +856,24 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(if (index % 2 == 0) Color.Transparent else BackgroundDark.copy(alpha = 0.5f))
-                            .padding(horizontal = 12.dp, vertical = 14.dp),
+                            .background(if (index % 2 == 0) Color.Transparent else Color(0xFF0D1B36))
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(modifier = Modifier.weight(1.5f), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(icon, contentDescription = title, tint = TextSecondary, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(title, color = TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                            if (title == "Effective Interest Rate") {
+                            Box(modifier = Modifier.size(24.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xFF1E293B)), contentAlignment = Alignment.Center) {
+                                Icon(icon, contentDescription = title, tint = AccentBlue, modifier = Modifier.size(12.dp))
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Text(title, color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            if (title == "Effective APR") {
                                 Spacer(Modifier.width(4.dp))
                                 Icon(Icons.Rounded.Info, contentDescription = "Info", tint = TextSecondary, modifier = Modifier.size(12.dp))
                             }
                         }
                         loans.forEach { loan ->
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
-                                AutoResizedText(text = selector(loan), color = if (loan.isBest) AccentYellow else loan.color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                AutoResizedText(text = selector(loan), color = if (loan.isBest) AccentYellow else Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -725,61 +888,66 @@ fun LoanAdvisorSection(loans: List<LoanOffer>, bestLoan: LoanOffer?, isPremiumUn
     val advice = remember(loans, bestLoan) { generateFinancialAdvice(loans, bestLoan) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ResponsiveCard(
-            bgColor = Color(0xFF020B1F),
-            borderColor = AccentBlue.copy(alpha = 0.5f)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF0F172A), Color(0xFF1E293B))))
+                .border(1.dp, AccentBlue.copy(alpha=0.3f), RoundedCornerShape(16.dp))
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column {
                 // Badge
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(6.dp))
                         .background(AccentBlue.copy(alpha = 0.2f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(12.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("LoanMaster Advisor", color = AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("AI ADVISOR", color = AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp)
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // Lightbulb
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(48.dp)) {
-                        Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(40.dp))
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(48.dp).clip(androidx.compose.foundation.shape.CircleShape).background(AccentYellow.copy(alpha=0.1f))) {
+                        Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(24.dp))
                     }
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(advice.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        Text(advice.subtitle, color = TextSecondary, fontSize = 12.sp)
+                        Text(advice.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp)
+                        Spacer(Modifier.height(6.dp))
+                        Text(advice.subtitle, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
                     }
                     if (advice.showPremium) {
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.width(16.dp))
                         // Premium box
                         Column(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF0D1B36))
-                                .padding(8.dp),
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF061633))
+                                .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
+                                .padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("You could save up to", color = TextSecondary, fontSize = 10.sp)
-                            Text(advice.savingsText, color = AccentYellow, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("in interest", color = TextSecondary, fontSize = 10.sp)
+                            Text("Potential Savings", color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Medium)
                             Spacer(Modifier.height(4.dp))
+                            Text(advice.savingsText, color = AccentGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                            Spacer(Modifier.height(6.dp))
                             if (!isPremiumUnlocked) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(AccentYellow.copy(alpha=0.2f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
                                     Icon(Icons.Rounded.Lock, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(10.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Premium Feature", color = AccentYellow, fontSize = 10.sp)
+                                    Text("PRO", color = AccentYellow, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 }
                             } else {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF4ADE80), modifier = Modifier.size(10.dp))
+                                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(12.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Unlocked", color = Color(0xFF4ADE80), fontSize = 10.sp)
+                                    Text("Unlocked", color = AccentGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -788,37 +956,39 @@ fun LoanAdvisorSection(loans: List<LoanOffer>, bestLoan: LoanOffer?, isPremiumUn
             }
         }
         
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
         
         if (!isPremiumUnlocked) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(
                     onClick = { onUnlockRequested() }, 
                     border = BorderStroke(1.dp, AccentYellow), 
-                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(50.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentYellow)
                 ) {
                     Icon(Icons.Rounded.SmartDisplay, contentDescription = "Ad", modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Watch Ad to Unlock")
+                    Text("Watch Ad", fontWeight = FontWeight.Bold)
                 }
-                Text("  or  ", color = Color.White, fontSize = 14.sp)
+                Text("  or  ", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
                 Button(
                     onClick = { onUnlockRequested() }, 
-                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1.2f).height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color.Black)
                 ) {
                     Icon(Icons.Rounded.WorkspacePremium, contentDescription = "Premium", modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Unlock with Premium", fontWeight = FontWeight.Bold)
+                    Text("Go Premium", fontWeight = FontWeight.ExtraBold)
                 }
             }
             
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.LockOpen, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(12.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("One-time unlock • All insights included", color = TextSecondary, fontSize = 12.sp)
+                Icon(Icons.Rounded.LockOpen, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("One-time unlock • All insights included", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -926,9 +1096,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
 fun WhatYouWillUnlockSection(isPremiumUnlocked: Boolean, onToolClick: (String) -> Unit) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = CardStroke)
-            Spacer(Modifier.width(16.dp))
-            Text(if (isPremiumUnlocked) "Premium Tools (Unlocked)" else "What you'll unlock", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(if (isPremiumUnlocked) "Premium Tools (Unlocked)" else "What you'll unlock", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.width(16.dp))
             HorizontalDivider(modifier = Modifier.weight(1f), color = CardStroke)
         }
@@ -946,32 +1114,34 @@ fun WhatYouWillUnlockSection(isPremiumUnlocked: Boolean, onToolClick: (String) -
             chunks.forEach { rowItems ->
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     rowItems.forEach { (icon, title, desc) ->
-                        ResponsiveCard(
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { if (isPremiumUnlocked) onToolClick(title) },
-                            bgColor = SurfaceDark,
-                            borderColor = if (isPremiumUnlocked) AccentGreen else CardStroke
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(if (isPremiumUnlocked) Color(0xFF061633) else Color(0xFF0D1B36))
+                                .border(1.dp, if (isPremiumUnlocked) AccentGreen.copy(alpha=0.5f) else CardStroke, RoundedCornerShape(16.dp))
+                                .clickable { if (isPremiumUnlocked) onToolClick(title) }
+                                .padding(16.dp)
                         ) {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                                    .defaultMinSize(minHeight = 110.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                Box(modifier = Modifier.size(32.dp)) {
-                                    Icon(icon, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(28.dp).align(Alignment.Center))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).background(AccentBlue.copy(alpha=0.1f)), contentAlignment = Alignment.Center) {
+                                        Icon(icon, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(20.dp))
+                                    }
+                                    Spacer(Modifier.weight(1f))
                                     if (isPremiumUnlocked) {
-                                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(12.dp).align(Alignment.BottomEnd))
+                                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(16.dp))
                                     } else {
-                                        Icon(Icons.Rounded.Lock, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(12.dp).align(Alignment.BottomEnd))
+                                        Icon(Icons.Rounded.Lock, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(16.dp))
                                     }
                                 }
                                 Spacer(Modifier.height(12.dp))
-                                Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 Spacer(Modifier.height(4.dp))
-                                Text(desc, color = TextSecondary, fontSize = 11.sp, lineHeight = 16.sp, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text(desc, color = TextSecondary, fontSize = 11.sp, lineHeight = 16.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -986,37 +1156,41 @@ fun EmptyStateIllustration() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp),
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFF061633))
+            .border(1.dp, CardStroke, RoundedCornerShape(24.dp))
+            .padding(vertical = 48.dp, horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
-                .size(120.dp)
-                .background(Color(0xFF0D1B36), shape = androidx.compose.foundation.shape.CircleShape),
+                .size(100.dp)
+                .background(AccentBlue.copy(alpha=0.1f), shape = androidx.compose.foundation.shape.CircleShape)
+                .border(1.dp, AccentBlue.copy(alpha=0.3f), androidx.compose.foundation.shape.CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Rounded.AccountBalance,
                 contentDescription = null,
-                tint = AccentBlue.copy(alpha = 0.5f),
-                modifier = Modifier.size(64.dp)
+                tint = AccentBlue,
+                modifier = Modifier.size(48.dp)
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "No Loans Added Yet",
             color = Color.White,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Add loans above to start comparing EMI, total interest, and more.",
+            text = "Add loans above to start comparing EMI, total interest, and effective APR.",
             color = TextSecondary,
             fontSize = 14.sp,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            lineHeight = 20.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
@@ -1025,15 +1199,15 @@ private fun localFormatMoney(amount: Double, currencySym: String = com.example.g
     return formatMoney(amount, com.example.globalCurrencySymbol)
 }
 
-private fun localCalculateEMI(principal: Double, rate: Double, years: Int): Double {
-    if (principal <= 0 || rate <= 0 || years <= 0) return 0.0
+private fun localCalculateEMI(principal: Double, rate: Double, totalMonths: Int): Double {
+    if (principal <= 0 || rate <= 0 || totalMonths <= 0) return 0.0
     val r = rate / 12 / 100
-    val n = years * 12
+    val n = totalMonths
     return principal * r * (1 + r).pow(n) / ((1 + r).pow(n) - 1)
 }
 
-private fun localCalculateTotalInterest(principal: Double, rate: Double, years: Int): Double {
-    val emi = localCalculateEMI(principal, rate, years)
-    val totalPayment = emi * years * 12
+private fun localCalculateTotalInterest(principal: Double, rate: Double, totalMonths: Int): Double {
+    val emi = localCalculateEMI(principal, rate, totalMonths)
+    val totalPayment = emi * totalMonths
     return totalPayment - principal
 }

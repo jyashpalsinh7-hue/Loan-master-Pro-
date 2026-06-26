@@ -5,18 +5,22 @@ import java.util.Locale
 
 object CurrencyFormatter {
 
+    private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()).apply {
+        maximumFractionDigits = 0
+    }
+    
+    private val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault()).apply {
+        maximumFractionDigits = 0
+    }
+
     fun formatMoney(amount: Double): String {
-        val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-        format.maximumFractionDigits = 0
-        return format.format(amount)
+        return currencyFormat.format(amount)
     }
 
     fun formatNumber(amount: Double): String {
-        val format = NumberFormat.getNumberInstance(Locale.getDefault())
-        format.maximumFractionDigits = 0
-        return format.format(amount)
+        return numberFormat.format(amount)
     }
     
     val currentSymbol: String
-        get() = NumberFormat.getCurrencyInstance(Locale.getDefault()).currency?.symbol ?: "$"
+        get() = currencyFormat.currency?.symbol ?: "$"
 }

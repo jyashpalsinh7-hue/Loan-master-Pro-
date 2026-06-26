@@ -98,7 +98,21 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                     }
                     Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = "Favorite", tint = TextPrimary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Icon(imageVector = Icons.Rounded.Share, contentDescription = "Share", tint = TextPrimary, modifier = Modifier.size(24.dp))
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(24.dp).clickable {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "FD Calculator Report",
+                            listOf(
+                                "Total Investment" to formatInr(totalInvested),
+                                "Interest Rate" to "$interestRatePaText%",
+                                "Time Period" to "$tenureYearsText Years",
+                                "" to "",
+                                "Total Interest" to formatInr(totalReturns),
+                                "Maturity Value" to formatInr(maturityValue)
+                            )
+                        )
+                    })
                 }
             }
         },
@@ -395,7 +409,7 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(20.dp))
                     Box(modifier = Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
                         val invPct = if (maturityValue > 0) (totalInvested / maturityValue).toFloat() else 1f
-                        Canvas(modifier = Modifier.size(120.dp)) {
+                        Canvas(modifier = Modifier.size(120.dp).padding(8.dp)) {
                             val strokeWidth = 16.dp.toPx()
                             drawArc(
                                 color = AccentBlue,
@@ -412,8 +426,8 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                                 style = Stroke(strokeWidth, cap = StrokeCap.Butt)
                             )
                         }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(formatInr(maturityValue), color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
+                            AutoSizeText(formatInr(maturityValue), color = TextPrimary, minTextSize = 10.sp, maxTextSize = 16.sp, fontWeight = FontWeight.Bold)
                             Text("Total Value", color = TextSecondary, fontSize = 10.sp)
                         }
                     }
@@ -495,11 +509,7 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                         val tRet = tMat - p
                         val isLast = index == yearsList.size - 1
                         val color = if (isLast) AccentBlue else TextPrimary
-                        val formatInrNum = { value: Double ->
-                            val format = NumberFormat.getNumberInstance(Locale("en", "IN"))
-                            format.maximumFractionDigits = 0
-                            format.format(value)
-                        }
+                        val formatInrNum = { value: Double -> formatMoneyExact(value) }
                         
                         Row(modifier = Modifier.defaultMinSize(minWidth = 380.dp).fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp)) {
                             Text("${y.toInt()}", color = color, fontSize = 12.sp, modifier = Modifier.weight(1f).padding(horizontal = 4.dp))
