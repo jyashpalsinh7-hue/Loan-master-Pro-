@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,12 +68,13 @@ fun SipCalculatorScreen(
     val configuration = LocalConfiguration.current
     val isWide = configuration.screenWidthDp > 600
 
-    var amountText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
-    var returnRateText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
-    var yearsText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
-    var stepUpText by remember { mutableStateOf(initialHistory?.param4 ?: "") }
+    // RESPONSIVE: use rememberSaveable
+    var amountText by rememberSaveable { mutableStateOf(initialHistory?.param1 ?: "") }
+    var returnRateText by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
+    var yearsText by rememberSaveable { mutableStateOf(initialHistory?.param3 ?: "") }
+    var stepUpText by rememberSaveable { mutableStateOf(initialHistory?.param4 ?: "") }
     
-    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+    var currentHistoryId by rememberSaveable { mutableStateOf(initialHistory?.id ?: 0) }
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
@@ -162,7 +164,6 @@ fun SipCalculatorScreen(
                 }
             )
         },
-        bottomBar = { SipBottomNav() },
         modifier = Modifier.clickable(
             interactionSource = remember { MutableInteractionSource() }, indication = null
         ) { focusManager.clearFocus() }
@@ -198,20 +199,7 @@ fun SipCalculatorScreen(
     }
 }
 
-@Composable
-private fun SipBottomNav() {
-    NavigationBar(
-        containerColor = NavyBg,
-        contentColor = TextSec,
-        tonalElevation = 0.dp,
-        modifier = Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).border(1.dp, StrokeNavy, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-    ) {
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Rounded.Home, contentDescription = null) }, label = { Text("Home", fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSec, unselectedTextColor = TextSec, indicatorColor = Color.Transparent))
-        NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Rounded.Calculate, contentDescription = null) }, label = { Text("Tools", fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = BluePrimary, selectedTextColor = BluePrimary, indicatorColor = BluePrimary.copy(alpha=0.15f)))
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null) }, label = { Text("Portfolio", fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSec, unselectedTextColor = TextSec, indicatorColor = Color.Transparent))
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Rounded.Person, contentDescription = null) }, label = { Text("Profile", fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSec, unselectedTextColor = TextSec, indicatorColor = Color.Transparent))
-    }
-}
+
 
 @Composable
 private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {

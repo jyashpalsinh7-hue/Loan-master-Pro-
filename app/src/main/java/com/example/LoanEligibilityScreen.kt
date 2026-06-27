@@ -33,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 data class LoanProfile(val name: String, val baseFoir: Double, val defaultRate: String, val defaultTenure: String)
 
@@ -49,10 +52,10 @@ val loanProfiles = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanEligibilityScreen() {
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val sizeClass = when (adaptiveInfo.windowSizeClass.windowWidthSizeClass) {
+        WindowWidthSizeClassCore.COMPACT -> WindowWidthSizeClass.Compact
+        WindowWidthSizeClassCore.MEDIUM -> WindowWidthSizeClass.Medium
         else -> WindowWidthSizeClass.Expanded
     }
 
@@ -68,25 +71,27 @@ fun LoanEligibilityScreen() {
         com.example.formatMoney(amount, com.example.globalCurrencySymbol)
     }
 
-    var selectedLoanProfile by remember { mutableStateOf(loanProfiles[0]) }
+    // RESPONSIVE: use rememberSaveable
+    var selectedLoanProfile by rememberSaveable { mutableStateOf(loanProfiles[0].name) }
+    val profile = loanProfiles.find { it.name == selectedLoanProfile } ?: loanProfiles[0]
 
-    var monthlyIncome by remember { mutableStateOf("") }
-    var existingEMIs by remember { mutableStateOf("") }
-    var isCoBorrowerEnabled by remember { mutableStateOf(false) }
-    var coBorrowerIncome by remember { mutableStateOf("") }
-    var coBorrowerEMIs by remember { mutableStateOf("") }
+    var monthlyIncome by rememberSaveable { mutableStateOf("") }
+    var existingEMIs by rememberSaveable { mutableStateOf("") }
+    var isCoBorrowerEnabled by rememberSaveable { mutableStateOf(false) }
+    var coBorrowerIncome by rememberSaveable { mutableStateOf("") }
+    var coBorrowerEMIs by rememberSaveable { mutableStateOf("") }
     
-    var tenureYears by remember { mutableStateOf(selectedLoanProfile.defaultTenure) }
-    var interestRate by remember { mutableStateOf(selectedLoanProfile.defaultRate) }
+    var tenureYears by rememberSaveable { mutableStateOf(profile.defaultTenure) }
+    var interestRate by rememberSaveable { mutableStateOf(profile.defaultRate) }
     var isSalaried by remember { mutableStateOf(true) }
     var creditScoreRange by remember { mutableStateOf("Excellent") }
     
     LaunchedEffect(selectedLoanProfile) {
-        tenureYears = selectedLoanProfile.defaultTenure
+        tenureYears = profile.defaultTenure
     }
     
     LaunchedEffect(selectedLoanProfile, creditScoreRange) {
-        val baseRate = selectedLoanProfile.defaultRate.safeToDouble()
+        val baseRate = profile.defaultRate.safeToDouble()
         val additionalRate = when(creditScoreRange) {
             "Excellent" -> 0.0
             "Good" -> 1.0
@@ -103,7 +108,7 @@ fun LoanEligibilityScreen() {
     val totalIncome = income1 + income2
     val totalExistingEmi = emi1 + emi2
 
-    val foirLimit = if (isSalaried) selectedLoanProfile.baseFoir else (selectedLoanProfile.baseFoir - 0.05)
+    val foirLimit = if (isSalaried) profile.baseFoir else (profile.baseFoir - 0.05)
     val maxAllowedEmi = totalIncome * foirLimit
     val availableEmi = maxAllowedEmi - totalExistingEmi
 
@@ -117,71 +122,7 @@ fun LoanEligibilityScreen() {
     val currentFoir = if (totalIncome > 0) (totalExistingEmi / totalIncome) * 100 else 0.0
 
     Scaffold(
-        containerColor = bgColor,
-        bottomBar = {
-            NavigationBar(
-                containerColor = bgColor,
-                contentColor = textSecondary,
-                tonalElevation = 0.dp,
-                modifier = Modifier.border(1.dp, surfaceColor)
-            ) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
-                    label = { Text("Home", style = LoanMasterTheme.typography.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Calculate, contentDescription = "Calculate") },
-                    label = { Text("Calculate", style = LoanMasterTheme.typography.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = warningYellow,
-                        selectedTextColor = warningYellow,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-                    label = { Text("History", style = LoanMasterTheme.typography.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Article, contentDescription = "Reports") },
-                    label = { Text("Reports", style = LoanMasterTheme.typography.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings", style = LoanMasterTheme.typography.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = textSecondary,
-                        unselectedTextColor = textSecondary,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-            }
-        }
+        containerColor = bgColor
     ) { paddingValues ->
         ResponsiveScreenWrapper(
             modifier = Modifier
@@ -352,7 +293,7 @@ fun LoanEligibilityScreen() {
                         modifier = mod
                     ) {
                         AutoResizeTextField(
-                            value = selectedLoanProfile.name,
+                            value = selectedLoanProfile,
                             onValueChange = {},
                             label = "Loan Type",
                             modifier = Modifier
@@ -371,7 +312,7 @@ fun LoanEligibilityScreen() {
                                 DropdownMenuItem(
                                     text = { Text(profile.name, color = textColor) },
                                     onClick = {
-                                        selectedLoanProfile = profile
+                                        selectedLoanProfile = profile.name
                                         loanDropdownExpanded = false
                                     }
                                 )
@@ -425,7 +366,7 @@ fun LoanEligibilityScreen() {
                             modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue) }
                         )
-                        Text("Avg. rate for ${selectedLoanProfile.name}", color = textSecondary, style = LoanMasterTheme.typography.label, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))
+                        Text("Avg. rate for ${profile.name}", color = textSecondary, style = LoanMasterTheme.typography.label, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))
                     }
                 }
             )

@@ -109,7 +109,6 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                 }
             }
         },
-        bottomBar = { AppBottomBar(selectedRoute = "currency") },
         containerColor = CurrBgColor
     ) { innerPadding ->
         LazyColumn(

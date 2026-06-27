@@ -20,7 +20,7 @@ data class AppSpacing(
     val lg: Dp = 24.dp,
     val xl: Dp = 32.dp,
     val screenPadding: Dp = 16.dp,
-    val gridGutter: Dp = 16.dp
+    val gridGutter: Dp = 10.dp
 )
 
 @Immutable
@@ -86,15 +86,67 @@ fun LoanMasterTheme(
     val spacing = if (isExpanded) {
         AppSpacing(
             screenPadding = 32.dp,
-            gridGutter = 24.dp
+            gridGutter = 20.dp,
+            sm = 12.dp,
+            md = 24.dp,
+            lg = 32.dp
         )
     } else if (isMedium) {
         AppSpacing(
             screenPadding = 24.dp,
-            gridGutter = 20.dp
+            gridGutter = 16.dp,
+            sm = 10.dp,
+            md = 20.dp,
+            lg = 28.dp
         )
     } else {
-        AppSpacing()
+        AppSpacing(
+            screenPadding = 16.dp,
+            gridGutter = 10.dp,
+            sm = 8.dp,
+            md = 14.dp,
+            lg = 20.dp
+        )
+    }
+
+    val components = if (isExpanded) {
+        AppComponents(
+            iconSmall = 24.dp, iconMedium = 32.dp, iconLarge = 48.dp,
+            calculatorCardHeight = 150.dp, featuredCardHeight = 180.dp
+        )
+    } else if (isMedium) {
+        AppComponents(
+            iconSmall = 22.dp, iconMedium = 28.dp, iconLarge = 40.dp,
+            calculatorCardHeight = 135.dp, featuredCardHeight = 160.dp
+        )
+    } else {
+        AppComponents(
+            iconSmall = 18.dp, iconMedium = 24.dp, iconLarge = 32.dp,
+            calculatorCardHeight = 120.dp, featuredCardHeight = 140.dp
+        )
+    }
+
+    val typography = if (isExpanded) {
+        AppTypographyTokens(
+            display = TextStyle(fontSize = 40.sp, fontWeight = FontWeight.Bold, lineHeight = 48.sp),
+            title = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp),
+            body = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal, lineHeight = 26.sp),
+            label = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, lineHeight = 20.sp)
+        )
+    } else if (isMedium) {
+        AppTypographyTokens(
+            display = TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold, lineHeight = 44.sp),
+            title = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp),
+            body = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Normal, lineHeight = 25.sp),
+            label = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium, lineHeight = 18.sp)
+        )
+    } else {
+        AppTypographyTokens(
+            display = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, lineHeight = 40.sp),
+            title = TextStyle(fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 26.sp),
+            body = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+            label = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, lineHeight = 16.sp)
+        )
     }
     
     val grids = if (isExpanded) {
@@ -116,8 +168,8 @@ fun LoanMasterTheme(
 
     CompositionLocalProvider(
         LocalAppSpacing provides spacing,
-        LocalAppComponents provides AppComponents(),
-        LocalAppTypographyTokens provides AppTypographyTokens(),
+        LocalAppComponents provides components,
+        LocalAppTypographyTokens provides typography,
         LocalAppGrids provides grids
     ) {
         MyApplicationTheme(

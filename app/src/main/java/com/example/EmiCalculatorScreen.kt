@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -335,7 +336,7 @@ fun LoanTypeSelector(
     sizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier
 ) {
-    var isDropdownExpanded by remember { mutableStateOf(false) }
+    var isDropdownExpanded by rememberSaveable { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     Column(modifier = modifier) {
@@ -556,15 +557,15 @@ fun EmiCalculatorScreen(
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    // State
-    var loanAmountText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
-    var interestRateText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
-    var tenureInputText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
-    var isTenureInMonths by remember { mutableStateOf(initialHistory?.param4 == "true") }
-    var loanType by remember { mutableStateOf(initialHistory?.param5?.takeIf { it.isNotEmpty() } ?: "Home Loan") }
-    var showFullSchedule by remember { mutableStateOf(false) }
+    // RESPONSIVE: use rememberSaveable
+    var loanAmountText by rememberSaveable { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRateText by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureInputText by rememberSaveable { mutableStateOf(initialHistory?.param3 ?: "") }
+    var isTenureInMonths by rememberSaveable { mutableStateOf(initialHistory?.param4 == "true") }
+    var loanType by rememberSaveable { mutableStateOf(initialHistory?.param5?.takeIf { it.isNotEmpty() } ?: "Home Loan") }
+    var showFullSchedule by rememberSaveable { mutableStateOf(false) }
     
-    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+    var currentHistoryId by rememberSaveable { mutableStateOf(initialHistory?.id ?: 0) }
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
@@ -596,7 +597,8 @@ fun EmiCalculatorScreen(
     }
     
     // Bottom Sheet State
-    var selectedRecommendation by remember { mutableStateOf<SmartRecommendation?>(null) }
+    // RESPONSIVE: use rememberSaveable
+    var selectedRecommendation by rememberSaveable { mutableStateOf<SmartRecommendation?>(null) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     val loanAmount = loanAmountText.safeToDouble()
@@ -682,35 +684,6 @@ fun EmiCalculatorScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
             )
         },
-        bottomBar = {
-            NavigationBar(containerColor = bgColor) {
-                val items = listOf("Home", "History", "Calculate", "Compare", "Settings")
-                items.forEachIndexed { index, label ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {},
-                        icon = {
-                            Icon(
-                                imageVector = when (index) {
-                                    0 -> Icons.Rounded.Home
-                                    1 -> Icons.Rounded.History
-                                    2 -> Icons.Rounded.Calculate
-                                    3 -> Icons.Rounded.CompareArrows
-                                    else -> Icons.Rounded.Settings
-                                },
-                                contentDescription = label
-                            )
-                        },
-                        label = { Text(label, fontSize = 10.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = goldAccent,
-                            selectedTextColor = goldAccent,
-                            indicatorColor = Color.Transparent
-                        )
-                    )
-                }
-            }
-        }
     ) { paddingValues ->
         Box(
             modifier = Modifier

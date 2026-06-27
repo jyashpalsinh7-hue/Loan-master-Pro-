@@ -55,7 +55,6 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = { SettingsTopBar(onNavigateBack) },
-        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = onNavigateBottomNav) },
         containerColor = BgColor
     ) { innerPadding ->
         LazyColumn(

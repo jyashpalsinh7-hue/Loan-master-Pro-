@@ -191,7 +191,6 @@ fun RdCalculatorScreen(
                 }
             }
         },
-        bottomBar = { AppBottomBar(selectedRoute = "calculators") },
         containerColor = BackgroundDark
     ) { innerPadding ->
         Box(

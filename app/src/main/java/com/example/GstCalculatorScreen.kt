@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 enum class GstMode { ADD, REMOVE }
 
@@ -52,15 +55,17 @@ fun GstCalculatorScreen(
     initialHistory: CalculationHistory? = null,
     onHistoryConsumed: () -> Unit = {}
 ) {
-    val configuration = LocalConfiguration.current
-    val isTablet = configuration.screenWidthDp > 600
     val focusManager = LocalFocusManager.current
+    
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val isWide = adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClassCore.COMPACT
 
-    var mode by remember { mutableStateOf(if (initialHistory?.param1 == "REMOVE") GstMode.REMOVE else GstMode.ADD) }
-    var amountText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
-    var selectedRate by remember { mutableDoubleStateOf(initialHistory?.param3?.toDoubleOrNull() ?: 18.0) }
-    var isCustomRate by remember { mutableStateOf(initialHistory?.param4 == "true") }
-    var customRateText by remember { mutableStateOf(initialHistory?.param5 ?: "") }
+    // RESPONSIVE: use rememberSaveable
+    var mode by rememberSaveable { mutableStateOf(if (initialHistory?.param1 == "REMOVE") GstMode.REMOVE else GstMode.ADD) }
+    var amountText by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
+    var selectedRate by rememberSaveable { mutableDoubleStateOf(initialHistory?.param3?.toDoubleOrNull() ?: 18.0) }
+    var isCustomRate by rememberSaveable { mutableStateOf(initialHistory?.param4 == "true") }
+    var customRateText by rememberSaveable { mutableStateOf(initialHistory?.param5 ?: "") }
     
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
@@ -161,7 +166,6 @@ fun GstCalculatorScreen(
                 }
             }
         },
-        bottomBar = { AppBottomBar(selectedRoute = "gst") },
         containerColor = BackgroundDark,
         modifier = Modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -184,7 +188,7 @@ fun GstCalculatorScreen(
                 GstModeSelector(mode = mode, onModeSelected = { mode = it })
 
                 // Main Layout (Responsive)
-                if (isTablet) {
+                if (isWide) {
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                             GstHeroResultCard(mode, actualRate, cessRate, baseAmount, totalGst, totalCess, totalAmount)

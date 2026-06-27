@@ -41,6 +41,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.*
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 import androidx.compose.runtime.compositionLocalOf
 
@@ -77,13 +82,20 @@ class MainActivity : ComponentActivity() {
 
             globalCurrencySymbol = extractCurrencySymbol(currency)
 
+            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+            val windowSizeClass = when {
+                configuration.screenWidthDp < 600 -> com.example.WindowWidthSizeClass.Compact
+                configuration.screenWidthDp < 840 -> com.example.WindowWidthSizeClass.Medium
+                else -> com.example.WindowWidthSizeClass.Expanded
+            }
+
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalLanguage provides language,
                 LocalCurrency provides currency,
                 LocalNotificationsEnabled provides notificationsEnabled,
                 LocalKeepHistoryEnabled provides keepHistoryEnabled
             ) {
-                MyApplicationTheme {
+                LoanMasterTheme(windowSizeClass = windowSizeClass) {
                     val context = androidx.compose.ui.platform.LocalContext.current
                     val database = getDatabase(context)
                     val repository = HistoryRepository(database.historyDao())
@@ -96,7 +108,79 @@ class MainActivity : ComponentActivity() {
                     val activeRoute by mainViewModel.activeBottomNavItem.collectAsStateWithLifecycle()
                     val selectedHistory by mainViewModel.selectedHistory.collectAsStateWithLifecycle()
                     
-                NavHost(navController = navController, startDestination = "home") {
+                    val adaptiveInfo = currentWindowAdaptiveInfo()
+                    
+                    NavigationSuiteScaffold(
+                        navigationSuiteItems = {
+                            item(
+                                icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
+                                label = { Text("Home", maxLines = 1) },
+                                selected = activeRoute == "home",
+                                onClick = { 
+                                    mainViewModel.updateActiveBottomNavItem("home")
+                                    navController.navigate("home") {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                            item(
+                                icon = { Icon(Icons.Rounded.Calculate, contentDescription = "EMI") },
+                                label = { Text("EMI", maxLines = 1) },
+                                selected = activeRoute == "emi",
+                                onClick = { 
+                                    mainViewModel.updateActiveBottomNavItem("emi")
+                                    navController.navigate("emi") {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                            item(
+                                icon = { Icon(Icons.Rounded.TrendingUp, contentDescription = "SIP") },
+                                label = { Text("SIP", maxLines = 1) },
+                                selected = activeRoute == "sip",
+                                onClick = { 
+                                    mainViewModel.updateActiveBottomNavItem("sip")
+                                    navController.navigate("sip") {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                            item(
+                                icon = { Icon(Icons.Rounded.ReceiptLong, contentDescription = "GST") },
+                                label = { Text("GST", maxLines = 1) },
+                                selected = activeRoute == "gst",
+                                onClick = { 
+                                    mainViewModel.updateActiveBottomNavItem("gst")
+                                    navController.navigate("gst") {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                            item(
+                                icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
+                                label = { Text("History", maxLines = 1) },
+                                selected = activeRoute == "history",
+                                onClick = { 
+                                    mainViewModel.updateActiveBottomNavItem("history")
+                                    navController.navigate("history") {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                        },
+                        containerColor = NavBackground
+                    ) {
+                        NavHost(navController = navController, startDestination = "home") {
                     composable("home") { 
                         val historyList by historyViewModel.uiState.collectAsStateWithLifecycle()
                         HomeScreen(
@@ -219,6 +303,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             }
+            }
         }
     }
 }
@@ -231,7 +316,6 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
 
     Scaffold(
         topBar = { AppTopBar(onNavigateToSettings) },
-        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = onNavigateBottomNav) },
         containerColor = BackgroundDark
     ) { innerPadding ->
         ResponsiveScreenWrapper(
@@ -248,8 +332,8 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                     .fillMaxSize()
                     .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.sm)
                     .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                     SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
@@ -610,7 +694,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(LoanMasterTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -618,19 +702,19 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(LoanMasterTheme.components.iconLarge)
                         .clip(RoundedCornerShape(12.dp))
                         .background(Brush.linearGradient(listOf(Color(0xFF60A5FA), Color(0xFF2563EB))))
                         .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
                 Text(
                     text = "EMI Calculator", 
                     color = Color.White, 
-                    fontSize = 18.sp, 
+                    fontSize = LoanMasterTheme.typography.title.fontSize, 
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -646,7 +730,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
             
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(LoanMasterTheme.components.iconLarge)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.1f))
                     .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape),
@@ -656,7 +740,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
                     imageVector = Icons.Rounded.ChevronRight,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
                 )
             }
         }
@@ -665,7 +749,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 16.dp)
+                .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))))
                 .padding(horizontal = 6.dp, vertical = 3.dp),
@@ -699,22 +783,22 @@ fun StandardCalculatorCard(
             .testTag("std_card_${title.replace(" ", "_").lowercase()}")
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp)
+            modifier = Modifier.fillMaxSize().padding(LoanMasterTheme.spacing.md)
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(LoanMasterTheme.components.iconLarge)
                     .clip(CircleShape)
                     .background(iconColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(18.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
             ScrollingTitleText(
-                title, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold
+                title, color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
             Text(
                 text = subtitle,
                 color = TextSecondary,
@@ -722,7 +806,7 @@ fun StandardCalculatorCard(
                 lineHeight = LoanMasterTheme.typography.label.fontSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = LoanMasterTheme.spacing.md)
             )
         }
         
@@ -731,7 +815,7 @@ fun StandardCalculatorCard(
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 12.dp, end = 12.dp)
+                    .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
                     .clip(RoundedCornerShape(6.dp))
                     .background(badgeBg)
                     .border(if (badge != "Premium") 1.dp else 0.dp, CardStroke, RoundedCornerShape(6.dp))
@@ -754,8 +838,8 @@ fun StandardCalculatorCard(
             tint = TextSecondary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 12.dp, end = 12.dp)
-                .size(20.dp)
+                .padding(bottom = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
+                .size(LoanMasterTheme.components.iconSmall)
         )
     }
 }
@@ -881,13 +965,15 @@ fun QuickToolsSection(isExpanded: Boolean, onToggleExpand: () -> Unit) {
 
 @Composable
 fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
+    val width = if (LoanMasterTheme.components.iconLarge > 40.dp) 100.dp else 80.dp
+    val circleSize = LoanMasterTheme.components.iconLarge + 10.dp
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
+        modifier = Modifier.width(width).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
     ) {
         Box(
             modifier = Modifier
-                .size(42.dp)
+                .size(circleSize)
                 .clip(CircleShape)
                 .background(iconColor.copy(alpha = 0.15f))
                 .border(1.dp, iconColor.copy(alpha = 0.3f), CircleShape),
@@ -897,7 +983,7 @@ fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
             )
         }
         Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))

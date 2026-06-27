@@ -33,6 +33,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,8 +45,8 @@ fun PrepaymentCalculatorScreen(
     initialHistory: CalculationHistory? = null,
     onHistoryConsumed: () -> Unit = {}
 ) {
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isTablet = configuration.screenWidthDp >= 600
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val isTablet = adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClassCore.COMPACT
 
     val bgColor = ResponsiveUtils.BgColor
     val surfaceColor = ResponsiveUtils.SurfaceColor
@@ -52,12 +55,13 @@ fun PrepaymentCalculatorScreen(
     val accentGreen = Color(0xFF4ADE80)
     val accentOrange = Color(0xFFF97316)
     
-    var loanAmount by remember { mutableStateOf(initialHistory?.param1 ?: "") }
-    var interestRate by remember { mutableStateOf(initialHistory?.param2 ?: "") }
-    var tenureYears by remember { mutableStateOf(initialHistory?.param3 ?: "") }
-    var prepaymentAmount by remember { mutableStateOf(initialHistory?.param4 ?: "") }
-    var strategy by remember { mutableStateOf(initialHistory?.param5 ?: "Tenure") } // "Tenure" or "EMI"
-    var monthlyPrepayment by remember { mutableStateOf("0") }
+    // RESPONSIVE: use rememberSaveable
+    var loanAmount by rememberSaveable { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRate by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureYears by rememberSaveable { mutableStateOf(initialHistory?.param3 ?: "") }
+    var prepaymentAmount by rememberSaveable { mutableStateOf(initialHistory?.param4 ?: "") }
+    var strategy by rememberSaveable { mutableStateOf(initialHistory?.param5 ?: "Tenure") } // "Tenure" or "EMI"
+    var monthlyPrepayment by rememberSaveable { mutableStateOf("0") }
     var annualPrepayment by remember { mutableStateOf("0") }
     var showAmortization by remember { mutableStateOf(false) }
     var isAiUnlocked by remember { mutableStateOf(false) }

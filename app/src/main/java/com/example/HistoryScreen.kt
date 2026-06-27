@@ -57,7 +57,6 @@ fun HistoryScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = ResponsiveUtils.BgColor)
             )
         },
-        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = onNavigateBottomNav) },
         containerColor = ResponsiveUtils.BgColor
     ) { innerPadding ->
         if (historyItems.isEmpty()) {
