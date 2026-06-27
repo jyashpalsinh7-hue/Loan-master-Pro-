@@ -11,7 +11,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.loanmaster.v2fresh"
+    applicationId = "com.aistudio.loanmaster.v3"
     minSdk = 26
     targetSdk = 36
     versionCode = 1
