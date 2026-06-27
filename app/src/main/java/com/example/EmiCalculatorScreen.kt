@@ -947,7 +947,7 @@ fun EmiCalculatorScreen(
 
                     // ==================== LOAN INTELLIGENCE (Integrated) ====================
                     if (hasValidInput) {
-                        com.aistudio.loanmaster.xklzmw.LoanIntelligenceCard(
+                        LoanIntelligenceCard(
                             loanType = loanType,
                             loanAmount = loanAmount,
                             interestRate = interestRate,

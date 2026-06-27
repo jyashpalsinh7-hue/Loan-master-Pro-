@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -247,8 +248,8 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                     .fillMaxSize()
                     .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.sm)
                     .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
-                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                     SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
@@ -374,8 +375,12 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
 
 @Composable
 fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
+    var isFocused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val borderColor by androidx.compose.animation.animateColorAsState(targetValue = if (isFocused) AccentBlue else CardStroke)
+    val glowAlpha by androidx.compose.animation.core.animateFloatAsState(targetValue = if (isFocused) 0.5f else 0f)
+    
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md),
         horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -383,25 +388,30 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
         Row(
             modifier = Modifier
                 .weight(1f)
-                .height(LoanMasterTheme.components.buttonHeight)
+                .height(LoanMasterTheme.components.topAppBarHeight)
+                .shadow(if (isFocused) 8.dp else 0.dp, RoundedCornerShape(LoanMasterTheme.components.cardRadius), spotColor = AccentBlue.copy(alpha = glowAlpha))
                 .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .background(SurfaceDark)
-                .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+                .border(1.dp, borderColor, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .padding(horizontal = LoanMasterTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = "Search",
-                tint = TextSecondary,
-                modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
+                tint = if (isFocused) AccentBlue else TextSecondary,
+                modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
             )
             Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
             androidx.compose.foundation.text.BasicTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
                 textStyle = LoanMasterTheme.typography.body.copy(color = TextPrimary),
-                modifier = Modifier.weight(1f).fillMaxHeight().wrapContentHeight(Alignment.CenterVertically),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .wrapContentHeight(Alignment.CenterVertically)
+                    .onFocusChanged { isFocused = it.isFocused },
                 decorationBox = { innerTextField ->
                     if (searchQuery.isEmpty()) {
                         Text(
@@ -411,7 +421,8 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
                         )
                     }
                     innerTextField()
-                }
+                },
+                cursorBrush = Brush.verticalGradient(listOf(AccentBlue, AccentBlue))
             )
         }
 
@@ -419,11 +430,11 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
         OutlinedButton(
             onClick = { },
             modifier = Modifier
-                .height(LoanMasterTheme.components.buttonHeight)
+                .height(LoanMasterTheme.components.topAppBarHeight)
                 .testTag("premium_button"),
             shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = SurfaceDark,
+                containerColor = AccentYellow.copy(alpha = 0.1f),
                 contentColor = AccentYellow
             ),
             border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow),
@@ -553,7 +564,7 @@ fun CalculatorsSectionHeader() {
         color = TextPrimary,
         style = LoanMasterTheme.typography.title,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md)
+        modifier = Modifier.fillMaxWidth().padding(top = LoanMasterTheme.spacing.lg, bottom = LoanMasterTheme.spacing.md)
     )
 }
 
@@ -599,7 +610,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(LoanMasterTheme.spacing.lg),
+                .padding(LoanMasterTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -607,35 +618,35 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(42.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(Brush.linearGradient(listOf(Color(0xFF60A5FA), Color(0xFF2563EB))))
                         .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
                 }
-                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
                 Text(
                     text = "EMI Calculator", 
                     color = Color.White, 
-                    fontSize = 22.sp, 
+                    fontSize = 20.sp, 
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "Calculate EMI for Home, Car, Personal & more",
                     color = Color.White.copy(alpha = 0.7f),
-                    style = LoanMasterTheme.typography.body,
-                    lineHeight = LoanMasterTheme.typography.body.fontSize,
-                    maxLines = 2,
+                    style = LoanMasterTheme.typography.label,
+                    lineHeight = LoanMasterTheme.typography.label.fontSize,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
             
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.1f))
                     .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape),
@@ -655,7 +666,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(6.dp))
                 .background(Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))))
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -685,24 +696,25 @@ fun StandardCalculatorCard(
             .background(SurfaceDark)
             .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .clickable { onClick() }
-            .padding(LoanMasterTheme.spacing.md)
             .testTag("std_card_${title.replace(" ", "_").lowercase()}")
     ) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(LoanMasterTheme.spacing.md)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(LoanMasterTheme.components.buttonHeight)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(iconColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
+                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(20.dp))
             }
-            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
             ScrollingTitleText(
                 title, color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 color = TextSecondary,
@@ -715,20 +727,24 @@ fun StandardCalculatorCard(
         }
         
         if (badge != null) {
+            val badgeBg = if (badge == "Premium") Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))) else Brush.linearGradient(listOf(BackgroundDark.copy(alpha = 0.8f), BackgroundDark.copy(alpha = 0.8f)))
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
-                    .background(BackgroundDark.copy(alpha = 0.8f))
-                    .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.sm))
-                    .padding(horizontal = LoanMasterTheme.spacing.sm, vertical = 2.dp),
+                    .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(badgeBg)
+                    .border(if (badge != "Premium") 1.dp else 0.dp, CardStroke, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (badge == "Premium") {
-                    Icon(imageVector = Icons.Rounded.WorkspacePremium, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(10.dp))
-                    Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                    Icon(imageVector = Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(badge.uppercase(), color = Color.White, style = LoanMasterTheme.typography.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                } else {
+                    Text(badge.uppercase(), color = TextPrimary, style = LoanMasterTheme.typography.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
-                Text(badge, color = TextPrimary, style = LoanMasterTheme.typography.label)
             }
         }
         
@@ -736,7 +752,10 @@ fun StandardCalculatorCard(
             imageVector = Icons.Rounded.ChevronRight,
             contentDescription = null,
             tint = TextSecondary,
-            modifier = Modifier.align(Alignment.BottomEnd).size(LoanMasterTheme.components.iconMedium)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
+                .size(LoanMasterTheme.components.iconMedium)
         )
     }
 }
@@ -864,15 +883,24 @@ fun QuickToolsSection(isExpanded: Boolean, onToggleExpand: () -> Unit) {
 fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(72.dp).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
+        modifier = Modifier.width(80.dp).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
-        )
-        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(iconColor.copy(alpha = 0.15f))
+                .border(1.dp, iconColor.copy(alpha = 0.3f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
         Text(
             text = title,
             color = TextSecondary,
