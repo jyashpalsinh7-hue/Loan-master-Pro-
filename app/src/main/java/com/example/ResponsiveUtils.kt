@@ -1,5 +1,7 @@
 package com.example
 
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -84,5 +86,10 @@ object ResponsiveUtils {
         WindowWidthSizeClass.Compact -> 16.dp
         WindowWidthSizeClass.Medium -> 24.dp
         WindowWidthSizeClass.Expanded -> 32.dp
+    }
+    
+    // RESPONSIVE: Capping content width for tablet readability
+    fun Modifier.optimalContentWidth(): Modifier {
+        return this.widthIn(max = 840.dp)
     }
 }

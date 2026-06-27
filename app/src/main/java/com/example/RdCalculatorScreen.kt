@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,17 +55,17 @@ fun RdCalculatorScreen(
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var selectedTab by remember { mutableStateOf(if(initialHistory?.param5 == "Target") "Target Amount" else "Standard") }
-    var monthlyDepositText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
-    var interestRatePaText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
-    var tenureYearsText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
-    var compoundingFrequency by remember { mutableStateOf(initialHistory?.param4?.takeIf{ it.isNotEmpty() } ?: "Quarterly") }
-    var targetAmountText by remember { mutableStateOf("") } // Not saved in history for now or reuse param
-    var showCompoundingDropdown by remember { mutableStateOf(false) }
-    var isPremiumUnlocked by remember { mutableStateOf(false) }
-    var showUnlockDialog by remember { mutableStateOf(false) }
+    var selectedTab by rememberSaveable { mutableStateOf(if(initialHistory?.param5 == "Target") "Target Amount" else "Standard") }
+    var monthlyDepositText by rememberSaveable { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRatePaText by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureYearsText by rememberSaveable { mutableStateOf(initialHistory?.param3 ?: "") }
+    var compoundingFrequency by rememberSaveable { mutableStateOf(initialHistory?.param4?.takeIf{ it.isNotEmpty() } ?: "Quarterly") }
+    var targetAmountText by rememberSaveable { mutableStateOf("") } // Not saved in history for now or reuse param
+    var showCompoundingDropdown by rememberSaveable { mutableStateOf(false) }
+    var isPremiumUnlocked by rememberSaveable { mutableStateOf(false) }
+    var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
     
-    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+    var currentHistoryId by rememberSaveable { mutableStateOf(initialHistory?.id ?: 0) }
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
