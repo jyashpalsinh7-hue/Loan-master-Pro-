@@ -248,8 +248,8 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                     .fillMaxSize()
                     .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.sm)
                     .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm),
-                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                     SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
@@ -610,7 +610,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(LoanMasterTheme.spacing.md),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -624,13 +624,13 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
                         .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                 }
-                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "EMI Calculator", 
                     color = Color.White, 
-                    fontSize = 20.sp, 
+                    fontSize = 18.sp, 
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -665,10 +665,10 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
+                .padding(top = 16.dp, end = 16.dp)
                 .clip(RoundedCornerShape(6.dp))
                 .background(Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))))
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = 6.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(imageVector = Icons.Rounded.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
@@ -699,20 +699,20 @@ fun StandardCalculatorCard(
             .testTag("std_card_${title.replace(" ", "_").lowercase()}")
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(LoanMasterTheme.spacing.md)
+            modifier = Modifier.fillMaxSize().padding(12.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(iconColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(20.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(18.dp))
             }
-            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
+            Spacer(modifier = Modifier.height(6.dp))
             ScrollingTitleText(
-                title, color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
+                title, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -722,7 +722,7 @@ fun StandardCalculatorCard(
                 lineHeight = LoanMasterTheme.typography.label.fontSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = LoanMasterTheme.spacing.md)
+                modifier = Modifier.padding(end = 12.dp)
             )
         }
         
@@ -731,11 +731,11 @@ fun StandardCalculatorCard(
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
+                    .padding(top = 12.dp, end = 12.dp)
                     .clip(RoundedCornerShape(6.dp))
                     .background(badgeBg)
                     .border(if (badge != "Premium") 1.dp else 0.dp, CardStroke, RoundedCornerShape(6.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (badge == "Premium") {
@@ -754,8 +754,8 @@ fun StandardCalculatorCard(
             tint = TextSecondary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
-                .size(LoanMasterTheme.components.iconMedium)
+                .padding(bottom = 12.dp, end = 12.dp)
+                .size(20.dp)
         )
     }
 }

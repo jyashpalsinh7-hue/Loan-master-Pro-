@@ -33,8 +33,8 @@ data class AppComponents(
     val topAppBarHeight: Dp = 64.dp,
     val bottomNavHeight: Dp = 80.dp,
     val dialogMaxWidth: Dp = 400.dp,
-    val calculatorCardHeight: Dp = 135.dp,
-    val featuredCardHeight: Dp = 158.dp
+    val calculatorCardHeight: Dp = 120.dp,
+    val featuredCardHeight: Dp = 140.dp
 )
 
 @Immutable
