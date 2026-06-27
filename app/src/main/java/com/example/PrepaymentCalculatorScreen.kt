@@ -36,7 +36,12 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrepaymentCalculatorScreen(onNavigateBack: () -> Unit = {}) {
+fun PrepaymentCalculatorScreen(
+    onNavigateBack: () -> Unit = {},
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isTablet = configuration.screenWidthDp >= 600
 
@@ -47,16 +52,46 @@ fun PrepaymentCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val accentGreen = Color(0xFF4ADE80)
     val accentOrange = Color(0xFFF97316)
     
-    var loanAmount by remember { mutableStateOf("5000000") }
-    var interestRate by remember { mutableStateOf("8.5") }
-    var tenureYears by remember { mutableStateOf("15") }
-    var prepaymentAmount by remember { mutableStateOf("100000") }
+    var loanAmount by remember { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRate by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureYears by remember { mutableStateOf(initialHistory?.param3 ?: "") }
+    var prepaymentAmount by remember { mutableStateOf(initialHistory?.param4 ?: "") }
+    var strategy by remember { mutableStateOf(initialHistory?.param5 ?: "Tenure") } // "Tenure" or "EMI"
     var monthlyPrepayment by remember { mutableStateOf("0") }
     var annualPrepayment by remember { mutableStateOf("0") }
-    var strategy by remember { mutableStateOf("Tenure") } // "Tenure" or "EMI"
     var showAmortization by remember { mutableStateOf(false) }
     var isAiUnlocked by remember { mutableStateOf(false) }
     var showUnlockDialog by remember { mutableStateOf(false) }
+    
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
+    
+    LaunchedEffect(loanAmount, interestRate, tenureYears, prepaymentAmount, strategy) {
+        kotlinx.coroutines.delay(2000)
+        val p = loanAmount.toDoubleOrNull() ?: 0.0
+        val rate = interestRate.toDoubleOrNull() ?: 0.0
+        val terms = tenureYears.toDoubleOrNull() ?: 0.0
+        if (historyViewModel != null && p > 0 && rate > 0 && terms > 0) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "Prepayment",
+                title = "₹$loanAmount - Strategy: $strategy",
+                param1 = loanAmount,
+                param2 = interestRate,
+                param3 = tenureYears,
+                param4 = prepaymentAmount,
+                param5 = strategy
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
+    }
 
     val p = loanAmount.safeToDouble()
     val rate = interestRate.safeToDouble()
@@ -148,7 +183,8 @@ fun PrepaymentCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         text = "Prepayment",
                         color = Color.White,
                         fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

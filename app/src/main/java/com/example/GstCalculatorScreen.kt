@@ -46,24 +46,56 @@ enum class GstMode { ADD, REMOVE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GstCalculatorScreen(onNavigateBack: () -> Unit) {
+fun GstCalculatorScreen(
+    onNavigateBack: () -> Unit,
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600
     val focusManager = LocalFocusManager.current
 
-    var mode by remember { mutableStateOf(GstMode.ADD) }
-    var amountText by remember { mutableStateOf("100000") }
-    var selectedRate by remember { mutableDoubleStateOf(18.0) }
-    var isCustomRate by remember { mutableStateOf(false) }
-    var customRateText by remember { mutableStateOf("") }
+    var mode by remember { mutableStateOf(if (initialHistory?.param1 == "REMOVE") GstMode.REMOVE else GstMode.ADD) }
+    var amountText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var selectedRate by remember { mutableDoubleStateOf(initialHistory?.param3?.toDoubleOrNull() ?: 18.0) }
+    var isCustomRate by remember { mutableStateOf(initialHistory?.param4 == "true") }
+    var customRateText by remember { mutableStateOf(initialHistory?.param5 ?: "") }
+    
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
     
     var showAdvanced by remember { mutableStateOf(false) }
     var cessRateText by remember { mutableStateOf("") }
     var isIntrastate by remember { mutableStateOf(true) }
+    
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
 
     val amount = amountText.toDoubleOrNull() ?: 0.0
     val actualRate = if (isCustomRate) customRateText.toDoubleOrNull() ?: 0.0 else selectedRate
     val cessRate = cessRateText.toDoubleOrNull() ?: 0.0
+
+    LaunchedEffect(mode, amountText, selectedRate, isCustomRate, customRateText) {
+        kotlinx.coroutines.delay(2000)
+        if (historyViewModel != null && amount > 0) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "GST",
+                title = "${if(mode == GstMode.ADD) "Add" else "Remove"} ${actualRate}% GST on ${formatMoney(amount, com.example.globalCurrencySymbol)}",
+                param1 = mode.name,
+                param2 = amountText,
+                param3 = actualRate.toString(),
+                param4 = isCustomRate.toString(),
+                param5 = if(isCustomRate) customRateText else ""
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
+    }
 
     // Calculations
     val baseAmount: Double

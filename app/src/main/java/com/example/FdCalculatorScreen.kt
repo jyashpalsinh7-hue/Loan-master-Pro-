@@ -38,7 +38,12 @@ import java.util.Locale
 import kotlin.math.pow
 
 @Composable
-fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
+fun FdCalculatorScreen(
+    onNavigateBack: () -> Unit,
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
         configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
@@ -46,13 +51,43 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var depositAmountText by remember { mutableStateOf("100000") }
-    var interestRatePaText by remember { mutableStateOf("7.5") }
-    var tenureYearsText by remember { mutableStateOf("5") }
-    var compoundingFrequency by remember { mutableStateOf("Quarterly") }
+    var depositAmountText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRatePaText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureYearsText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
+    var compoundingFrequency by remember { mutableStateOf(initialHistory?.param4?.takeIf{ it.isNotEmpty() } ?: "Quarterly") }
     var showCompoundingDropdown by remember { mutableStateOf(false) }
+
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
+    
     val formatInr = { value: Double ->
         formatMoney(value, com.example.globalCurrencySymbol)
+    }
+
+    LaunchedEffect(depositAmountText, interestRatePaText, tenureYearsText, compoundingFrequency) {
+        kotlinx.coroutines.delay(2000)
+        val p = depositAmountText.toDoubleOrNull() ?: 0.0
+        val rate = interestRatePaText.toDoubleOrNull() ?: 0.0
+        val years = tenureYearsText.toDoubleOrNull() ?: 0.0
+        if (historyViewModel != null && p > 0 && rate > 0 && years > 0) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "FD",
+                title = "₹$depositAmountText at $interestRatePaText%",
+                param1 = depositAmountText,
+                param2 = interestRatePaText,
+                param3 = tenureYearsText,
+                param4 = compoundingFrequency
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
     }
     
     val formatDec = { value: Double ->
@@ -96,8 +131,6 @@ fun FdCalculatorScreen(onNavigateBack: () -> Unit) {
                         Text("FD Calculator", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Text("Calculate fixed deposit returns", color = TextSecondary, fontSize = 12.sp)
                     }
-                    Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = "Favorite", tint = TextPrimary, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(16.dp))
                     val context = androidx.compose.ui.platform.LocalContext.current
                     Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(24.dp).clickable {
                         ExportUtils.exportToPdf(

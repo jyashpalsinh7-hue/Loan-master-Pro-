@@ -41,7 +41,12 @@ import java.util.Locale
 import kotlin.math.pow
 
 @Composable
-fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
+fun RdCalculatorScreen(
+    onNavigateBack: () -> Unit,
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
         configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
@@ -49,15 +54,23 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var selectedTab by remember { mutableStateOf("Standard") }
-    var monthlyDepositText by remember { mutableStateOf("5000") }
-    var targetAmountText by remember { mutableStateOf("100000") }
-    var interestRatePaText by remember { mutableStateOf("6.5") }
-    var tenureYearsText by remember { mutableStateOf("5") }
-    var compoundingFrequency by remember { mutableStateOf("Quarterly") }
+    var selectedTab by remember { mutableStateOf(if(initialHistory?.param5 == "Target") "Target Amount" else "Standard") }
+    var monthlyDepositText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRatePaText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureYearsText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
+    var compoundingFrequency by remember { mutableStateOf(initialHistory?.param4?.takeIf{ it.isNotEmpty() } ?: "Quarterly") }
+    var targetAmountText by remember { mutableStateOf("") } // Not saved in history for now or reuse param
     var showCompoundingDropdown by remember { mutableStateOf(false) }
     var isPremiumUnlocked by remember { mutableStateOf(false) }
     var showUnlockDialog by remember { mutableStateOf(false) }
+    
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
     
     val formatInr = { value: Double ->
         formatMoney(value, com.example.globalCurrencySymbol)
@@ -70,6 +83,30 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
 
     val annualRate = interestRatePaText.safeToDouble() / 100
     val t = tenureYearsText.safeToDouble().coerceIn(0.0, 100.0)
+    
+    LaunchedEffect(selectedTab, monthlyDepositText, interestRatePaText, tenureYearsText, compoundingFrequency, targetAmountText) {
+        kotlinx.coroutines.delay(2000)
+        val deposit = monthlyDepositText.toDoubleOrNull() ?: 0.0
+        val target = targetAmountText.toDoubleOrNull() ?: 0.0
+        val rate = interestRatePaText.toDoubleOrNull() ?: 0.0
+        val years = tenureYearsText.toDoubleOrNull() ?: 0.0
+        val p = if(selectedTab == "Standard") deposit else target
+        if (historyViewModel != null && p > 0 && rate > 0 && years > 0) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "RD",
+                title = "₹$monthlyDepositText at $interestRatePaText%",
+                param1 = monthlyDepositText,
+                param2 = interestRatePaText,
+                param3 = tenureYearsText,
+                param4 = compoundingFrequency,
+                param5 = if(selectedTab == "Target Amount") "Target" else "Standard"
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
+    }
     val months = (t * 12).toInt()
     
     val n = when (compoundingFrequency) {
@@ -135,8 +172,6 @@ fun RdCalculatorScreen(onNavigateBack: () -> Unit) {
                         Text("RD Calculator", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Text("Plan your Recurring Deposit", color = TextSecondary, fontSize = 12.sp)
                     }
-                    Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = "Favorite", tint = TextPrimary, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(16.dp))
                     val context = androidx.compose.ui.platform.LocalContext.current
                     Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(24.dp).clickable {
                         ExportUtils.exportToPdf(

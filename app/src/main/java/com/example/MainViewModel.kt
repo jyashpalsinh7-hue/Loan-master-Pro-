@@ -14,6 +14,17 @@ class MainViewModel : ViewModel() {
 
     private val _isQuickToolsExpanded = MutableStateFlow(false)
     val isQuickToolsExpanded: StateFlow<Boolean> = _isQuickToolsExpanded.asStateFlow()
+    
+    private val _selectedHistory = MutableStateFlow<CalculationHistory?>(null)
+    val selectedHistory: StateFlow<CalculationHistory?> = _selectedHistory.asStateFlow()
+
+    fun setSelectedHistory(history: CalculationHistory?) {
+        _selectedHistory.value = history
+    }
+
+    fun clearSelectedHistory() {
+        _selectedHistory.value = null
+    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query

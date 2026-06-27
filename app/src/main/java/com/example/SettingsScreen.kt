@@ -36,7 +36,13 @@ private val DestructiveRed = Color(0xFFE53935)
 private val NavBackground = Color(0xFF0A1128)
 
 @Composable
-fun SettingsScreen(onNavigateBack: () -> Unit = {}, viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    onNavigateBack: () -> Unit = {},
+    viewModel: SettingsViewModel,
+    onClearHistory: () -> Unit = {},
+    onNavigateBottomNav: (String) -> Unit = {},
+    activeBottomNavItem: String = "settings"
+) {
     val language by viewModel.language.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
@@ -49,7 +55,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit = {}, viewModel: SettingsViewModel
 
     Scaffold(
         topBar = { SettingsTopBar(onNavigateBack) },
-        bottomBar = { SettingsBottomBar() },
+        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = onNavigateBottomNav) },
         containerColor = BgColor
     ) { innerPadding ->
         LazyColumn(
@@ -63,7 +69,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit = {}, viewModel: SettingsViewModel
             item { DefaultCurrencySection(currency, viewModel::setCurrency) }
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
             item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }
-            item { DataBackupSection() }
+            item { DataBackupSection(onClearHistory = onClearHistory) }
             item { AboutSupportSection() }
             item { AccountSyncSection() }
             item { Spacer(Modifier.height(16.dp)) }
@@ -438,7 +444,33 @@ private fun RemindersSection(
 }
 
 @Composable
-private fun DataBackupSection() {
+private fun DataBackupSection(onClearHistory: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Clear All History", color = TextPrimary) },
+            text = { Text("Are you sure you want to delete all calculation history? This cannot be undone.", color = TextSecondary) },
+            confirmButton = {
+                TextButton(onClick = { 
+                    onClearHistory()
+                    showDialog = false
+                    android.widget.Toast.makeText(context, "History Cleared", android.widget.Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("Clear", color = DestructiveRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel", color = PrimaryBlue)
+                }
+            },
+            containerColor = BgColor
+        )
+    }
+
     SectionCard(title = "Data & Backup") {
         SettingsRow(
             icon = Icons.Rounded.CloudUpload,
@@ -458,6 +490,7 @@ private fun DataBackupSection() {
             subtitle = "This action cannot be undone",
             iconTint = DestructiveRed,
             titleColor = DestructiveRed,
+            onClick = { showDialog = true },
             trailingContent = { Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = DestructiveRed) }
         )
     }
@@ -518,78 +551,3 @@ private fun AccountSyncSection() {
     }
 }
 
-@Composable
-private fun SettingsBottomBar() {
-    NavigationBar(
-        containerColor = NavBackground,
-        contentColor = TextSecondary,
-        tonalElevation = 8.dp
-    ) {
-        val selectedRoute = "settings"
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
-            label = { Text("Home", maxLines = 1, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-            label = { Text("History", maxLines = 1, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Rounded.Calculate, contentDescription = "Calculate") },
-            label = { Text("Calculate", maxLines = 1, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Rounded.CompareArrows, contentDescription = "Compare") },
-            label = { Text("Compare", maxLines = 1, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            )
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Rounded.Settings, contentDescription = "Settings") },
-            label = { Text("Settings", maxLines = 1, fontSize = 10.sp) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            )
-        )
-    }
-}

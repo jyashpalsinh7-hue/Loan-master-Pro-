@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.ui.theme.LoanMasterTheme
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.log
@@ -416,42 +417,51 @@ fun FullAmortizationDialog(
         getMonthlyAmortizationSchedule(principal, annualRate, totalMonths)
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        val bgColor = Color(0xFF061633)
+        val headerColor = Color(0xFF0A2150)
+        val primaryText = Color.White
+        val secondaryText = Color(0xFFA8B3D1)
+        val blueAccent = Color(0xFF2D7DFF)
+        val greenAccent = Color(0xFF22C55E)
+        val goldAccent = Color(0xFFFFC328)
+        val borderColor = Color(0xFF183C8A)
+
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 580.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF061633))
+                .fillMaxWidth(0.9f)
+                .fillMaxHeight(0.85f),
+            shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
+            colors = CardDefaults.cardColors(containerColor = bgColor)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                 Text(
                     "Full Monthly Amortization Schedule",
-                    color = Color.White,
-                    fontSize = 18.sp,
+                    color = primaryText,
+                    style = LoanMasterTheme.typography.title,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     "${totalMonths} months • EMI: ${formatMoney(emi)}",
-                    color = Color(0xFFA8B3D1),
-                    fontSize = 13.sp
+                    color = secondaryText,
+                    style = LoanMasterTheme.typography.body
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(LoanMasterTheme.spacing.md))
 
                 // Column Headers
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF0A2150), RoundedCornerShape(8.dp))
+                        .background(headerColor, RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Mo.", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.9f))
-                    Text("EMI", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                    Text("Prin", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
-                    Text("Int", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                    Text("Bal", color = Color(0xFF7C8DB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                    Text("Mo.", color = secondaryText, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.9f))
+                    Text("EMI", color = secondaryText, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
+                    Text("Prin", color = secondaryText, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                    Text("Int", color = secondaryText, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
+                    Text("Bal", color = secondaryText, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
                 }
 
                 Spacer(Modifier.height(4.dp))
@@ -465,43 +475,43 @@ fun FullAmortizationDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("M${row.month}", color = Color(0xFFA8B3D1), fontSize = 12.sp, modifier = Modifier.weight(0.9f))
-                            Text(formatMoney(row.emi), color = Color.White, fontSize = 12.sp, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                            Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = 12.sp, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
-                            Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = 12.sp, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
-                            Text(formatMoney(row.remainingBalance), color = Color.White, fontSize = 12.sp, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End)
+                            Text("M${row.month}", color = secondaryText, style = LoanMasterTheme.typography.label, modifier = Modifier.weight(0.9f))
+                            AutoResizedText(formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(formatMoney(row.principalPaid), color = greenAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(formatMoney(row.interestPaid), color = goldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(formatMoney(row.remainingBalance), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
                         }
                         if (row.month < schedule.size) {
-                            HorizontalDivider(color = Color(0xFF183C8A).copy(alpha = 0.3f), thickness = 0.5.dp)
+                            HorizontalDivider(color = borderColor.copy(alpha = 0.3f), thickness = 0.5.dp)
                         }
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(LoanMasterTheme.spacing.md))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm), modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             onDismiss()
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).height(LoanMasterTheme.components.buttonHeight),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFF183C8A))
+                        border = BorderStroke(1.dp, borderColor)
                     ) {
-                        Text("Close", color = Color.White)
+                        Text("Close", color = primaryText)
                     }
                     Button(
                         onClick = { 
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             /* TODO: Export CSV */ 
                         },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D7DFF)),
+                        modifier = Modifier.weight(1f).height(LoanMasterTheme.components.buttonHeight),
+                        colors = ButtonDefaults.buttonColors(containerColor = blueAccent),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(Icons.Rounded.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
+                        Icon(Icons.Rounded.Download, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
+                        Spacer(Modifier.width(LoanMasterTheme.spacing.xs))
                         Text("Export")
                     }
                 }
@@ -513,7 +523,12 @@ fun FullAmortizationDialog(
 // ==================== MAIN SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
+fun EmiCalculatorScreen(
+    onNavigateBack: () -> Unit = {},
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     
@@ -542,12 +557,43 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
     val purpleAccent = Color(0xFF7C4DFF)
 
     // State
-    var loanAmountText by remember { mutableStateOf("0") }
-    var interestRateText by remember { mutableStateOf("0") }
-    var tenureInputText by remember { mutableStateOf("0") }
-    var isTenureInMonths by remember { mutableStateOf(false) }
-    var loanType by remember { mutableStateOf("Home Loan") }
+    var loanAmountText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
+    var interestRateText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var tenureInputText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
+    var isTenureInMonths by remember { mutableStateOf(initialHistory?.param4 == "true") }
+    var loanType by remember { mutableStateOf(initialHistory?.param5?.takeIf { it.isNotEmpty() } ?: "Home Loan") }
     var showFullSchedule by remember { mutableStateOf(false) }
+    
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
+
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
+    
+    LaunchedEffect(loanAmountText, interestRateText, tenureInputText, isTenureInMonths, loanType) {
+        kotlinx.coroutines.delay(2000)
+        val loanAmount = loanAmountText.toDoubleOrNull() ?: 0.0
+        val interestRate = interestRateText.toDoubleOrNull() ?: 0.0
+        val tenureInput = tenureInputText.toDoubleOrNull() ?: 0.0
+        val hasValidInput = loanAmount > 0 && interestRate > 0 && tenureInput > 0
+        if (historyViewModel != null && hasValidInput) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "EMI",
+                title = "$loanType - ${formatMoney(loanAmount)}",
+                param1 = loanAmountText,
+                param2 = interestRateText,
+                param3 = tenureInputText,
+                param4 = isTenureInMonths.toString(),
+                param5 = loanType
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
+    }
     
     // Bottom Sheet State
     var selectedRecommendation by remember { mutableStateOf<SmartRecommendation?>(null) }
@@ -596,6 +642,46 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
 
     Scaffold(
         containerColor = bgColor,
+        topBar = {
+            @OptIn(ExperimentalMaterial3Api::class)
+            TopAppBar(
+                title = { 
+                    Column {
+                        Text("EMI Calculator", color = primaryText, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { 
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onNavigateBack() 
+                    }) {
+                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = primaryText)
+                    }
+                },
+                actions = {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    IconButton(onClick = {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "EMI Calculator Report",
+                            listOf(
+                                "Loan Amount" to formatMoney(loanAmount.toDouble()),
+                                "Interest Rate" to "$interestRate%",
+                                "Tenure" to "$tenureYears Years ${totalMonths % 12} Months",
+                                "" to "",
+                                "Monthly EMI" to formatMoney(monthlyEmi),
+                                "Total Interest" to formatMoney(totalInterest),
+                                "Total Payment" to formatMoney(totalPayment)
+                            )
+                        )
+                    }) {
+                        Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export to PDF", tint = primaryText)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
+            )
+        },
         bottomBar = {
             NavigationBar(containerColor = bgColor) {
                 val items = listOf("Home", "History", "Calculate", "Compare", "Settings")
@@ -634,43 +720,7 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
             ResponsiveScreenWrapper(
                 widthSizeClass = sizeClass,
                 animationTriggerState = monthlyEmi,
-                headerSection = {
-                    // HEADER
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back",
-                            tint = primaryText,
-                            modifier = Modifier.clickable { 
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                onNavigateBack() 
-                            }.size(ResponsiveUtils.iconSize(sizeClass))
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("EMI Calculator", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        Icon(imageVector = Icons.Rounded.StarBorder, contentDescription = null, tint = goldAccent, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
-                        Spacer(Modifier.width(16.dp))
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export to PDF", tint = primaryText, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)).clickable {
-                            ExportUtils.exportToPdf(
-                                context,
-                                "EMI Calculator Report",
-                                listOf(
-                                    "Loan Amount" to formatMoney(loanAmount.toDouble()),
-                                    "Interest Rate" to "$interestRate%",
-                                    "Tenure" to "$tenureYears Years ${totalMonths % 12} Months",
-                                    "" to "",
-                                    "Monthly EMI" to formatMoney(monthlyEmi),
-                                    "Total Interest" to formatMoney(totalInterest),
-                                    "Total Payment" to formatMoney(totalPayment)
-                                )
-                            )
-                        })
-                    }
-                },
+                headerSection = { },
                 inputControlsSection = {
                     // INPUT SECTION
                     Card(
@@ -679,64 +729,43 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                         shape = RoundedCornerShape(18.dp),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            if (isExpanded) {
-                                // 2x2 Grid for Wide Screens
-                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md), verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
+                            com.example.ui.theme.AdaptiveRowCol(
+                                columns = LoanMasterTheme.grids.calculatorColumns,
+                                content1 = { modifier ->
                                     PremiumInputField(
                                         label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
                                         icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                        sizeClass = sizeClass, modifier = modifier
                                     )
+                                },
+                                content2 = { modifier ->
                                     PremiumInputField(
                                         label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { interestRateText = it },
                                         icon = Icons.Rounded.Percent, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f),
+                                        sizeClass = sizeClass, modifier = modifier,
                                         infoText = "The annual interest rate charged on your loan."
                                     )
                                 }
-                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                            )
+                            com.example.ui.theme.AdaptiveRowCol(
+                                columns = LoanMasterTheme.grids.calculatorColumns,
+                                content1 = { modifier ->
                                     TenureInputField(
                                         label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
                                         isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
                                         icon = Icons.Rounded.DateRange, iconTint = blueAccent,
                                         inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                        sizeClass = sizeClass, modifier = modifier
                                     )
+                                },
+                                content2 = { modifier ->
                                     LoanTypeSelector(
                                         selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
+                                        sizeClass = sizeClass, modifier = modifier
                                     )
                                 }
-                            } else {
-                                // Stacked or 1x2 then 2x2 depending on medium vs compact
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                                    PremiumInputField(
-                                        label = "Loan Amount", value = loanAmountText, onValueChange = { loanAmountText = it },
-                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                                    )
-                                    PremiumInputField(
-                                        label = "Interest", value = interestRateText, onValueChange = { interestRateText = it },
-                                        icon = Icons.Rounded.Percent, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f),
-                                        infoText = "The annual interest rate charged on your loan."
-                                    )
-                                }
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                                    TenureInputField(
-                                        label = "Tenure", value = tenureInputText, onValueChange = { tenureInputText = it },
-                                        isMonths = isTenureInMonths, onToggleIsMonths = { isTenureInMonths = it },
-                                        icon = Icons.Rounded.DateRange, iconTint = blueAccent,
-                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                                    )
-                                    LoanTypeSelector(
-                                        selectedType = loanType, onTypeSelected = { loanType = it }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
+                            )
                         }
                     }
                 },
@@ -782,15 +811,17 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text("Your Monthly EMI", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
-                                        Text(
-                                            formatMoney(animatedEmi.toDouble()),
+                                        AutoResizedText(
+                                            text = formatMoney(animatedEmi.toDouble()),
                                             color = blueAccent,
                                             fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 1.5f,
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
+                                    Spacer(Modifier.width(LoanMasterTheme.spacing.md))
                                     Icon(
                                         imageVector = Icons.Rounded.CalendarMonth,
                                         contentDescription = null,
@@ -820,15 +851,15 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                             Box(Modifier.size(10.dp).background(blueAccent, CircleShape))
                                             Spacer(Modifier.width(6.dp))
-                                            Text("Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                            AutoResizedText(text = "Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                                         }
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
                                             Box(Modifier.size(10.dp).background(goldAccent, CircleShape))
                                             Spacer(Modifier.width(6.dp))
-                                            Text("Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                            AutoResizedText(text = "Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
                                         }
                                     }
                                 }
@@ -840,13 +871,14 @@ fun EmiCalculatorScreen(onNavigateBack: () -> Unit = {}) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Interest", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                                        Text(formatMoney(totalInterest), color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = formatMoney(totalInterest), color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Spacer(Modifier.width(LoanMasterTheme.spacing.sm))
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Payment", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                                        Text(formatMoney(totalPayment), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = formatMoney(totalPayment), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }

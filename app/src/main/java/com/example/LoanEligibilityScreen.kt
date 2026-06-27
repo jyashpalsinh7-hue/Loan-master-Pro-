@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.example.ui.theme.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,11 +70,11 @@ fun LoanEligibilityScreen() {
 
     var selectedLoanProfile by remember { mutableStateOf(loanProfiles[0]) }
 
-    var monthlyIncome by remember { mutableStateOf("75000") }
-    var existingEMIs by remember { mutableStateOf("12000") }
+    var monthlyIncome by remember { mutableStateOf("") }
+    var existingEMIs by remember { mutableStateOf("") }
     var isCoBorrowerEnabled by remember { mutableStateOf(false) }
-    var coBorrowerIncome by remember { mutableStateOf("45000") }
-    var coBorrowerEMIs by remember { mutableStateOf("5000") }
+    var coBorrowerIncome by remember { mutableStateOf("") }
+    var coBorrowerEMIs by remember { mutableStateOf("") }
     
     var tenureYears by remember { mutableStateOf(selectedLoanProfile.defaultTenure) }
     var interestRate by remember { mutableStateOf(selectedLoanProfile.defaultRate) }
@@ -128,7 +129,7 @@ fun LoanEligibilityScreen() {
                     selected = false,
                     onClick = { },
                     icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
-                    label = { Text("Home", fontSize = 10.sp) },
+                    label = { Text("Home", style = LoanMasterTheme.typography.label) },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = textSecondary,
                         unselectedTextColor = textSecondary,
@@ -139,7 +140,7 @@ fun LoanEligibilityScreen() {
                     selected = true,
                     onClick = { },
                     icon = { Icon(Icons.Rounded.Calculate, contentDescription = "Calculate") },
-                    label = { Text("Calculate", fontSize = 10.sp) },
+                    label = { Text("Calculate", style = LoanMasterTheme.typography.label) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = warningYellow,
                         selectedTextColor = warningYellow,
@@ -150,7 +151,7 @@ fun LoanEligibilityScreen() {
                     selected = false,
                     onClick = { },
                     icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-                    label = { Text("History", fontSize = 10.sp) },
+                    label = { Text("History", style = LoanMasterTheme.typography.label) },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = textSecondary,
                         unselectedTextColor = textSecondary,
@@ -161,7 +162,7 @@ fun LoanEligibilityScreen() {
                     selected = false,
                     onClick = { },
                     icon = { Icon(Icons.Rounded.Article, contentDescription = "Reports") },
-                    label = { Text("Reports", fontSize = 10.sp) },
+                    label = { Text("Reports", style = LoanMasterTheme.typography.label) },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = textSecondary,
                         unselectedTextColor = textSecondary,
@@ -172,7 +173,7 @@ fun LoanEligibilityScreen() {
                     selected = false,
                     onClick = { },
                     icon = { Icon(Icons.Rounded.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings", fontSize = 10.sp) },
+                    label = { Text("Settings", style = LoanMasterTheme.typography.label) },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = textSecondary,
                         unselectedTextColor = textSecondary,
@@ -182,21 +183,24 @@ fun LoanEligibilityScreen() {
             }
         }
     ) { paddingValues ->
-        Column(
+        ResponsiveScreenWrapper(
             modifier = Modifier
                 .fillMaxSize()
                 .background(bgColor)
-                .verticalScroll(rememberScrollState())
-                .padding(paddingValues)
-                .padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
-                ),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
+                .padding(paddingValues),
+            showDiagnostics = false
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(LoanMasterTheme.spacing.screenPadding)
+                    .imePadding(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
+            ) {
             // 1. Top App Bar
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().statusBarsPadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -205,15 +209,15 @@ fun LoanEligibilityScreen() {
                     tint = textColor,
                     modifier = Modifier.clickable { }
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.md))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Loan Eligibility Checker", color = textColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("Check how much loan you can get instantly", color = textSecondary, fontSize = 12.sp)
+                    Text("Loan Eligibility Checker", color = textColor, style = LoanMasterTheme.typography.title)
+                    Text("Check how much loan you can get instantly", color = textSecondary, style = LoanMasterTheme.typography.label)
                 }
-                Icon(Icons.Rounded.StarBorder, contentDescription = "Star", tint = warningYellow, modifier = Modifier.size(24.dp).clickable { })
-                Spacer(modifier = Modifier.width(16.dp))
+                Icon(Icons.Rounded.StarBorder, contentDescription = "Star", tint = warningYellow, modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable { })
+                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.md))
                 val context = androidx.compose.ui.platform.LocalContext.current
-                Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = textColor, modifier = Modifier.size(24.dp).clickable {
+                Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = textColor, modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable {
                     ExportUtils.exportToPdf(
                         context,
                         "Loan Eligibility Report",
@@ -234,48 +238,47 @@ fun LoanEligibilityScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .height(LoanMasterTheme.components.buttonHeight)
+                    .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                     .background(surfaceColor)
-                    .border(1.dp, surfaceColor, RoundedCornerShape(8.dp))
+                    .border(1.dp, surfaceColor, RoundedCornerShape(LoanMasterTheme.spacing.sm))
             ) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                         .background(if (isSalaried) brightBlue.copy(alpha = 0.2f) else Color.Transparent)
-                        .border(1.dp, if (isSalaried) brightBlue else Color.Transparent, RoundedCornerShape(8.dp))
+                        .border(1.dp, if (isSalaried) brightBlue else Color.Transparent, RoundedCornerShape(LoanMasterTheme.spacing.sm))
                         .clickable { isSalaried = true },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Work, contentDescription = null, tint = if (isSalaried) textColor else textSecondary, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Salaried", color = if (isSalaried) textColor else textSecondary, fontSize = 14.sp, fontWeight = if (isSalaried) FontWeight.Bold else FontWeight.Normal)
+                        Icon(Icons.Rounded.Work, contentDescription = null, tint = if (isSalaried) textColor else textSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                        Text("Salaried", color = if (isSalaried) textColor else textSecondary, style = LoanMasterTheme.typography.body, fontWeight = if (isSalaried) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                         .background(if (!isSalaried) brightBlue.copy(alpha = 0.2f) else Color.Transparent)
-                        .border(1.dp, if (!isSalaried) brightBlue else Color.Transparent, RoundedCornerShape(8.dp))
+                        .border(1.dp, if (!isSalaried) brightBlue else Color.Transparent, RoundedCornerShape(LoanMasterTheme.spacing.sm))
                         .clickable { isSalaried = false },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Storefront, contentDescription = null, tint = if (!isSalaried) textColor else textSecondary, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Self-Employed / Business", color = if (!isSalaried) textColor else textSecondary, fontSize = 12.sp, maxLines = 1, fontWeight = if (!isSalaried) FontWeight.Bold else FontWeight.Normal)
+                        Icon(Icons.Rounded.Storefront, contentDescription = null, tint = if (!isSalaried) textColor else textSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                        Text("Self-Employed / Business", color = if (!isSalaried) textColor else textSecondary, style = LoanMasterTheme.typography.label, maxLines = 1, fontWeight = if (!isSalaried) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
             }
 
             // 3. Main Input Section
-            ResponsiveRowCol(
-                sizeClass = sizeClass,
+            AdaptiveRowCol(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     AutoResizeTextField(
@@ -299,13 +302,13 @@ fun LoanEligibilityScreen() {
 
             // 4. Co-Borrower Section (Animated)
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = LoanMasterTheme.spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Add Co-Borrower", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Text("Include spouse, parent or sibling income", color = textSecondary, fontSize = 12.sp)
+                    Text("Add Co-Borrower", color = textColor, style = LoanMasterTheme.typography.body, fontWeight = FontWeight.Bold)
+                    Text("Include spouse, parent or sibling income", color = textSecondary, style = LoanMasterTheme.typography.label)
                 }
                 Switch(
                     checked = isCoBorrowerEnabled,
@@ -315,8 +318,7 @@ fun LoanEligibilityScreen() {
             }
 
             AnimatedVisibility(visible = isCoBorrowerEnabled) {
-                ResponsiveRowCol(
-                    sizeClass = sizeClass,
+                AdaptiveRowCol(
                     modifier = Modifier.fillMaxWidth(),
                     content1 = { mod ->
                         AutoResizeTextField(
@@ -341,8 +343,7 @@ fun LoanEligibilityScreen() {
 
             // 5. Loan Details & Credit Score
             var loanDropdownExpanded by remember { mutableStateOf(false) }
-            ResponsiveRowCol(
-                sizeClass = sizeClass,
+            AdaptiveRowCol(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     ExposedDropdownMenuBox(
@@ -389,14 +390,13 @@ fun LoanEligibilityScreen() {
                 }
             )
 
-            ResponsiveRowCol(
-                sizeClass = sizeClass,
+            AdaptiveRowCol(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     Column(modifier = mod) {
-                        Text("Credit Score Range", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+                        Text("Credit Score Range", color = textSecondary, style = LoanMasterTheme.typography.label, modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.sm))
                         Row(
-                            modifier = Modifier.fillMaxWidth().height(64.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, surfaceColor, RoundedCornerShape(12.dp))
+                            modifier = Modifier.fillMaxWidth().height(LoanMasterTheme.components.topAppBarHeight).clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius)).border(1.dp, surfaceColor, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                         ) {
                             listOf(Triple("Excellent", "750+", brightBlue), Triple("Good", "650 - 740", surfaceColor), Triple("Fair", "< 650", surfaceColor)).forEach { (title, range, color) ->
                                 val isSelected = creditScoreRange == title
@@ -409,8 +409,8 @@ fun LoanEligibilityScreen() {
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Text(title, color = textColor, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
-                                    Text(range, color = if (isSelected) textColor else textSecondary, fontSize = 10.sp)
+                                    Text(title, color = textColor, style = LoanMasterTheme.typography.label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                                    Text(range, color = if (isSelected) textColor else textSecondary, style = LoanMasterTheme.typography.label)
                                 }
                             }
                         }
@@ -425,7 +425,7 @@ fun LoanEligibilityScreen() {
                             modifier = Modifier.fillMaxWidth(),
                             leadingIcon = { Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue) }
                         )
-                        Text("Avg. rate for ${selectedLoanProfile.name}", color = textSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                        Text("Avg. rate for ${selectedLoanProfile.name}", color = textSecondary, style = LoanMasterTheme.typography.label, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))
                     }
                 }
             )
@@ -433,19 +433,19 @@ fun LoanEligibilityScreen() {
             // 6. FOIR Visual Gauge
             Card(
                 colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.3f)),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                 border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Your Debt-to-Income Ratio (FOIR)", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        Text("(Total EMIs / Total Income)", color = textSecondary, fontSize = 12.sp)
+                        Text("Your Debt-to-Income Ratio (FOIR)", color = textColor, style = LoanMasterTheme.typography.body, fontWeight = FontWeight.Medium)
+                        Text("(Total EMIs / Total Income)", color = textSecondary, style = LoanMasterTheme.typography.label)
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xl))
                     
                     Box(modifier = Modifier.fillMaxWidth()) {
-                        Canvas(modifier = Modifier.fillMaxWidth().height(16.dp)) {
+                        Canvas(modifier = Modifier.fillMaxWidth().height(LoanMasterTheme.spacing.md)) {
                             val w = size.width
                             val h = size.height
                             drawRoundRect(color = neonGreen, topLeft = Offset(0f, 0f), size = Size(w * 0.4f, h), cornerRadius = CornerRadius(h/2, h/2))
@@ -462,46 +462,46 @@ fun LoanEligibilityScreen() {
                         BoxWithConstraints(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .offset(y = (-24).dp)
+                                .offset(y = (-LoanMasterTheme.spacing.lg))
                         ) {
                              val limit = (currentFoir.toFloat() / 100f).coerceIn(0f, 1f)
-                             val offsetX = (maxWidth * limit) - 16.dp
+                             val offsetX = (maxWidth * limit) - LoanMasterTheme.spacing.md
                              Text(
                                  "${currentFoir.toInt()}%", 
                                  color = bgColor, 
-                                 fontSize = 10.sp, 
+                                 style = LoanMasterTheme.typography.label, 
                                  fontWeight = FontWeight.Bold,
                                  modifier = Modifier
                                     .offset(x = offsetX)
-                                    .background(neonGreen, RoundedCornerShape(8.dp))
+                                    .background(neonGreen, RoundedCornerShape(LoanMasterTheme.spacing.sm))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                              )
                         }
                     }
                     
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("0%", color = textSecondary, fontSize = 10.sp)
-                        Text("20%", color = textSecondary, fontSize = 10.sp)
-                        Text("40%", color = textSecondary, fontSize = 10.sp)
-                        Text("50%", color = textSecondary, fontSize = 10.sp)
-                        Text("100%", color = textSecondary, fontSize = 10.sp)
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = LoanMasterTheme.spacing.sm), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("0%", color = textSecondary, style = LoanMasterTheme.typography.label)
+                        Text("20%", color = textSecondary, style = LoanMasterTheme.typography.label)
+                        Text("40%", color = textSecondary, style = LoanMasterTheme.typography.label)
+                        Text("50%", color = textSecondary, style = LoanMasterTheme.typography.label)
+                        Text("100%", color = textSecondary, style = LoanMasterTheme.typography.label)
                     }
 
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = LoanMasterTheme.spacing.md), horizontalArrangement = Arrangement.SpaceBetween) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(neonGreen))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Low Risk (Safe)", color = textSecondary, fontSize = 12.sp)
+                            Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(CircleShape).background(neonGreen))
+                            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                            Text("Low Risk (Safe)", color = textSecondary, style = LoanMasterTheme.typography.label)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(warningYellow))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Moderate Risk", color = textSecondary, fontSize = 12.sp)
+                            Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(CircleShape).background(warningYellow))
+                            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                            Text("Moderate Risk", color = textSecondary, style = LoanMasterTheme.typography.label)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(dangerRed))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("High Risk (Rejection)", color = textSecondary, fontSize = 12.sp)
+                            Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(CircleShape).background(dangerRed))
+                            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                            Text("High Risk (Rejection)", color = textSecondary, style = LoanMasterTheme.typography.label)
                         }
                     }
                 }
@@ -510,81 +510,88 @@ fun LoanEligibilityScreen() {
             // 7. Hero Results Dashboard
             Card(
                 colors = CardDefaults.cardColors(containerColor = surfaceColor),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                 border = androidx.compose.foundation.BorderStroke(1.dp, brightBlue.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Estimated Eligible Loan Amount", color = textColor, fontSize = 14.sp)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
+                                Text("Estimated Eligible Loan Amount", color = textColor, style = LoanMasterTheme.typography.body, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                                Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
                             AutoResizeHeroText(
                                 text = formatMoney(eligibleLoanAmount),
                                 color = neonGreen
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
                             val isSafe = currentFoir <= (foirLimit * 100)
                             Row(
-                                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background((if(isSafe) neonGreen else dangerRed).copy(alpha = 0.1f)).border(1.dp, if(isSafe) neonGreen else dangerRed, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.clip(RoundedCornerShape(LoanMasterTheme.spacing.xs)).background((if(isSafe) neonGreen else dangerRed).copy(alpha = 0.1f)).border(1.dp, if(isSafe) neonGreen else dangerRed, RoundedCornerShape(LoanMasterTheme.spacing.xs)).padding(horizontal = LoanMasterTheme.spacing.sm, vertical = LoanMasterTheme.spacing.xs),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Rounded.VerifiedUser, contentDescription = null, tint = if(isSafe) neonGreen else dangerRed, modifier = Modifier.size(12.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(if(isSafe) "You are in the Safe Zone" else "High Risk of Rejection", color = if(isSafe) neonGreen else dangerRed, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                Icon(Icons.Rounded.VerifiedUser, contentDescription = null, tint = if(isSafe) neonGreen else dangerRed, modifier = Modifier.size(LoanMasterTheme.components.cardRadius))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                                Text(if(isSafe) "You are in the Safe Zone" else "High Risk of Rejection", color = if(isSafe) neonGreen else dangerRed, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Medium)
                             }
                         }
                         Box(modifier = Modifier.size(100.dp), contentAlignment = Alignment.Center) {
                              // Placeholder for 3D graphic
-                             Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue.copy(alpha = 0.8f), modifier = Modifier.size(64.dp))
-                             Icon(Icons.Rounded.Star, contentDescription = null, tint = warningYellow, modifier = Modifier.size(16.dp).align(Alignment.TopStart).offset(x = (-8).dp, y = 8.dp))
-                             Icon(Icons.Rounded.Flare, contentDescription = null, tint = neonGreen, modifier = Modifier.size(12.dp).align(Alignment.BottomEnd).offset(x = 8.dp, y = (-8).dp))
+                             Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue.copy(alpha = 0.8f), modifier = Modifier.size(LoanMasterTheme.components.topAppBarHeight))
+                             Icon(Icons.Rounded.Star, contentDescription = null, tint = warningYellow, modifier = Modifier.size(LoanMasterTheme.spacing.md).align(Alignment.TopStart).offset(x = (-LoanMasterTheme.spacing.sm.value).dp, y = LoanMasterTheme.spacing.sm))
+                             Icon(Icons.Rounded.Flare, contentDescription = null, tint = neonGreen, modifier = Modifier.size(LoanMasterTheme.components.cardRadius).align(Alignment.BottomEnd).offset(x = LoanMasterTheme.spacing.sm, y = (-LoanMasterTheme.spacing.sm.value).dp))
                         }
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                     HorizontalDivider(color = bgColor, thickness = 2.dp)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column { Text("Total Monthly Income", color = textSecondary, fontSize = 10.sp); Text(formatMoney(totalIncome), color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                        Column { Text("Total Existing EMIs", color = textSecondary, fontSize = 10.sp); Text(formatMoney(totalExistingEmi), color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                        Column { Text("Available EMI Capacity", color = textSecondary, fontSize = 10.sp); Text(formatMoney(availableEmi.coerceAtLeast(0.0)), color = neonGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                        Column { Text("FOIR (Limit)", color = textSecondary, fontSize = 10.sp); Text("${(foirLimit * 100).toInt()}%", color = neonGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                    }
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+                    AdaptiveRowCol(
+                        content1 = {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.weight(1f).padding(end = LoanMasterTheme.spacing.xs)) { Text("Total Monthly Income", color = textSecondary, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis); Text(formatMoney(totalIncome), color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false) }
+                                Column(modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.xs)) { Text("Total Existing EMIs", color = textSecondary, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis); Text(formatMoney(totalExistingEmi), color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false) }
+                            }
+                        },
+                        content2 = {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.weight(1f).padding(end = LoanMasterTheme.spacing.xs)) { Text("Available EMI Capacity", color = textSecondary, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis); Text(formatMoney(availableEmi.coerceAtLeast(0.0)), color = neonGreen, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false) }
+                                Column(modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.xs)) { Text("FOIR (Limit)", color = textSecondary, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis); Text("${(foirLimit * 100).toInt()}%", color = neonGreen, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false) }
+                            }
+                        }
+                    )
                 }
             }
 
             // 8. The Three Metric Cards
-            ResponsiveRowCol3(
-                sizeClass = sizeClass,
+            AdaptiveRowCol3(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     Card(
                         modifier = mod.height(110.dp),
                         colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Approval Probability", color = textColor, fontSize = 10.sp)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(10.dp))
+                                Text("Approval Probability", color = textColor, style = LoanMasterTheme.typography.label)
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                                Icon(Icons.Rounded.Info, contentDescription = null, tint = textSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.sm))
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 val approvalProb = (1.0f - (currentFoir.toFloat() / 100f)).coerceIn(0f, 1f)
                                 Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator(progress = { approvalProb }, color = neonGreen, trackColor = bgColor, gapSize = 0.dp, modifier = Modifier.size(40.dp))
-                                    Text("${(approvalProb * 100).toInt()}%", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("${(approvalProb * 100).toInt()}%", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
                                 }
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
                                 Column {
-                                    Text(if(approvalProb > 0.6) "High Chance" else "Low Chance", color = if(approvalProb > 0.6) neonGreen else dangerRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                    Text(if(approvalProb > 0.6) "Excellent" else "Poor", color = textColor, fontSize = 10.sp)
+                                    Text(if(approvalProb > 0.6) "High Chance" else "Low Chance", color = if(approvalProb > 0.6) neonGreen else dangerRed, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
+                                    Text(if(approvalProb > 0.6) "Excellent" else "Poor", color = textColor, style = LoanMasterTheme.typography.label)
                                 }
                             }
                         }
@@ -594,16 +601,16 @@ fun LoanEligibilityScreen() {
                     Card(
                         modifier = mod.height(110.dp),
                         colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Recommended Loan Amount", color = textColor, fontSize = 10.sp, maxLines = 1)
+                                Text("Recommended Loan Amount", color = textColor, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            Text(formatMoney(recommendedLoanAmount), color = brightBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                            Text("For better financial stability", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
+                            Text(formatMoney(recommendedLoanAmount), color = brightBlue, style = LoanMasterTheme.typography.body, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                            Text("For better financial stability", color = textSecondary, style = LoanMasterTheme.typography.label, lineHeight = LoanMasterTheme.typography.label.fontSize)
                         }
                     }
                 },
@@ -611,19 +618,19 @@ fun LoanEligibilityScreen() {
                     Card(
                         modifier = mod.height(110.dp),
                         colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Max Affordable EMI", color = textColor, fontSize = 10.sp)
+                                Text("Max Affordable EMI", color = textColor, style = LoanMasterTheme.typography.label, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             Row(verticalAlignment = Alignment.Bottom) {
-                                Text(formatMoney(maxAllowedEmi), color = warningYellow, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                Text("/month", color = textColor, fontSize = 10.sp, modifier = Modifier.padding(bottom = 2.dp))
+                                Text(formatMoney(maxAllowedEmi), color = warningYellow, style = LoanMasterTheme.typography.body, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                                Text("/month", color = textColor, style = LoanMasterTheme.typography.label, modifier = Modifier.padding(bottom = 2.dp))
                             }
-                            Text("Keep your FOIR under ${(foirLimit * 100).toInt()}%", color = textSecondary, fontSize = 9.sp, lineHeight = 12.sp)
+                            Text("Keep your FOIR under ${(foirLimit * 100).toInt()}%", color = textSecondary, style = LoanMasterTheme.typography.label, lineHeight = LoanMasterTheme.typography.label.fontSize)
                         }
                     }
                 }
@@ -632,22 +639,21 @@ fun LoanEligibilityScreen() {
             // 9. Interactive "What If?" Section
             Column {
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text("What If?", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Adjust values and see impact on your eligibility", color = textSecondary, fontSize = 12.sp)
+                    Text("What If?", color = textColor, style = LoanMasterTheme.typography.body, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                    Text("Adjust values and see impact on your eligibility", color = textSecondary, style = LoanMasterTheme.typography.label)
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                ResponsiveRowCol(
-                    sizeClass = sizeClass,
+                Spacer(modifier = Modifier.height(LoanMasterTheme.components.cardRadius))
+                AdaptiveRowCol(
                     modifier = Modifier.fillMaxWidth(),
                     content1 = { mod ->
                         Card(modifier = mod.clickable { 
                             monthlyIncome = ((monthlyIncome.safeToDouble()) + 10000).toInt().toString()
-                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("+ ${com.example.globalCurrencySymbol}10,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, fontSize = 10.sp) }
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                                Column { Text("+ ${com.example.globalCurrencySymbol}10,000", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }
                         }
                     },
@@ -655,38 +661,37 @@ fun LoanEligibilityScreen() {
                         Card(modifier = mod.clickable { 
                             val newEmi = ((existingEMIs.safeToDouble()) - 5000)
                             existingEMIs = (if (newEmi > 0) newEmi else 0.0).toInt().toString()
-                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("- ${com.example.globalCurrencySymbol}5,000", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, fontSize = 10.sp) }
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                                Column { Text("- ${com.example.globalCurrencySymbol}5,000", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                ResponsiveRowCol(
-                    sizeClass = sizeClass,
+                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
+                AdaptiveRowCol(
                     modifier = Modifier.fillMaxWidth(),
                     content1 = { mod ->
                         Card(modifier = mod.clickable { 
                             tenureYears = ((tenureYears.toIntOrNull() ?: 0) + 5).toString()
-                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("+5 Years", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Tenure", color = textSecondary, fontSize = 10.sp) }
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = brightBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                                Column { Text("+5 Years", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Tenure", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }
                         }
                     },
                     content2 = { mod ->
                         Card(modifier = mod.clickable { 
                             creditScoreRange = "Excellent" // just switch to Excellent to simulate drop
-                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column { Text("Best Interest", color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text("Rate", color = textSecondary, fontSize = 10.sp) }
+                        }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
+                            Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
+                                Column { Text("Best Interest", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Rate", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }
                         }
                     }
@@ -694,51 +699,49 @@ fun LoanEligibilityScreen() {
             }
 
             // 10. Bottom Action Buttons
-            ResponsiveRowCol(
-                sizeClass = sizeClass,
+            AdaptiveRowCol(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     OutlinedButton(
                         onClick = { },
-                        modifier = mod.height(48.dp),
+                        modifier = mod.height(LoanMasterTheme.components.buttonHeight),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = brightBlue),
                         border = androidx.compose.foundation.BorderStroke(1.dp, brightBlue),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.spacing.sm),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Icon(Icons.Rounded.Description, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Detailed Report", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Rounded.Description, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                        Text("Detailed Report", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
                     }
                 },
                 content2 = { mod ->
                     Button(
                         onClick = { },
-                        modifier = mod.height(48.dp),
+                        modifier = mod.height(LoanMasterTheme.components.buttonHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = textColor),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.spacing.sm),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Compare Banks", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Rounded.AccountBalance, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                        Text("Compare Banks", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
                     }
                 }
             )
-            ResponsiveRowCol(
-                sizeClass = sizeClass,
+            AdaptiveRowCol(
                 modifier = Modifier.fillMaxWidth(),
                 content1 = { mod ->
                     Button(
                         onClick = { },
-                        modifier = mod.height(48.dp),
+                        modifier = mod.height(LoanMasterTheme.components.buttonHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32), contentColor = textColor),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.spacing.sm),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Icon(Icons.Rounded.Bookmark, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Save Calculation", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Rounded.Bookmark, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                        Text("Save Calculation", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
                     }
                 },
                 content2 = { mod ->
@@ -759,19 +762,20 @@ fun LoanEligibilityScreen() {
                                 )
                             )
                         },
-                        modifier = mod.height(48.dp),
+                        modifier = mod.height(LoanMasterTheme.components.buttonHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100), contentColor = textColor),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LoanMasterTheme.spacing.sm),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Export PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Rounded.PictureAsPdf, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                        Text("Export PDF", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
         }
+    }
     }
 }
 
@@ -798,50 +802,13 @@ fun AutoResizeTextField(
 }
 
 @Composable
-fun ResponsiveRowCol3(
-    sizeClass: WindowWidthSizeClass,
-    modifier: Modifier = Modifier,
-    content1: @Composable (Modifier) -> Unit,
-    content2: @Composable (Modifier) -> Unit,
-    content3: @Composable (Modifier) -> Unit
-) {
-    if (sizeClass == WindowWidthSizeClass.Compact) {
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            content1(Modifier.fillMaxWidth())
-            content2(Modifier.fillMaxWidth())
-            content3(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            content1(Modifier.weight(1f))
-            content2(Modifier.weight(1f))
-            content3(Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-fun ResponsiveRowCol(sizeClass: WindowWidthSizeClass, modifier: Modifier = Modifier, content1: @Composable (Modifier) -> Unit, content2: @Composable (Modifier) -> Unit) {
-    if (sizeClass == WindowWidthSizeClass.Compact) {
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            content1(Modifier.fillMaxWidth())
-            content2(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            content1(Modifier.weight(1f))
-            content2(Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
 fun AutoResizeHeroText(
     text: String,
     color: Color,
     modifier: Modifier = Modifier
 ) {
     var scaledFontSize by remember(text) { mutableStateOf(36.sp) }
+    val minFontSize = LoanMasterTheme.typography.label.fontSize
     
     Text(
         text = text,
@@ -851,7 +818,7 @@ fun AutoResizeHeroText(
         maxLines = 1,
         softWrap = false,
         onTextLayout = { textLayoutResult ->
-            if (textLayoutResult.hasVisualOverflow && scaledFontSize > 12.sp) {
+            if (textLayoutResult.hasVisualOverflow && scaledFontSize > minFontSize) {
                 scaledFontSize = (scaledFontSize.value - 2f).sp
             }
         },

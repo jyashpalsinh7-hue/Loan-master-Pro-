@@ -56,20 +56,54 @@ data class YearlyData(
 )
 
 @Composable
-fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
+fun SipCalculatorScreen(
+    onNavigateBack: () -> Unit,
+    historyViewModel: HistoryViewModel? = null,
+    initialHistory: CalculationHistory? = null,
+    onHistoryConsumed: () -> Unit = {}
+) {
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
     val configuration = LocalConfiguration.current
     val isWide = configuration.screenWidthDp > 600
 
-    var amountText by remember { mutableStateOf("10000") }
-    var returnRateText by remember { mutableStateOf("12") }
-    var yearsText by remember { mutableStateOf("10") }
-    var stepUpText by remember { mutableStateOf("0") }
+    var amountText by remember { mutableStateOf(initialHistory?.param1 ?: "") }
+    var returnRateText by remember { mutableStateOf(initialHistory?.param2 ?: "") }
+    var yearsText by remember { mutableStateOf(initialHistory?.param3 ?: "") }
+    var stepUpText by remember { mutableStateOf(initialHistory?.param4 ?: "") }
+    
+    var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
 
-    val amount = amountText.toDoubleOrNull() ?: 10000.0
-    val returnRate = returnRateText.toDoubleOrNull() ?: 12.0
-    val years = yearsText.toIntOrNull() ?: 10
+    LaunchedEffect(initialHistory) {
+        if (initialHistory != null) {
+            onHistoryConsumed()
+        }
+    }
+    
+    LaunchedEffect(amountText, returnRateText, yearsText, stepUpText) {
+        kotlinx.coroutines.delay(2000)
+        val amount = amountText.toDoubleOrNull() ?: 0.0
+        val returnRate = returnRateText.toDoubleOrNull() ?: 0.0
+        val years = yearsText.toIntOrNull() ?: 0
+        if (historyViewModel != null && amount > 0 && returnRate > 0 && years > 0) {
+            val history = CalculationHistory(
+                id = currentHistoryId,
+                calculatorType = "SIP",
+                title = "₹$amountText for $yearsText Yrs at $returnRateText%",
+                param1 = amountText,
+                param2 = returnRateText,
+                param3 = yearsText,
+                param4 = stepUpText
+            )
+            historyViewModel.insert(history) { id ->
+                currentHistoryId = id
+            }
+        }
+    }
+
+    val amount = amountText.toDoubleOrNull() ?: 0.0
+    val returnRate = returnRateText.toDoubleOrNull() ?: 0.0
+    val years = yearsText.toIntOrNull() ?: 0
     val stepUpRate = stepUpText.toDoubleOrNull() ?: 0.0
 
     // Engine Math
@@ -104,22 +138,10 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
     }
     val totalGain = maturityValue - totalInvested
 
+    val context = androidx.compose.ui.platform.LocalContext.current
     Scaffold(
         containerColor = NavyBg,
-        bottomBar = { SipBottomNav() },
-        modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() }, indication = null
-        ) { focusManager.clearFocus() }
-    ) { paddingValues ->
-        val context = androidx.compose.ui.platform.LocalContext.current
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = if (isWide) 32.dp else 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
+        topBar = {
             SipTopBar(
                 onNavigateBack = onNavigateBack,
                 onExportClick = {
@@ -139,6 +161,20 @@ fun SipCalculatorScreen(onNavigateBack: () -> Unit) {
                     )
                 }
             )
+        },
+        bottomBar = { SipBottomNav() },
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() }, indication = null
+        ) { focusManager.clearFocus() }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = if (isWide) 32.dp else 16.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
             InputsSection(amountText, returnRateText, yearsText, stepUpText, { amountText = it }, { returnRateText = it }, { yearsText = it }, { stepUpText = it }, isWide)
             HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide)
             
@@ -180,7 +216,11 @@ private fun SipBottomNav() {
 @Composable
 private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().statusBarsPadding(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(NavyBg)
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
@@ -195,9 +235,6 @@ private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
             Text("Plan your investments", color = TextSec, fontSize = 13.sp, lineHeight = 18.sp)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {}, modifier = Modifier.size(48.dp).clip(CircleShape).border(1.dp, StrokeNavy, CircleShape)) {
-                Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favorite", tint = Color.White, modifier = Modifier.size(24.dp))
-            }
             IconButton(onClick = onExportClick, modifier = Modifier.size(48.dp).clip(CircleShape).border(1.dp, StrokeNavy, CircleShape)) {
                 Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = Color.White, modifier = Modifier.size(24.dp))
             }

@@ -63,7 +63,7 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
         else -> WindowWidthSizeClass.Expanded
     }
 
-    var baseAmount by remember { mutableStateOf("1000") }
+    var baseAmount by remember { mutableStateOf("") }
     var baseCurrency by remember { mutableStateOf("USD") }
     var targetCurrency by remember { mutableStateOf("EUR") }
     

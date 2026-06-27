@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,6 +48,21 @@ val LocalCurrency = compositionLocalOf { "INR (₹)" }
 val LocalNotificationsEnabled = compositionLocalOf { true }
 val LocalKeepHistoryEnabled = compositionLocalOf { true }
 
+@Volatile
+private var APP_DATABASE_INSTANCE: AppDatabase? = null
+
+fun getDatabase(context: android.content.Context): AppDatabase {
+    return APP_DATABASE_INSTANCE ?: synchronized(Any()) {
+        val instance = androidx.room.Room.databaseBuilder(
+            context.applicationContext,
+            AppDatabase::class.java,
+            "loan_master_database"
+        ).build()
+        APP_DATABASE_INSTANCE = instance
+        instance
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,22 +83,138 @@ class MainActivity : ComponentActivity() {
                 LocalKeepHistoryEnabled provides keepHistoryEnabled
             ) {
                 MyApplicationTheme {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val database = getDatabase(context)
+                    val repository = HistoryRepository(database.historyDao())
+                    val settingsRepository = SettingsRepository(context)
+                    val historyViewModel: HistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = HistoryViewModelFactory(repository, settingsRepository)
+                    )
                     val navController = rememberNavController()
                     val mainViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                     val activeRoute by mainViewModel.activeBottomNavItem.collectAsStateWithLifecycle()
+                    val selectedHistory by mainViewModel.selectedHistory.collectAsStateWithLifecycle()
                     
                 NavHost(navController = navController, startDestination = "home") {
-                    composable("home") { HomeScreen(onNavigateToEmi = { navController.navigate("emi") }, onNavigateToCompare = { navController.navigate("compare") }, onNavigateToSip = { navController.navigate("sip") }, onNavigateToGst = { navController.navigate("gst") }, onNavigateToRd = { navController.navigate("rd") }, onNavigateToFd = { navController.navigate("fd") }, onNavigateToCurrency = { navController.navigate("currency") }, onNavigateToEligibility = { navController.navigate("eligibility") }, onNavigateToPrepayment = { navController.navigate("prepayment") }, onNavigateToSettings = { navController.navigate("settings") }, viewModel = mainViewModel) }
-                    composable("emi") { EmiCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("home") { 
+                        val historyList by historyViewModel.uiState.collectAsStateWithLifecycle()
+                        HomeScreen(
+                            onNavigateToEmi = { navController.navigate("emi") }, 
+                            onNavigateToCompare = { navController.navigate("compare") }, 
+                            onNavigateToSip = { navController.navigate("sip") }, 
+                            onNavigateToGst = { navController.navigate("gst") }, 
+                            onNavigateToRd = { navController.navigate("rd") }, 
+                            onNavigateToFd = { navController.navigate("fd") }, 
+                            onNavigateToCurrency = { navController.navigate("currency") }, 
+                            onNavigateToEligibility = { navController.navigate("eligibility") }, 
+                            onNavigateToPrepayment = { navController.navigate("prepayment") }, 
+                            onNavigateToSettings = { navController.navigate("settings") },
+                            onNavigateBottomNav = { route ->
+                                mainViewModel.updateActiveBottomNavItem(route)
+                                navController.navigate(route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            onNavigateToHistory = {
+                                mainViewModel.updateActiveBottomNavItem("history")
+                                navController.navigate("history") {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            historyCount = historyList.size,
+                            viewModel = mainViewModel
+                        ) 
+                    }
+                    composable("emi") { 
+                        EmiCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() }, 
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "EMI" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
+                    composable("history") { 
+                        HistoryScreen(
+                            viewModel = historyViewModel, 
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToCalculator = { history -> 
+                                mainViewModel.setSelectedHistory(history)
+                                navController.navigate(history.calculatorType.lowercase())
+                            },
+                            onNavigateBottomNav = { route ->
+                                mainViewModel.updateActiveBottomNavItem(route)
+                                navController.navigate(route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            activeBottomNavItem = activeRoute
+                        ) 
+                    }
                     composable("compare") { LoanComparisonScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("sip") { SipCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("rd") { RdCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("fd") { FdCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("gst") { GstCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
+                    composable("sip") { 
+                        SipCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "SIP" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
+                    composable("rd") { 
+                        RdCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "RD" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
+                    composable("fd") { 
+                        FdCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "FD" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
+                    composable("gst") { 
+                        GstCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "GST" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
                     composable("currency") { CurrencyConverterScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("eligibility") { LoanEligibilityScreen() }
-                    composable("prepayment") { PrepaymentCalculatorScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("settings") { SettingsScreen(onNavigateBack = { navController.popBackStack() }, viewModel = settingsViewModel) }
+                    composable("prepayment") { 
+                        PrepaymentCalculatorScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            historyViewModel = historyViewModel,
+                            initialHistory = selectedHistory?.takeIf { it.calculatorType == "Prepayment" },
+                            onHistoryConsumed = { mainViewModel.clearSelectedHistory() }
+                        ) 
+                    }
+                    composable("settings") { 
+                        SettingsScreen(
+                            onNavigateBack = { navController.popBackStack() }, 
+                            viewModel = settingsViewModel,
+                            onClearHistory = { historyViewModel.clearAll() },
+                            onNavigateBottomNav = { route ->
+                                mainViewModel.updateActiveBottomNavItem(route)
+                                navController.navigate(route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            activeBottomNavItem = activeRoute
+                        ) 
+                    }
                 }
             }
             }
@@ -91,56 +223,113 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, viewModel: MainViewModel) {
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
-    }
-    
+fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, onNavigateBottomNav: (String) -> Unit = {}, onNavigateToHistory: () -> Unit = {}, historyCount: Int = 0, viewModel: MainViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val activeBottomNavItem by viewModel.activeBottomNavItem.collectAsStateWithLifecycle()
     val isQuickToolsExpanded by viewModel.isQuickToolsExpanded.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { AppTopBar(onNavigateToSettings, sizeClass) },
-        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = { viewModel.updateActiveBottomNavItem(it) }) },
+        topBar = { AppTopBar(onNavigateToSettings) },
+        bottomBar = { AppBottomBar(selectedRoute = activeBottomNavItem, onNavClick = onNavigateBottomNav) },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Column(
+        ResponsiveScreenWrapper(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = ResponsiveUtils.horizontalPadding(sizeClass), vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
+                .background(BackgroundDark)
+                .padding(innerPadding)
         ) {
-            SearchAndPremiumRow(sizeClass, searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
-            HeroBanner(sizeClass)
-            CalculatorsSection(onNavigateToEmi, onNavigateToCompare, onNavigateToSip, onNavigateToGst, onNavigateToRd, onNavigateToFd, onNavigateToCurrency, onNavigateToEligibility, onNavigateToPrepayment, sizeClass)
-            RecentCalculationsBanner(sizeClass)
-            QuickToolsSection(sizeClass, isQuickToolsExpanded, onToggleExpand = { viewModel.toggleQuickToolsExpanded() })
+            val columns = LoanMasterTheme.grids.calculatorColumns
+
+            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(minSize = 150.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.sm)
+                    .imePadding(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
+                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
+            ) {
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    HeroBanner()
+                }
+                
+                // Calculators Header
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    CalculatorsSectionHeader()
+                }
+                
+                // Calculator Cards
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    EmiCalculatorCard(onNavigateToEmi)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("Loan Compare", "Compare 2-4 loans", Icons.Rounded.Balance, Color(0xFF8E24AA), badge = "New", onClick = onNavigateToCompare)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.Rounded.TrendingUp, Color(0xFF43A047), onClick = onNavigateToSip)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("GST Calculator", "Add or remove GST easily", Icons.Rounded.Receipt, Color(0xFFE53935), onClick = onNavigateToGst)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onClick = onNavigateToRd)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("Currency Converter", "Live rates & conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onClick = onNavigateToCurrency)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("Loan Eligibility", "Check eligibility quickly", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), badge = "Premium", onClick = onNavigateToEligibility)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("FD Calculator", "Calculate FD returns", Icons.Rounded.Savings, Color(0xFFD81B60), onClick = onNavigateToFd)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("Loan Prepayment", "Check interest saved", Icons.Rounded.EditNote, Color(0xFF5E35B1), onClick = onNavigateToPrepayment)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("Loan Summary", "View active loans", Icons.Rounded.Summarize, Color(0xFF1E88E5))
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                    StandardCalculatorCard("History", "Recent calculations", Icons.Rounded.History, Color(0xFF607D8B), onClick = onNavigateToHistory)
+                }
+
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    RecentCalculationsBanner(historyCount, onNavigateToHistory)
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    QuickToolsSection(isQuickToolsExpanded, onToggleExpand = { viewModel.toggleQuickToolsExpanded() })
+                }
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xl))
+                }
+            }
         }
     }
 }
 
 @Composable
-fun AppTopBar(onNavigateToSettings: () -> Unit = {}, sizeClass: WindowWidthSizeClass) {
+fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = ResponsiveUtils.horizontalPadding(sizeClass), vertical = 12.dp),
+            .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Rounded.Menu,
             contentDescription = "Menu",
             tint = TextPrimary,
-            modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)).testTag("menu_icon").clickable { onNavigateToSettings() }
+            modifier = Modifier
+                .size(LoanMasterTheme.components.iconMedium)
+                .testTag("menu_icon")
+                .clickable { onNavigateToSettings() }
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.md))
         
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -148,7 +337,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}, sizeClass: WindowWidthSizeC
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(LoanMasterTheme.components.buttonHeight)
                     .clip(CircleShape)
                     .border(2.dp, AccentYellow, CircleShape)
                     .background(BackgroundDark),
@@ -158,17 +347,17 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}, sizeClass: WindowWidthSizeC
                     imageVector = Icons.Rounded.CurrencyRupee,
                     contentDescription = null,
                     tint = AccentBlue,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
             Column {
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f)) {
+                        withStyle(style = SpanStyle(color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = LoanMasterTheme.typography.title.fontSize)) {
                             append("LoanMaster ")
                         }
-                        withStyle(style = SpanStyle(color = AccentYellow, fontWeight = FontWeight.Bold, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f)) {
+                        withStyle(style = SpanStyle(color = AccentYellow, fontWeight = FontWeight.Bold, fontSize = LoanMasterTheme.typography.title.fontSize)) {
                             append("Pro")
                         }
                     }
@@ -176,7 +365,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}, sizeClass: WindowWidthSizeC
                 Text(
                     text = "Smart Finance Calculator",
                     color = TextSecondary,
-                    fontSize = ResponsiveUtils.labelFontSize(sizeClass)
+                    style = LoanMasterTheme.typography.label
                 )
             }
         }
@@ -184,41 +373,41 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}, sizeClass: WindowWidthSizeC
 }
 
 @Composable
-fun SearchAndPremiumRow(sizeClass: WindowWidthSizeClass, searchQuery: String, onSearchQueryChange: (String) -> Unit) {
+fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Search Bar
         Row(
             modifier = Modifier
-                .weight(0.7f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .weight(1f)
+                .height(LoanMasterTheme.components.buttonHeight)
+                .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .background(SurfaceDark)
-                .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp),
+                .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+                .padding(horizontal = LoanMasterTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = "Search",
                 tint = TextSecondary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
             androidx.compose.foundation.text.BasicTextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
-                textStyle = androidx.compose.ui.text.TextStyle(color = TextPrimary, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f),
+                textStyle = LoanMasterTheme.typography.body.copy(color = TextPrimary),
                 modifier = Modifier.weight(1f).fillMaxHeight().wrapContentHeight(Alignment.CenterVertically),
                 decorationBox = { innerTextField ->
                     if (searchQuery.isEmpty()) {
                         Text(
                             text = "Search calculators...",
                             color = TextSecondary,
-                            fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f
+                            style = LoanMasterTheme.typography.body
                         )
                     }
                     innerTextField()
@@ -230,34 +419,47 @@ fun SearchAndPremiumRow(sizeClass: WindowWidthSizeClass, searchQuery: String, on
         OutlinedButton(
             onClick = { },
             modifier = Modifier
-                .weight(0.3f)
-                .height(48.dp)
+                .height(LoanMasterTheme.components.buttonHeight)
                 .testTag("premium_button"),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = SurfaceDark,
                 contentColor = AccentYellow
             ),
             border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow),
-            contentPadding = PaddingValues(0.dp)
+            contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md)
         ) {
             Icon(
                 imageVector = Icons.Rounded.WorkspacePremium,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "Premium", fontSize = ResponsiveUtils.labelFontSize(sizeClass), fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+            Text(text = "Premium", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-fun HeroBanner(sizeClass: WindowWidthSizeClass) {
+fun HeroBanner() {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 3 })
+    
+    androidx.compose.runtime.LaunchedEffect(pagerState) {
+        while (true) {
+            kotlinx.coroutines.delay(3000)
+            val nextPage = (pagerState.currentPage + 1) % 3
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .height(screenHeight * 0.22f)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
@@ -266,58 +468,62 @@ fun HeroBanner(sizeClass: WindowWidthSizeClass) {
                     )
                 )
             )
-            .border(1.dp, AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .border(1.dp, AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .weight(0.6f)
-                    .padding(20.dp)
-            ) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f)) {
-                            append("Plan Smart, ")
-                        }
-                        withStyle(style = SpanStyle(color = AccentYellow, fontWeight = FontWeight.Bold, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.9f)) {
-                            append("Save More!")
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "All-in-One Finance Calculator\nfor a Better Financial Future",
-                    color = TextSecondary,
-                    fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f,
-                    lineHeight = 18.sp
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    modifier = Modifier.height(36.dp).testTag("explore_premium_btn")
+        androidx.compose.foundation.pager.HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .padding(LoanMasterTheme.spacing.lg)
                 ) {
-                    Text("Explore Premium", fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(imageVector = Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(14.dp))
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = LoanMasterTheme.typography.title.fontSize)) {
+                                append(if (page == 0) "Plan Smart, " else if (page == 1) "Zero Ads, " else "Pro Tools, ")
+                            }
+                            withStyle(style = SpanStyle(color = AccentYellow, fontWeight = FontWeight.Bold, fontSize = LoanMasterTheme.typography.title.fontSize)) {
+                                append(if (page == 0) "Save More!" else if (page == 1) "Pure Speed" else "Better Insight")
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
+                    Text(
+                        text = if (page == 0) "All-in-One Finance Calculator\nfor a Better Financial Future" else if (page == 1) "Upgrade to Premium for an\nuninterrupted ad-free experience" else "Unlock advanced financial\nanalytics and reporting tools",
+                        color = TextSecondary,
+                        style = LoanMasterTheme.typography.body,
+                        lineHeight = LoanMasterTheme.typography.title.fontSize
+                    )
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+                    Button(
+                        onClick = { },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark),
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
+                        contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
+                        modifier = Modifier.height(LoanMasterTheme.components.buttonHeight).testTag("explore_premium_btn_$page")
+                    ) {
+                        Text("Explore Premium", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                        Icon(imageVector = Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
+                    }
                 }
-            }
-            Box(
-                modifier = Modifier
-                    .weight(0.4f)
-                    .fillMaxHeight()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                // Placeholder for custom illustration
-                Icon(
-                    imageVector = Icons.Rounded.Savings,
-                    contentDescription = null,
-                    tint = AccentYellow.copy(alpha = 0.5f),
-                    modifier = Modifier.size(72.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxHeight()
+                        .padding(LoanMasterTheme.spacing.md),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (page == 0) Icons.Rounded.Savings else if (page == 1) Icons.Rounded.Speed else Icons.Rounded.Analytics,
+                        contentDescription = null,
+                        tint = AccentYellow.copy(alpha = 0.5f),
+                        modifier = Modifier.size(LoanMasterTheme.components.topAppBarHeight)
+                    )
+                }
             }
         }
         
@@ -325,152 +531,139 @@ fun HeroBanner(sizeClass: WindowWidthSizeClass) {
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(bottom = LoanMasterTheme.spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.xs)
         ) {
-            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(AccentYellow))
-            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(TextSecondary.copy(alpha = 0.5f)))
-            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(TextSecondary.copy(alpha = 0.5f)))
-        }
-    }
-}
-
-@Composable
-fun CalculatorsSection(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, sizeClass: WindowWidthSizeClass) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Calculators",
-                color = TextPrimary,
-                fontSize = ResponsiveUtils.subtitleFontSize(sizeClass),
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedButton(
-                onClick = { },
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
-                border = androidx.compose.foundation.BorderStroke(1.dp, CardStroke),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                modifier = Modifier.height(32.dp).testTag("edit_calculators_btn")
-            ) {
-                Icon(imageVector = Icons.Rounded.Edit, contentDescription = null, modifier = Modifier.size(14.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Edit", fontSize = ResponsiveUtils.labelFontSize(sizeClass))
-            }
-        }
-
-        if (sizeClass == WindowWidthSizeClass.Expanded) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    EmiCalculatorCard(onNavigateToEmi, sizeClass)
-                    StandardCalculatorCard("GST Calculator", "Add or remove GST easily", Icons.Rounded.Receipt, Color(0xFFE53935), onNavigateToGst, sizeClass)
-                    StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onNavigateToRd, sizeClass)
-                }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    StandardCalculatorCard("Loan Compare", "Compare 2-4 loans", Icons.Rounded.Balance, Color(0xFF8E24AA), onNavigateToCompare, sizeClass)
-                    StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.Rounded.TrendingUp, Color(0xFF43A047), onNavigateToSip, sizeClass)
-                    StandardCalculatorCard("Currency Converter", "Live rates & conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onNavigateToCurrency, sizeClass)
-                }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    StandardCalculatorCard("Loan Eligibility", "Check eligibility quickly", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), onNavigateToEligibility, sizeClass)
-                    StandardCalculatorCard("FD Calculator", "Calculate FD returns", Icons.Rounded.Savings, Color(0xFFD81B60), onNavigateToFd, sizeClass)
-                    StandardCalculatorCard("Loan Prepayment", "Check interest saved", Icons.Rounded.EditNote, Color(0xFF5E35B1), onNavigateToPrepayment, sizeClass)
-                }
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Left Column
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    EmiCalculatorCard(onNavigateToEmi, sizeClass)
-                    StandardCalculatorCard("GST Calculator", "Add or remove GST easily for any amount", Icons.Rounded.Receipt, Color(0xFFE53935), onNavigateToGst, sizeClass)
-                    StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit returns", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onNavigateToRd, sizeClass)
-                    StandardCalculatorCard("Loan Eligibility Checker", "Check your loan eligibility in seconds", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), onNavigateToEligibility, sizeClass)
-                }
-                // Right Column
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StandardCalculatorCard("Loan Compare", "Compare 2-4 loans and find the best option", Icons.Rounded.Balance, Color(0xFF8E24AA), onNavigateToCompare, sizeClass)
-                    StandardCalculatorCard("SIP Calculator", "Plan your SIP and grow your wealth", Icons.Rounded.TrendingUp, Color(0xFF43A047), onNavigateToSip, sizeClass)
-                    StandardCalculatorCard("Currency Converter", "Live currency rates & easy conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onNavigateToCurrency, sizeClass)
-                    StandardCalculatorCard("FD Calculator", "Calculate returns on Fixed Deposits", Icons.Rounded.Savings, Color(0xFFD81B60), onNavigateToFd, sizeClass)
-                    StandardCalculatorCard("Loan Prepayment", "Check interest saved by prepaying your loan", Icons.Rounded.EditNote, Color(0xFF5E35B1), onNavigateToPrepayment, sizeClass)
-                }
+            for (i in 0 until 3) {
+                Box(
+                    modifier = Modifier
+                        .size(LoanMasterTheme.spacing.sm)
+                        .clip(CircleShape)
+                        .background(if (pagerState.currentPage == i) AccentYellow else TextSecondary.copy(alpha = 0.5f))
+                )
             }
         }
     }
 }
 
 @Composable
-fun EmiCalculatorCard(onClick: () -> Unit, sizeClass: WindowWidthSizeClass) {
+fun CalculatorsSectionHeader() {
+    Text(
+        text = "Calculators",
+        color = TextPrimary,
+        style = LoanMasterTheme.typography.title,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md)
+    )
+}
+
+@Composable
+fun EmiCalculatorCard(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(HighlightBlue)
+            .height(LoanMasterTheme.components.featuredCardHeight)
+            .shadow(elevation = 12.dp, shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius), spotColor = AccentYellow.copy(alpha = 0.4f))
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF1E3A8A), // Blue 900
+                        Color(0xFF312E81), // Indigo 900
+                        Color(0xFF0F172A)  // Slate 900
+                    )
+                )
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .clickable { onClick() }
-            .padding(16.dp)
             .testTag("emi_calculator_card")
     ) {
-        Column {
+        // Decorative background elements
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 40.dp, y = (-40).dp)
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.1f), Color.Transparent)))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-30).dp, y = 30.dp)
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(Brush.radialGradient(listOf(AccentBlue.copy(alpha = 0.2f), Color.Transparent)))
+        )
+        
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(LoanMasterTheme.spacing.lg),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Brush.linearGradient(listOf(Color(0xFF60A5FA), Color(0xFF2563EB))))
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = Icons.Rounded.Calculate, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                }
+                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+                Text(
+                    text = "EMI Calculator", 
+                    color = Color.White, 
+                    fontSize = 22.sp, 
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
+                Text(
+                    text = "Calculate EMI for Home, Car, Personal & more",
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = LoanMasterTheme.typography.body,
+                    lineHeight = LoanMasterTheme.typography.body.fontSize,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            
             Box(
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = Icons.Rounded.Home, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(32.dp))
-                 Icon(imageVector = Icons.Rounded.CurrencyRupee, contentDescription = null, tint = HighlightBlue, modifier = Modifier.size(16.dp).align(Alignment.BottomEnd).padding(bottom = 12.dp, end = 12.dp))
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            ScrollingTitleText(
-                "EMI Calculator", color = TextPrimary, fontSize = ResponsiveUtils.subtitleFontSize(sizeClass), fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Calculate EMI for Home, Car, Personal & more",
-                color = TextPrimary.copy(alpha = 0.8f),
-                fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f,
-                lineHeight = 16.sp,
-                maxLines = 2
-            )
         }
         
         // Popular Tag
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .padding(top = LoanMasterTheme.spacing.md, end = LoanMasterTheme.spacing.md)
                 .clip(RoundedCornerShape(8.dp))
-                .background(BackgroundDark.copy(alpha = 0.6f))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+                .background(Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = Icons.Rounded.Star, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(10.dp))
+            Icon(imageVector = Icons.Rounded.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Popular", color = TextPrimary, fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.8f)
+            Text("POPULAR", color = Color.White, style = LoanMasterTheme.typography.label, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
-        
-        Icon(
-            imageVector = Icons.Rounded.ChevronRight,
-            contentDescription = null,
-            tint = TextPrimary,
-            modifier = Modifier.align(Alignment.BottomEnd)
-        )
     }
 }
 
@@ -480,64 +673,84 @@ fun StandardCalculatorCard(
     subtitle: String,
     icon: ImageVector,
     iconColor: Color,
-    onClick: () -> Unit = {},
-    sizeClass: WindowWidthSizeClass
+    badge: String? = null,
+    onClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .height(LoanMasterTheme.components.calculatorCardHeight)
+            .shadow(elevation = 4.dp, shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(SurfaceDark)
-            .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
+            .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .clickable { onClick() }
-            .padding(16.dp)
+            .padding(LoanMasterTheme.spacing.md)
             .testTag("std_card_${title.replace(" ", "_").lowercase()}")
     ) {
         Column {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(LoanMasterTheme.components.buttonHeight)
                     .clip(CircleShape)
                     .background(iconColor),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(24.dp))
+                Icon(imageVector = icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
             ScrollingTitleText(
-                title, color = TextPrimary, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold
+                title, color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
             Text(
                 text = subtitle,
                 color = TextSecondary,
-                fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.9f,
-                lineHeight = 15.sp,
-                maxLines = 2,
+                style = LoanMasterTheme.typography.label,
+                lineHeight = LoanMasterTheme.typography.label.fontSize,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = LoanMasterTheme.spacing.md)
             )
+        }
+        
+        if (badge != null) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
+                    .background(BackgroundDark.copy(alpha = 0.8f))
+                    .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.sm))
+                    .padding(horizontal = LoanMasterTheme.spacing.sm, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (badge == "Premium") {
+                    Icon(imageVector = Icons.Rounded.WorkspacePremium, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(10.dp))
+                    Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.xs))
+                }
+                Text(badge, color = TextPrimary, style = LoanMasterTheme.typography.label)
+            }
         }
         
         Icon(
             imageVector = Icons.Rounded.ChevronRight,
             contentDescription = null,
             tint = TextSecondary,
-            modifier = Modifier.align(Alignment.CenterEnd).size(20.dp)
+            modifier = Modifier.align(Alignment.BottomEnd).size(LoanMasterTheme.components.iconMedium)
         )
     }
 }
 
 @Composable
-fun RecentCalculationsBanner(sizeClass: WindowWidthSizeClass) {
+fun RecentCalculationsBanner(historyCount: Int, onNavigateToHistory: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(SurfaceDark)
-            .border(1.dp, CardStroke, RoundedCornerShape(12.dp))
-            .clickable { }
-            .padding(16.dp)
+            .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+            .clickable { onNavigateToHistory() }
+            .padding(LoanMasterTheme.spacing.md)
             .testTag("recent_calc_banner"),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -545,79 +758,89 @@ fun RecentCalculationsBanner(sizeClass: WindowWidthSizeClass) {
             imageVector = Icons.Rounded.AccessTime,
             contentDescription = null,
             tint = AccentBlue,
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
         )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f, fill=false).padding(end=4.dp)) {
+        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.md))
+        Column(modifier = Modifier.weight(1f, fill=false).padding(end=LoanMasterTheme.spacing.xs)) {
             ScrollingTitleText(
-                "Recent Calculations", color = TextPrimary, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold
+                "Recent Calculations", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
             )
             ScrollingTitleText(
-                "View and manage your previous calculations", color = TextSecondary, fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.9f
+                "View and manage your previous calculations", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize
             )
         }
         
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .background(BackgroundDark)
-                .border(1.dp, AccentYellow, RoundedCornerShape(16.dp))
-                .padding(horizontal = 10.dp, vertical = 2.dp),
+                .border(1.dp, AccentYellow, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+                .padding(horizontal = LoanMasterTheme.spacing.sm, vertical = LoanMasterTheme.spacing.xs),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "27", color = AccentYellow, fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.9f, fontWeight = FontWeight.Bold)
+            Text(text = historyCount.toString(), color = AccentYellow, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
         Icon(
             imageVector = Icons.Rounded.ChevronRight,
             contentDescription = null,
             tint = TextSecondary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
         )
     }
 }
 
 @Composable
-fun QuickToolsSection(sizeClass: WindowWidthSizeClass, isExpanded: Boolean, onToggleExpand: () -> Unit) {
+fun QuickToolsSection(isExpanded: Boolean, onToggleExpand: () -> Unit) {
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Quick Tools",
                 color = TextPrimary,
-                fontSize = ResponsiveUtils.subtitleFontSize(sizeClass),
+                style = LoanMasterTheme.typography.title,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = if (isExpanded) "Show Less" else "View All >",
                 color = AccentBlue,
-                fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f,
+                style = LoanMasterTheme.typography.body,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.clickable { onToggleExpand() }.padding(4.dp)
+                modifier = Modifier.clickable { onToggleExpand() }.padding(LoanMasterTheme.spacing.xs)
             )
         }
 
         if (isExpanded) {
-            // FlowRow or wrapped layout could be used, but for simplicity let's show a grid or just multiple rows
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    QuickToolItem("Inflation\nCalculator", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF4CAF50), sizeClass)
-                    QuickToolItem("Retirement\nCalculator", Icons.Rounded.Chair, Color(0xFF9C27B0), sizeClass)
-                    QuickToolItem("Net Worth\nTracker", Icons.Rounded.PieChart, Color(0xFFFF9800), sizeClass)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    QuickToolItem("EMI Schedule\nGenerator", Icons.Rounded.CalendarMonth, Color(0xFF2196F3), sizeClass)
-                    QuickToolItem("Interest Rate\nTrends", Icons.Rounded.SsidChart, Color(0xFF00BCD4), sizeClass)
-                    QuickToolItem("Tax\nCalculator", Icons.Rounded.AccountBalance, Color(0xFFE91E63), sizeClass)
+            val columns = LoanMasterTheme.grids.calculatorColumns
+            val items = listOf<@Composable () -> Unit>(
+                { QuickToolItem("Inflation\nCalculator", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF4CAF50)) },
+                { QuickToolItem("Retirement\nCalculator", Icons.Rounded.Chair, Color(0xFF9C27B0)) },
+                { QuickToolItem("Net Worth\nTracker", Icons.Rounded.PieChart, Color(0xFFFF9800)) },
+                { QuickToolItem("EMI Schedule\nGenerator", Icons.Rounded.CalendarMonth, Color(0xFF2196F3)) },
+                { QuickToolItem("Interest Rate\nTrends", Icons.Rounded.SsidChart, Color(0xFF00BCD4)) },
+                { QuickToolItem("Tax\nCalculator", Icons.Rounded.AccountBalance, Color(0xFFE91E63)) }
+            )
+
+            val chunkedItems = items.chunked(columns)
+            
+            Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
+                for (rowItems in chunkedItems) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
+                    ) {
+                        for (item in rowItems) {
+                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                item()
+                            }
+                        }
+                        for (i in 0 until (columns - rowItems.size)) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         } else {
@@ -625,20 +848,20 @@ fun QuickToolsSection(sizeClass: WindowWidthSizeClass, isExpanded: Boolean, onTo
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
             ) {
-                QuickToolItem("Inflation\nCalculator", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF4CAF50), sizeClass)
-                QuickToolItem("Retirement\nCalculator", Icons.Rounded.Chair, Color(0xFF9C27B0), sizeClass)
-                QuickToolItem("Net Worth\nTracker", Icons.Rounded.PieChart, Color(0xFFFF9800), sizeClass)
-                QuickToolItem("EMI Schedule\nGenerator", Icons.Rounded.CalendarMonth, Color(0xFF2196F3), sizeClass)
-                QuickToolItem("Interest Rate\nTrends", Icons.Rounded.SsidChart, Color(0xFF00BCD4), sizeClass)
+                QuickToolItem("Inflation\nCalculator", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF4CAF50))
+                QuickToolItem("Retirement\nCalculator", Icons.Rounded.Chair, Color(0xFF9C27B0))
+                QuickToolItem("Net Worth\nTracker", Icons.Rounded.PieChart, Color(0xFFFF9800))
+                QuickToolItem("EMI Schedule\nGenerator", Icons.Rounded.CalendarMonth, Color(0xFF2196F3))
+                QuickToolItem("Interest Rate\nTrends", Icons.Rounded.SsidChart, Color(0xFF00BCD4))
             }
         }
     }
 }
 
 @Composable
-fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color, sizeClass: WindowWidthSizeClass) {
+fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(72.dp).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
@@ -647,15 +870,15 @@ fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color, sizeClass:
             imageVector = icon,
             contentDescription = null,
             tint = iconColor,
-            modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 1.1f)
+            modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xs))
         Text(
             text = title,
             color = TextSecondary,
-            fontSize = ResponsiveUtils.labelFontSize(sizeClass).value.sp * 0.9f,
+            style = LoanMasterTheme.typography.label,
             textAlign = TextAlign.Center,
-            lineHeight = 14.sp,
+            lineHeight = LoanMasterTheme.typography.label.fontSize,
             maxLines = 2
         )
     }
@@ -725,10 +948,10 @@ fun AppBottomBar(selectedRoute: String = "home", onNavClick: (String) -> Unit = 
             modifier = Modifier.testTag("nav_gst")
         )
         NavigationBarItem(
-            selected = selectedRoute == "currency",
-            onClick = { onNavClick("currency") },
-            icon = { Icon(Icons.Rounded.AttachMoney, contentDescription = "Currency") },
-            label = { Text("Currency", maxLines = 1) },
+            selected = selectedRoute == "history",
+            onClick = { onNavClick("history") },
+            icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
+            label = { Text("History", maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = AccentYellow,
                 selectedTextColor = AccentYellow,
@@ -736,13 +959,13 @@ fun AppBottomBar(selectedRoute: String = "home", onNavClick: (String) -> Unit = 
                 unselectedTextColor = TextSecondary,
                 indicatorColor = Color.Transparent
             ),
-            modifier = Modifier.testTag("nav_currency")
+            modifier = Modifier.testTag("nav_history")
         )
         NavigationBarItem(
-            selected = selectedRoute == "more",
-            onClick = { onNavClick("more") },
-            icon = { Icon(Icons.Rounded.GridView, contentDescription = "More") },
-            label = { Text("More", maxLines = 1) },
+            selected = selectedRoute == "compare",
+            onClick = { onNavClick("compare") },
+            icon = { Icon(Icons.Rounded.CompareArrows, contentDescription = "Compare") },
+            label = { Text("Compare", maxLines = 1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = AccentYellow,
                 selectedTextColor = AccentYellow,
@@ -750,7 +973,7 @@ fun AppBottomBar(selectedRoute: String = "home", onNavClick: (String) -> Unit = 
                 unselectedTextColor = TextSecondary,
                 indicatorColor = Color.Transparent
             ),
-            modifier = Modifier.testTag("nav_more")
+            modifier = Modifier.testTag("nav_compare")
         )
     }
 }
