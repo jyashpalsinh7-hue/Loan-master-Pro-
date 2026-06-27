@@ -613,7 +613,12 @@ fun CurrencySelectorSheet(
         containerColor = CurrSurfaceColor,
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) }
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp).fillMaxHeight(0.8f)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .fillMaxHeight(0.8f)
+        ) {
             Text("Select Currency", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(

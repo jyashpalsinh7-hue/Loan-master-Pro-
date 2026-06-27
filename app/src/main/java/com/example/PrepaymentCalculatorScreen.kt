@@ -782,6 +782,7 @@ fun AmortizationBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(bottom = 32.dp)
         ) {
             Row(

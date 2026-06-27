@@ -464,7 +464,12 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
             onDismissRequest = { selectedPremiumTool = null },
             containerColor = SurfaceDark
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+            ) {
                 Text(selectedPremiumTool ?: "", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(16.dp))
                 when (selectedPremiumTool) {
@@ -646,6 +651,8 @@ fun LoanEditBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

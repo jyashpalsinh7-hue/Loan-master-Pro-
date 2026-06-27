@@ -69,7 +69,8 @@ fun RecommendationBottomSheet(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = if (isExpandedWidth) 32.dp else 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.safeDrawing),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header
