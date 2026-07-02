@@ -236,7 +236,7 @@ fun LoanIntelligenceCard(
                 if (monthsSaved > 0) {
                     list.add(Triple(
                         "Increase EMI by ₹1,000",
-                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - int1k)}",
+                        "Potential Saving: ${com.example.formatMoney(totalInterest - int1k)}",
                         "Potential Closure: $monthsSaved Months Earlier"
                     ))
                 }
@@ -248,7 +248,7 @@ fun LoanIntelligenceCard(
                 if (monthsSaved > 0) {
                     list.add(Triple(
                         "Increase EMI by ₹2,000",
-                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - int2k)}",
+                        "Potential Saving: ${com.example.formatMoney(totalInterest - int2k)}",
                         "Potential Closure: $monthsSaved Months Earlier"
                     ))
                 }
@@ -263,8 +263,8 @@ fun LoanIntelligenceCard(
                 if (totalInterest - newTotalInt > 0) {
                     list.add(Triple(
                         "Refinance at ${String.format("%.1f", newRate)}%",
-                        "Potential Saving: ${CurrencyFormatter.formatMoney(totalInterest - newTotalInt)}",
-                        "Lower EMI by ${CurrencyFormatter.formatMoney(monthlyEmi - newEmi)}"
+                        "Potential Saving: ${com.example.formatMoney(totalInterest - newTotalInt)}",
+                        "Lower EMI by ${com.example.formatMoney(monthlyEmi - newEmi)}"
                     ))
                 }
             }
@@ -358,9 +358,9 @@ fun LoanIntelligenceCard(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    BreakdownItem("Borrowed Amount", CurrencyFormatter.formatMoney(loanAmount), blueAccent)
-                    BreakdownItem("Interest Cost", CurrencyFormatter.formatMoney(totalInterest), goldAccent)
-                    BreakdownItem("Total Repayment", CurrencyFormatter.formatMoney(totalPayment), primaryText)
+                    BreakdownItem("Borrowed Amount", com.example.formatMoney(loanAmount), blueAccent)
+                    BreakdownItem("Interest Cost", com.example.formatMoney(totalInterest), goldAccent)
+                    BreakdownItem("Total Repayment", com.example.formatMoney(totalPayment), primaryText)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

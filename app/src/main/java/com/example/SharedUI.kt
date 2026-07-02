@@ -37,13 +37,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
 import com.example.ui.theme.CardStroke
 import com.example.ui.theme.SurfaceDark
 
 import java.text.NumberFormat
 import java.util.Locale
 
-var globalCurrencySymbol: String = "₹"
+var globalCurrencySymbol by androidx.compose.runtime.mutableStateOf("₹")
 
 fun extractCurrencySymbol(currencyString: String): String {
     return currencyString.substringAfter("(", "₹").removeSuffix(")")

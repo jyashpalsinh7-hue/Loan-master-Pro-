@@ -222,7 +222,7 @@ fun PrepaymentCalculatorScreen(
                 ) {
                     Text("Loan Details", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     
-                    PremiumInputField("Outstanding Loan Amount", "₹", loanAmount) { loanAmount = it }
+                    PremiumInputField("Outstanding Loan Amount", globalCurrencySymbol, loanAmount) { loanAmount = it }
                     
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(modifier = Modifier.weight(1f)) {
@@ -266,7 +266,7 @@ fun PrepaymentCalculatorScreen(
                         }
                     }
 
-                    PremiumInputField("Lump Sum Prepayment", "₹", prepaymentAmount) { prepaymentAmount = it }
+                    PremiumInputField("Lump Sum Prepayment", globalCurrencySymbol, prepaymentAmount) { prepaymentAmount = it }
                     
                     // Slider for Lump Sum
                     val maxSliderValue = if (p > 0) p.toFloat() else 10000000f
@@ -285,10 +285,10 @@ fun PrepaymentCalculatorScreen(
                     if (strategy == "Tenure") {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Monthly Extra", "₹", monthlyPrepayment) { monthlyPrepayment = it }
+                                PremiumInputField("Monthly Extra", globalCurrencySymbol, monthlyPrepayment) { monthlyPrepayment = it }
                             }
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Annual Extra", "₹", annualPrepayment) { annualPrepayment = it }
+                                PremiumInputField("Annual Extra", globalCurrencySymbol, annualPrepayment) { annualPrepayment = it }
                             }
                         }
                     }
@@ -483,7 +483,7 @@ fun PrepaymentCalculatorScreen(
 @Composable
 fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiReduced: Double, strategy: String, accentColor: Color, surfaceColor: Color) {
     val formatMoney = { amount: Double ->
-        com.example.formatMoney(amount, "₹")
+        com.example.formatMoney(amount, globalCurrencySymbol)
     }
     
     val years = (tenureReducedMonths / 12).toInt()
@@ -536,7 +536,7 @@ fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiRe
 @Composable
 fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, color: Color, surfaceColor: Color) {
     val formatMoney = { amount: Double ->
-        com.example.formatMoney(amount, "₹")
+        com.example.formatMoney(amount, globalCurrencySymbol)
     }
     
     Column(
@@ -581,7 +581,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (symbol.isNotEmpty() && symbol == "₹") {
+                    if (symbol.isNotEmpty() && symbol == globalCurrencySymbol) {
                         Text(symbol, color = ResponsiveUtils.PrimaryAccent, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.width(8.dp))
                     }
@@ -648,7 +648,7 @@ fun PrepaymentChartCard(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("Standard", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
-                Text(com.example.formatMoney(originalTotal, "₹"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(com.example.formatMoney(originalTotal, globalCurrencySymbol), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(32.dp))
@@ -664,7 +664,7 @@ fun PrepaymentChartCard(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("Prepayment", color = ResponsiveUtils.TextSecondary, fontSize = 12.sp)
-                Text(com.example.formatMoney(newTotal, "₹"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(com.example.formatMoney(newTotal, globalCurrencySymbol), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
         
@@ -882,9 +882,9 @@ fun AmortizationBottomSheet(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(if (row.month == 0) "-" else "${row.month}", color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(0.5f))
-                            Text(com.example.formatMoney(row.principal, "₹"), color = Color(0xFF4ADE80), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                            Text(if (row.interest > 0) com.example.formatMoney(row.interest, "₹") else "-", color = Color(0xFFF97316), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                            Text(com.example.formatMoney(row.balance, "₹"), color = Color.White, fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(com.example.formatMoney(row.principal, globalCurrencySymbol), color = Color(0xFF4ADE80), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(if (row.interest > 0) com.example.formatMoney(row.interest, globalCurrencySymbol) else "-", color = Color(0xFFF97316), fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(com.example.formatMoney(row.balance, globalCurrencySymbol), color = Color.White, fontSize = 14.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
                         }
                         if (row.label.isNotEmpty()) {
                             Text(row.label, color = if (row.isPrepayment) ResponsiveUtils.PrimaryAccent else ResponsiveUtils.TextSecondary, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))

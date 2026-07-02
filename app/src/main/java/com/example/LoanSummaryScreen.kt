@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.saveable.rememberSaveable
+
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.text.NumberFormat
@@ -40,7 +42,14 @@ fun LoanSummaryScreen(
     onBack: () -> Unit
 ) {
     val activeLoans by viewModel.activeLoans.collectAsStateWithLifecycle()
-    var showAddLoanDialog by remember { mutableStateOf(false) }
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val windowSizeClass = when {
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
+        else -> WindowWidthSizeClass.Expanded
+    }
+
+    var showAddLoanDialog by rememberSaveable { mutableStateOf(false) }
 
     val totalOutstanding = activeLoans.sumOf { it.principalAmount }
     val totalEmi = activeLoans.sumOf { it.emiAmount }
@@ -63,6 +72,7 @@ fun LoanSummaryScreen(
     val accentBlue = Color(0xFF3B82F6)
 
     Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
         containerColor = bgDark,
         floatingActionButton = {
             FloatingActionButton(
@@ -74,12 +84,13 @@ fun LoanSummaryScreen(
                 Icon(Icons.Rounded.Add, contentDescription = "Add")
             }
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+        ) { padding ->
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 840.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(top = 24.dp, bottom = 100.dp)
         ) {
             item {
@@ -102,7 +113,7 @@ fun LoanSummaryScreen(
                         ) {
                             Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = accentBlue)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.widthIn(min = 12.dp))
                         Column {
                             Text("Loan Summary", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                             Text("All your loans at a glance", color = textGray, fontSize = 14.sp)
@@ -118,13 +129,13 @@ fun LoanSummaryScreen(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = accentYellow, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.widthIn(min = 4.dp))
                             Text("Premium", color = accentYellow, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.heightIn(min = 32.dp))
                 
                 // Chart Section
                 Row(
@@ -179,7 +190,7 @@ fun LoanSummaryScreen(
                             Text("Total Principal Paid", color = textGray, fontSize = 12.sp)
                             Text(formatMoney(totalPrincipalPaid), color = accentGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.heightIn(min = 12.dp))
                             
                             Text("Total Interest Paid", color = textGray, fontSize = 12.sp)
                             Text(formatMoney(totalInterestPaid), color = accentBlue, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -187,7 +198,7 @@ fun LoanSummaryScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.heightIn(min = 32.dp))
                 
                 // 4 Column Stats Card
                 Card(
@@ -204,16 +215,16 @@ fun LoanSummaryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         StatItem("Total Loans", totalLoansCount.toString(), Icons.Rounded.AccountBalanceWallet)
-                        Box(modifier = Modifier.height(40.dp).width(1.dp).background(cardBorder))
+                        Box(modifier = Modifier.heightIn(min = 40.dp).widthIn(min = 1.dp).background(cardBorder))
                         StatItem("EMI / month", formatShort(totalEmi), Icons.Rounded.CurrencyRupee)
-                        Box(modifier = Modifier.height(40.dp).width(1.dp).background(cardBorder))
+                        Box(modifier = Modifier.heightIn(min = 40.dp).widthIn(min = 1.dp).background(cardBorder))
                         StatItem("Outstanding", formatShort(totalOutstanding), Icons.Rounded.Savings)
-                        Box(modifier = Modifier.height(40.dp).width(1.dp).background(cardBorder))
+                        Box(modifier = Modifier.heightIn(min = 40.dp).widthIn(min = 1.dp).background(cardBorder))
                         StatItem("Total Interest", formatShort(totalInterestOverall), Icons.Rounded.Percent)
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.heightIn(min = 24.dp))
             }
             
             if (activeLoans.isEmpty()) {
@@ -225,28 +236,28 @@ fun LoanSummaryScreen(
             } else {
                 items(activeLoans) { loan ->
                     ActiveLoanPremiumCard(loan = loan, onDelete = { viewModel.deleteLoan(loan) })
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 16.dp))
                 }
             }
             
             item {
                 if (activeLoans.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 8.dp))
                     NextEmiCard(activeLoans.first())
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.heightIn(min = 32.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Rounded.Security, contentDescription = null, tint = textGray, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.widthIn(min = 6.dp))
                     Text("All your data is secure and private", color = textGray, fontSize = 12.sp)
                 }
             }
-        }
+        }        }
     }
 
     if (showAddLoanDialog) {
@@ -271,9 +282,9 @@ fun StatItem(label: String, value: String, icon: androidx.compose.ui.graphics.ve
         ) {
             Icon(icon, contentDescription = null, tint = Color(0xFF60A5FA), modifier = Modifier.size(18.dp))
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.heightIn(min = 8.dp))
         Text(label, color = Color(0xFF94A3B8), fontSize = 11.sp)
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.heightIn(min = 2.dp))
         Text(value, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
     }
 }
@@ -300,14 +311,14 @@ fun NextEmiCard(loan: ActiveLoan) {
                 ) {
                     Icon(Icons.Rounded.BarChart, contentDescription = null, tint = Color(0xFFC084FC))
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.widthIn(min = 16.dp))
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Next EMI Due  ", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                         Text(formatMoney(loan.emiAmount), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
                     Text("on 26 Jul 2026", color = Color(0xFFC084FC), fontSize = 13.sp) // Mock date
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 2.dp))
                     Text("Due in 31 days", color = Color(0xFF94A3B8), fontSize = 12.sp)
                 }
             }
@@ -357,11 +368,11 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
                         val icon = if (loan.loanType.contains("home", true)) Icons.Rounded.Home else Icons.Rounded.DirectionsCar
                         Icon(icon, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(24.dp))
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.widthIn(min = 12.dp))
                     Column {
                         Text(loan.loanType.ifEmpty { "Loan" }, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text(loan.bankName, color = textGray, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.heightIn(min = 4.dp))
                         Box(
                             modifier = Modifier
                                 .background(Color(0xFF064E3B), RoundedCornerShape(8.dp))
@@ -376,25 +387,25 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
                 }
             }
             
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.heightIn(min = 20.dp))
             
             // Stats Row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text("Loan Amount", color = textGray, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 4.dp))
                     Text(formatMoney(originalAmount), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
-                HorizontalDivider(modifier = Modifier.height(30.dp).width(1.dp), color = cardBorder)
+                HorizontalDivider(modifier = Modifier.heightIn(min = 30.dp).widthIn(min = 1.dp), color = cardBorder)
                 Column {
                     Text("Interest Rate", color = textGray, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 4.dp))
                     Text("${loan.interestRate}% p.a.", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
-                HorizontalDivider(modifier = Modifier.height(30.dp).width(1.dp), color = cardBorder)
+                HorizontalDivider(modifier = Modifier.heightIn(min = 30.dp).widthIn(min = 1.dp), color = cardBorder)
                 Column {
                     Text("Next EMI Due", color = textGray, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("26 Jul 2026", color = Color(0xFFFBBF24), fontSize = 15.sp, fontWeight = FontWeight.Bold) // Mock
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = textGray, modifier = Modifier.size(16.dp))
@@ -402,19 +413,19 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
                 }
             }
             
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.heightIn(min = 20.dp))
             
             // Progress
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Principal Paid", color = textGray, fontSize = 12.sp)
                 Text("${formatMoney(paid)} (${(paidPercent * 100).roundToInt()}%)", color = Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.heightIn(min = 8.dp))
             LinearProgressIndicator(
                 progress = { paidPercent },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
+                    .heightIn(min = 6.dp)
                     .clip(RoundedCornerShape(3.dp)),
                 color = Color(0xFF3B82F6),
                 trackColor = Color(0xFF1E293B)
@@ -425,32 +436,27 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
 
 private fun formatShort(amount: Double): String {
     if (amount >= 100000) {
-        return "₹${String.format(Locale.US, "%.2f", amount / 100000)}L"
+        return "${globalCurrencySymbol}${String.format(Locale.US, "%.2f", amount / 100000)}L"
     }
     if (amount >= 1000) {
-        return "₹${String.format(Locale.US, "%.1f", amount / 1000)}K"
+        return "${globalCurrencySymbol}${String.format(Locale.US, "%.1f", amount / 1000)}K"
     }
-    return "₹${amount.roundToInt()}"
+    return "${globalCurrencySymbol}${amount.roundToInt()}"
 }
 
-private fun formatMoney(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    format.maximumFractionDigits = 0
-    return format.format(amount)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
-    var bankName by remember { mutableStateOf("") }
-    var loanType by remember { mutableStateOf("") }
-    var principal by remember { mutableStateOf("") }
-    var rate by remember { mutableStateOf("") }
-    var tenure by remember { mutableStateOf("") }
-    var emi by remember { mutableStateOf("") }
+    var bankName by rememberSaveable { mutableStateOf("") }
+    var loanType by rememberSaveable { mutableStateOf("") }
+    var principal by rememberSaveable { mutableStateOf("") }
+    var rate by rememberSaveable { mutableStateOf("") }
+    var tenure by rememberSaveable { mutableStateOf("") }
+    var emi by rememberSaveable { mutableStateOf("") }
 
-    var bankExpanded by remember { mutableStateOf(false) }
-    var loanTypeExpanded by remember { mutableStateOf(false) }
+    var bankExpanded by rememberSaveable { mutableStateOf(false) }
+    var loanTypeExpanded by rememberSaveable { mutableStateOf(false) }
 
     val popularBanks = listOf("SBI", "HDFC Bank", "ICICI Bank", "Axis Bank", "Kotak Mahindra Bank", "Bank of Baroda", "Punjab National Bank", "Bajaj Finserv")
     val popularLoanTypes = listOf("Home Loan", "Personal Loan", "Car Loan", "Two Wheeler Loan", "Education Loan", "Business Loan", "Gold Loan")
@@ -467,7 +473,7 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Add Active Loan", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.heightIn(min = 4.dp))
 
             val tfColors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF3B82F6),
@@ -589,7 +595,7 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.heightIn(min = 8.dp))
 
             Button(
                 onClick = {
@@ -612,7 +618,7 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFBBF24), contentColor = Color(0xFF0F172A))
             ) {
