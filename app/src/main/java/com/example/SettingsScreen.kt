@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,7 +65,7 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            item { LanguageSection(language, viewModel::setLanguage) }
+            // Language selector removed for this release
             item { DefaultCurrencySection(currency, viewModel::setCurrency) }
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
             item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }

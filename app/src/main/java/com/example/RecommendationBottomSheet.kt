@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -174,7 +175,7 @@ fun RecommendationBottomSheet(
 
                 if (extraEmi > 0) {
                     ImpactCard(
-                        icon = Icons.Rounded.TrendingUp,
+                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
                         title = "Extra EMI Required",
                         value = com.example.globalCurrencySymbol + formatMoney(extraEmi).replace(com.example.globalCurrencySymbol, "") + " /mo",
                         accentColor = Color(0xFFFFC328),
@@ -183,7 +184,7 @@ fun RecommendationBottomSheet(
                     )
                 } else if (extraEmi < 0) {
                     ImpactCard(
-                        icon = Icons.Rounded.TrendingDown,
+                        icon = Icons.AutoMirrored.Rounded.TrendingDown,
                         title = "EMI Reduced By",
                         value = com.example.globalCurrencySymbol + formatMoney(-extraEmi).replace(com.example.globalCurrencySymbol, "") + " /mo",
                         accentColor = greenAccent,

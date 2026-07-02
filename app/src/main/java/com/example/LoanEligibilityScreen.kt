@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import com.example.ui.theme.*
@@ -592,7 +593,7 @@ fun LoanEligibilityScreen() {
                             monthlyIncome = ((monthlyIncome.safeToDouble()) + 10000).toInt().toString()
                         }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
                             Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = null, tint = neonGreen, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                                 Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
                                 Column { Text("+ ${com.example.globalCurrencySymbol}10,000", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Income", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }
@@ -604,7 +605,7 @@ fun LoanEligibilityScreen() {
                             existingEMIs = (if (newEmi > 0) newEmi else 0.0).toInt().toString()
                         }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
                             Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                                Icon(Icons.AutoMirrored.Rounded.TrendingDown, contentDescription = null, tint = dangerRed, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                                 Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.sm))
                                 Column { Text("- ${com.example.globalCurrencySymbol}5,000", color = textColor, style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold); Text("Existing EMI", color = textSecondary, style = LoanMasterTheme.typography.label) }
                             }

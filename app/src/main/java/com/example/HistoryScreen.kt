@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -99,9 +100,9 @@ fun HistoryItemCard(
 
     val icon = when (item.calculatorType) {
         "EMI" -> Icons.Rounded.Calculate
-        "SIP" -> Icons.Rounded.TrendingUp
-        "GST" -> Icons.Rounded.ReceiptLong
-        "Compare" -> Icons.Rounded.CompareArrows
+        "SIP" -> Icons.AutoMirrored.Rounded.TrendingUp
+        "GST" -> Icons.AutoMirrored.Rounded.ReceiptLong
+        "Compare" -> Icons.AutoMirrored.Rounded.CompareArrows
         "Prepayment" -> Icons.Rounded.AttachMoney
         else -> Icons.Rounded.Calculate
     }

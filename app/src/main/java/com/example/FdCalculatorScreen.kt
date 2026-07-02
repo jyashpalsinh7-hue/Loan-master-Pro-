@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -122,7 +123,7 @@ fun FdCalculatorScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = "Back",
                         tint = TextPrimary,
                         modifier = Modifier.size(24.dp).clickable { onNavigateBack() }
@@ -284,7 +285,7 @@ fun FdCalculatorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val effectiveYield = if (totalInvested > 0 && t > 0) (totalReturns / totalInvested) / t * 100 else 0.0
-                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(14.dp))
+                                Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Total Returns: ${formatDec((totalReturns / totalInvested) * 100)}%", color = AccentGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
@@ -501,8 +502,8 @@ fun FdCalculatorScreen(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    WhatIfActionButton("+1%", "Rate", Icons.Rounded.TrendingUp, AccentGreen)
-                    WhatIfActionButton("-1%", "Rate", Icons.Rounded.TrendingDown, Color(0xFFE53935))
+                    WhatIfActionButton("+1%", "Rate", Icons.AutoMirrored.Rounded.TrendingUp, AccentGreen)
+                    WhatIfActionButton("-1%", "Rate", Icons.AutoMirrored.Rounded.TrendingDown, Color(0xFFE53935))
                     WhatIfActionButton("+2 Years", "Tenure", Icons.Rounded.Event, Color(0xFF8E24AA))
                     WhatIfActionButton("+${com.example.globalCurrencySymbol}50,000", "Deposit", Icons.Rounded.AccountBalanceWallet, AccentYellow)
                 }

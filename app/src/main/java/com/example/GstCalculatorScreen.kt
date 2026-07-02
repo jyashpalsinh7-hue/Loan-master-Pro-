@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,8 +65,6 @@ fun GstCalculatorScreen(
     var mode by rememberSaveable { mutableStateOf(if (initialHistory?.param1 == "REMOVE") GstMode.REMOVE else GstMode.ADD) }
     var amountText by rememberSaveable { mutableStateOf(initialHistory?.param2 ?: "") }
     var selectedRate by rememberSaveable { mutableDoubleStateOf(initialHistory?.param3?.toDoubleOrNull() ?: 18.0) }
-    var isCustomRate by rememberSaveable { mutableStateOf(initialHistory?.param4 == "true") }
-    var customRateText by rememberSaveable { mutableStateOf(initialHistory?.param5 ?: "") }
     
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
@@ -80,10 +79,10 @@ fun GstCalculatorScreen(
     var currentHistoryId by remember { mutableStateOf(initialHistory?.id ?: 0) }
 
     val amount = amountText.toDoubleOrNull() ?: 0.0
-    val actualRate = if (isCustomRate) customRateText.toDoubleOrNull() ?: 0.0 else selectedRate
+    val actualRate = selectedRate
     val cessRate = cessRateText.toDoubleOrNull() ?: 0.0
 
-    LaunchedEffect(mode, amountText, selectedRate, isCustomRate, customRateText) {
+    LaunchedEffect(mode, amountText, selectedRate) {
         kotlinx.coroutines.delay(2000)
         if (historyViewModel != null && amount > 0) {
             val history = CalculationHistory(
@@ -93,8 +92,8 @@ fun GstCalculatorScreen(
                 param1 = mode.name,
                 param2 = amountText,
                 param3 = actualRate.toString(),
-                param4 = isCustomRate.toString(),
-                param5 = if(isCustomRate) customRateText else ""
+                param4 = "false",
+                param5 = ""
             )
             historyViewModel.insert(history) { id ->
                 currentHistoryId = id
@@ -160,7 +159,7 @@ fun GstCalculatorScreen(
                     }) {
                         Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextSecondary)
                     }
-                    IconButton(onClick = { amountText = ""; customRateText = ""; cessRateText = ""; mode = GstMode.ADD }) {
+                    IconButton(onClick = { amountText = ""; cessRateText = ""; mode = GstMode.ADD }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Reset", tint = TextSecondary)
                     }
                 }
@@ -200,13 +199,9 @@ fun GstCalculatorScreen(
                                 mode = mode,
                                 onAmountChange = { amountText = it },
                                 selectedRate = selectedRate,
-                                isCustomRate = isCustomRate,
-                                customRateText = customRateText,
-                                onRateSelected = { rate, isCustom ->
+                                onRateSelected = { rate ->
                                     selectedRate = rate
-                                    isCustomRate = isCustom
                                 },
-                                onCustomRateChange = { customRateText = it },
                                 showAdvanced = showAdvanced,
                                 onToggleAdvanced = { showAdvanced = !showAdvanced },
                                 cessRateText = cessRateText,
@@ -225,13 +220,9 @@ fun GstCalculatorScreen(
                         mode = mode,
                         onAmountChange = { amountText = it },
                         selectedRate = selectedRate,
-                        isCustomRate = isCustomRate,
-                        customRateText = customRateText,
-                        onRateSelected = { rate, isCustom ->
+                        onRateSelected = { rate ->
                             selectedRate = rate
-                            isCustomRate = isCustom
                         },
-                        onCustomRateChange = { customRateText = it },
                         showAdvanced = showAdvanced,
                         onToggleAdvanced = { showAdvanced = !showAdvanced },
                         cessRateText = cessRateText,
@@ -416,10 +407,7 @@ private fun GstInputSection(
     mode: GstMode,
     onAmountChange: (String) -> Unit,
     selectedRate: Double,
-    isCustomRate: Boolean,
-    customRateText: String,
-    onRateSelected: (Double, Boolean) -> Unit,
-    onCustomRateChange: (String) -> Unit,
+    onRateSelected: (Double) -> Unit,
     showAdvanced: Boolean,
     onToggleAdvanced: () -> Unit,
     cessRateText: String,
@@ -476,14 +464,14 @@ private fun GstInputSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 standardRates.forEach { rate ->
-                    val isSelected = !isCustomRate && selectedRate == rate
+                    val isSelected = selectedRate == rate
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) AccentBlue.copy(alpha = 0.15f) else BackgroundDark)
                             .border(1.dp, if (isSelected) AccentBlue.copy(alpha = 0.5f) else CardStroke, RoundedCornerShape(8.dp))
-                            .clickable { onRateSelected(rate, false) }
+                            .clickable { onRateSelected(rate) }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -495,44 +483,6 @@ private fun GstInputSection(
                         )
                     }
                 }
-                
-                // Custom Rate Button
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isCustomRate) AccentBlue.copy(alpha = 0.15f) else BackgroundDark)
-                        .border(1.dp, if (isCustomRate) AccentBlue.copy(alpha = 0.5f) else CardStroke, RoundedCornerShape(8.dp))
-                        .clickable { onRateSelected(0.0, true) }
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Custom",
-                        color = if (isCustomRate) AccentBlue else TextPrimary,
-                        fontWeight = if (isCustomRate) FontWeight.Bold else FontWeight.Medium,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-
-            AnimatedVisibility(visible = isCustomRate) {
-                OutlinedTextField(
-                    value = customRateText,
-                    onValueChange = onCustomRateChange,
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    placeholder = { Text("Enter custom rate %", color = TextSecondary) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    trailingIcon = { Icon(Icons.Rounded.Percent, contentDescription = null, tint = TextSecondary) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentBlue,
-                        unfocusedBorderColor = CardStroke,
-                        focusedContainerColor = BackgroundDark,
-                        unfocusedContainerColor = BackgroundDark
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
             }
         }
 
@@ -777,7 +727,7 @@ private fun GstRateQuickCompareSection(baseAmount: Double, currentRate: Double, 
             .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.CompareArrows, contentDescription = null, tint = AccentYellow)
+            Icon(Icons.AutoMirrored.Rounded.CompareArrows, contentDescription = null, tint = AccentYellow)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Quick Rate Comparison", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }

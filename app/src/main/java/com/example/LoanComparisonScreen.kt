@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -132,7 +133,7 @@ fun SideBySideLoanInputs(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentBlue, contentColor = Color.White)
                 ) {
-                    Icon(Icons.Rounded.CompareArrows, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Rounded.CompareArrows, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Compare Loans", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -477,13 +478,13 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                         Text("Banks often advertise a low interest rate, but hide costs in processing fees. Here is the 'True Cost' (Effective APR) of your loans.", color = TextSecondary, fontSize = 14.sp)
                         Spacer(Modifier.height(16.dp))
                         processedLoans.forEach { loan ->
-                            val emi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.tenureYears)
-                            val totalPayment = (emi * loan.tenureYears * 12) + loan.processingFee
+                            val emi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.totalMonths)
+                            val totalPayment = (emi * loan.totalMonths) + loan.processingFee
                             val totalInterestAndFees = totalPayment - loan.loanAmount
                             // Rough APR Approximation (Internal Rate of Return is hard to calculate without a loop, so we use a simplified formula)
                             // APR ≈ (24 * Total Finance Charges) / (Principal * (Total Payments + 1))
                             val financeCharges = totalInterestAndFees
-                            val totalMonths = loan.tenureYears * 12
+                            val totalMonths = loan.totalMonths
                             val apr = (24 * financeCharges) / (loan.loanAmount * (totalMonths + 1)) * 100
                             
                             ResponsiveCard(bgColor = BackgroundDark, borderColor = loan.color) {
@@ -504,12 +505,12 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                     "Prepay Impact" -> {
                         Text("Making a small 5% extra payment every year dramatically reduces your loan tenure and interest burden.", color = TextSecondary, fontSize = 14.sp)
                         Spacer(Modifier.height(16.dp))
-                        val best = processedLoans.minByOrNull { (localCalculateEMI(it.loanAmount, it.interestRate, it.tenureYears) * it.tenureYears * 12) + it.processingFee }
+                        val best = processedLoans.minByOrNull { (localCalculateEMI(it.loanAmount, it.interestRate, it.totalMonths) * it.totalMonths) + it.processingFee }
                         if (best != null) {
                             val yearlyPrepay = best.loanAmount * 0.05
                             var currB = best.loanAmount
                             val r = (best.interestRate / 12) / 100
-                            val emi = localCalculateEMI(best.loanAmount, best.interestRate, best.tenureYears)
+                            val emi = localCalculateEMI(best.loanAmount, best.interestRate, best.totalMonths)
                             var months = 0
                             var intPaid = 0.0
                             while(currB > 0 && months < 1000) {
@@ -519,9 +520,9 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                                 currB -= principalPaid
                                 months++
                             }
-                            val origInt = (emi * best.tenureYears * 12) - best.loanAmount
+                            val origInt = (emi * best.totalMonths) - best.loanAmount
                             val totalSaved = origInt - intPaid
-                            val monthsSaved = (best.tenureYears * 12) - months
+                            val monthsSaved = best.totalMonths - months
                             
                             ResponsiveCard(bgColor = Color(0xFF0D1B36), borderColor = AccentGreen) {
                                 Column(Modifier.padding(16.dp)) {
@@ -549,10 +550,10 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit) {
                         Text("If you are transferring your balance from an older loan, you will pay processing fees. Here is how many months it will take to recover that fee.", color = TextSecondary, fontSize = 14.sp)
                         Spacer(Modifier.height(16.dp))
                         
-                        val oldEmi = if (processedLoans.isNotEmpty()) localCalculateEMI(processedLoans[0].loanAmount, processedLoans[0].interestRate + 1.5, processedLoans[0].tenureYears) else 0.0
+                        val oldEmi = if (processedLoans.isNotEmpty()) localCalculateEMI(processedLoans[0].loanAmount, processedLoans[0].interestRate + 1.5, processedLoans[0].totalMonths) else 0.0
                         
                         processedLoans.forEach { loan ->
-                            val newEmi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.tenureYears)
+                            val newEmi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.totalMonths)
                             val monthlySavings = oldEmi - newEmi
                             val breakEvenMonths = if (monthlySavings > 0) (loan.processingFee / monthlySavings).toInt() else -1
                             
@@ -1027,9 +1028,9 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
     }
     
     if (allSame) {
-        val emi = localCalculateEMI(base.loanAmount, base.interestRate, base.tenureYears)
-        val optimalEmi = localCalculateEMI(base.loanAmount, maxOf(0.0, base.interestRate - 0.5), base.tenureYears)
-        val estimatedSavings = ((emi - optimalEmi) * base.tenureYears * 12)
+        val emi = localCalculateEMI(base.loanAmount, base.interestRate, base.totalMonths)
+        val optimalEmi = localCalculateEMI(base.loanAmount, maxOf(0.0, base.interestRate - 0.5), base.totalMonths)
+        val estimatedSavings = ((emi - optimalEmi) * base.totalMonths)
         return FinancialAdvice(
             title = "All loans are equal.",
             subtitle = "The loan offers have identical terms. You can choose any, or negotiate a 0.5% rate drop to save more.",
@@ -1040,9 +1041,9 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
     
     if (loans.size == 1) {
         val loan = loans.first()
-        val emi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.tenureYears)
-        val optimalEmi = localCalculateEMI(loan.loanAmount, maxOf(0.0, loan.interestRate - 1.0), loan.tenureYears)
-        val estimatedSavings = ((emi - optimalEmi) * loan.tenureYears * 12)
+        val emi = localCalculateEMI(loan.loanAmount, loan.interestRate, loan.totalMonths)
+        val optimalEmi = localCalculateEMI(loan.loanAmount, maxOf(0.0, loan.interestRate - 1.0), loan.totalMonths)
+        val estimatedSavings = ((emi - optimalEmi) * loan.totalMonths)
         
         return FinancialAdvice(
             title = "Analyzing Loan ${loan.id}...",
@@ -1054,11 +1055,11 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
 
     val normalizedCosts = loans.map {
         val loanAmountSafe = if (it.loanAmount > 0.0) it.loanAmount else 1.0
-        val emi = localCalculateEMI(loanAmountSafe, it.interestRate, it.tenureYears)
-        val totalPayment = (emi * it.tenureYears * 12) + it.processingFee
+        val emi = localCalculateEMI(loanAmountSafe, it.interestRate, it.totalMonths)
+        val totalPayment = (emi * it.totalMonths) + it.processingFee
         val totalCostPer1L = (totalPayment / loanAmountSafe) * 100000.0
         
-        val actualTotalPayment = (localCalculateEMI(it.loanAmount, it.interestRate, it.tenureYears) * it.tenureYears * 12) + it.processingFee
+        val actualTotalPayment = (localCalculateEMI(it.loanAmount, it.interestRate, it.totalMonths) * it.totalMonths) + it.processingFee
         Triple(it, totalCostPer1L, actualTotalPayment)
     }
     
@@ -1084,9 +1085,9 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
         "as it is the only option"
     }
 
-    val bestEmi = localCalculateEMI(bestRef.loanAmount, bestRef.interestRate, bestRef.tenureYears)
-    val optimalEmi = localCalculateEMI(bestRef.loanAmount, maxOf(0.0, bestRef.interestRate - 0.5), bestRef.tenureYears)
-    val extraPremiumSavings = ((bestEmi - optimalEmi) * bestRef.tenureYears * 12)
+    val bestEmi = localCalculateEMI(bestRef.loanAmount, bestRef.interestRate, bestRef.totalMonths)
+    val optimalEmi = localCalculateEMI(bestRef.loanAmount, maxOf(0.0, bestRef.interestRate - 0.5), bestRef.totalMonths)
+    val extraPremiumSavings = ((bestEmi - optimalEmi) * bestRef.totalMonths)
     val totalEstimatedSavings = Math.abs(actualDifference) + extraPremiumSavings
 
     val loanName = bestLoan?.let { "Loan ${it.id}" } ?: "This loan"
@@ -1111,8 +1112,8 @@ fun WhatYouWillUnlockSection(isPremiumUnlocked: Boolean, onToolClick: (String) -
         
         val items = listOf(
             Triple(Icons.Rounded.AccountBalance, "True Cost (APR)", "Evaluate real cost after processing fees"),
-            Triple(Icons.Rounded.TrendingDown, "Prepay Impact", "See how 5% extra payments affect outcome"),
-            Triple(Icons.Rounded.CompareArrows, "Break-Even", "Find when a balance transfer is profitable"),
+            Triple(Icons.AutoMirrored.Rounded.TrendingDown, "Prepay Impact", "See how 5% extra payments affect outcome"),
+            Triple(Icons.AutoMirrored.Rounded.CompareArrows, "Break-Even", "Find when a balance transfer is profitable"),
             Triple(Icons.Rounded.Handshake, "Negotiator", "Scripts & tactics to lower your rates")
         )
         

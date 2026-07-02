@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -235,7 +236,7 @@ fun generateRecommendations(
             id = "lowest_emi",
             title = "Low EMI",
             description = "Reduce EMI to ${formatMoney(emi3)}",
-            icon = Icons.Rounded.TrendingDown,
+            icon = Icons.AutoMirrored.Rounded.TrendingDown,
             accentColor = Color(0xFFFFC328),
             currentEmi = baseEmi,
             targetEmi = emi3,
@@ -290,36 +291,24 @@ fun TenureInputField(
         sizeClass = sizeClass,
         modifier = modifier,
         trailingContent = {
-            // Toggle Buttons
-            Row(
+            // Compact Toggle Button
+            Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(inputBg)
-                    .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
-                verticalAlignment = Alignment.CenterVertically
+                    .background(Color(0xFF2D7DFF).copy(alpha = 0.15f))
+                    .clickable { 
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onToggleIsMonths(!isMonths) 
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(if (!isMonths) Color(0xFF2D7DFF) else Color.Transparent)
-                        .clickable { 
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            onToggleIsMonths(false) 
-                        }
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                ) {
-                    Text("Yrs", color = if (!isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
-                }
-                Box(
-                    modifier = Modifier
-                        .background(if (isMonths) Color(0xFF2D7DFF) else Color.Transparent)
-                        .clickable { 
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            onToggleIsMonths(true) 
-                        }
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                ) {
-                    Text("Mo", color = if (isMonths) Color.White else secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f, fontWeight = FontWeight.Medium)
-                }
+                Text(
+                    text = if (isMonths) "Mo" else "Yrs",
+                    color = Color(0xFF2D7DFF),
+                    fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     )
@@ -502,10 +491,15 @@ fun FullAmortizationDialog(
                     ) {
                         Text("Close", color = primaryText)
                     }
+                    val context = androidx.compose.ui.platform.LocalContext.current
                     Button(
                         onClick = { 
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            /* TODO: Export CSV */ 
+                            ExportUtils.exportToPdf(
+                                context,
+                                "Amortization Schedule",
+                                schedule.map { "Month ${it.month}" to "EMI: ${formatMoney(it.emi)}, Prin: ${formatMoney(it.principalPaid)}, Int: ${formatMoney(it.interestPaid)}, Bal: ${formatMoney(it.remainingBalance)}" }
+                            )
                         },
                         modifier = Modifier.weight(1f).height(LoanMasterTheme.components.buttonHeight),
                         colors = ButtonDefaults.buttonColors(containerColor = blueAccent),

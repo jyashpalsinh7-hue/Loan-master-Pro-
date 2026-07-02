@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
@@ -48,7 +49,7 @@ fun extractCurrencySymbol(currencyString: String): String {
     return currencyString.substringAfter("(", "₹").removeSuffix(")")
 }
 
-private val moneyFormat = NumberFormat.getCurrencyInstance(Locale("en", "US")).apply {
+private val moneyFormat = NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("US").build()).apply {
     maximumFractionDigits = 0
 }
 

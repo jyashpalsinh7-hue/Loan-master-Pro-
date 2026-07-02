@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -314,7 +315,7 @@ private fun HeroStat(label: String, value: String, color: Color = Color.White, m
     }
 }
 
-private val exactMoneyFormatter = java.text.NumberFormat.getNumberInstance(java.util.Locale("en", "IN")).apply {
+private val exactMoneyFormatter = java.text.NumberFormat.getNumberInstance(java.util.Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
     maximumFractionDigits = 0
 }
 
@@ -626,7 +627,7 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int) {
         
         Spacer(Modifier.height(20.dp))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha=0.05f)).padding(16.dp)) {
-            Icon(Icons.Rounded.TrendingDown, contentDescription = null, tint = Color(0xFFF87171), modifier = Modifier.size(24.dp))
+            Icon(Icons.AutoMirrored.Rounded.TrendingDown, contentDescription = null, tint = Color(0xFFF87171), modifier = Modifier.size(24.dp))
             Spacer(Modifier.width(12.dp))
             Column {
                 Text("Purchasing Power Reduced", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)

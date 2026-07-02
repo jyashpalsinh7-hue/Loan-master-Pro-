@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -63,7 +64,7 @@ fun getDatabase(context: android.content.Context): AppDatabase {
             context.applicationContext,
             AppDatabase::class.java,
             "loan_master_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
         APP_DATABASE_INSTANCE = instance
         instance
     }
@@ -99,9 +100,13 @@ class MainActivity : ComponentActivity() {
                     val context = androidx.compose.ui.platform.LocalContext.current
                     val database = getDatabase(context)
                     val repository = HistoryRepository(database.historyDao())
+                    val activeLoanRepository = ActiveLoanRepository(database.activeLoanDao())
                     val settingsRepository = SettingsRepository(context)
                     val historyViewModel: HistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                         factory = HistoryViewModelFactory(repository, settingsRepository)
+                    )
+                    val loanSummaryViewModel: LoanSummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = LoanSummaryViewModelFactory(activeLoanRepository)
                     )
                     val navController = rememberNavController()
                     val mainViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -139,7 +144,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                             item(
-                                icon = { Icon(Icons.Rounded.TrendingUp, contentDescription = "SIP") },
+                                icon = { Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = "SIP") },
                                 label = { Text("SIP", maxLines = 1) },
                                 selected = activeRoute == "sip",
                                 onClick = { 
@@ -152,7 +157,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                             item(
-                                icon = { Icon(Icons.Rounded.ReceiptLong, contentDescription = "GST") },
+                                icon = { Icon(Icons.AutoMirrored.Rounded.ReceiptLong, contentDescription = "GST") },
                                 label = { Text("GST", maxLines = 1) },
                                 selected = activeRoute == "gst",
                                 onClick = { 
@@ -183,6 +188,7 @@ class MainActivity : ComponentActivity() {
                         NavHost(navController = navController, startDestination = "home") {
                     composable("home") { 
                         val historyList by historyViewModel.uiState.collectAsStateWithLifecycle()
+                        val activeLoans by loanSummaryViewModel.activeLoans.collectAsStateWithLifecycle()
                         HomeScreen(
                             onNavigateToEmi = { navController.navigate("emi") }, 
                             onNavigateToCompare = { navController.navigate("compare") }, 
@@ -210,8 +216,16 @@ class MainActivity : ComponentActivity() {
                                     restoreState = true
                                 }
                             },
+                            onNavigateToLoanSummary = { navController.navigate("loan_summary") },
                             historyCount = historyList.size,
-                            viewModel = mainViewModel
+                            viewModel = mainViewModel,
+                            activeLoans = activeLoans
+                        ) 
+                    }
+                    composable("loan_summary") { 
+                        LoanSummaryScreen(
+                            viewModel = loanSummaryViewModel, 
+                            onBack = { navController.popBackStack() }
                         ) 
                     }
                     composable("emi") { 
@@ -309,7 +323,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, onNavigateBottomNav: (String) -> Unit = {}, onNavigateToHistory: () -> Unit = {}, historyCount: Int = 0, viewModel: MainViewModel) {
+fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, onNavigateBottomNav: (String) -> Unit = {}, onNavigateToHistory: () -> Unit = {}, onNavigateToLoanSummary: () -> Unit = {}, historyCount: Int = 0, viewModel: MainViewModel, activeLoans: List<ActiveLoan> = emptyList()) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val activeBottomNavItem by viewModel.activeBottomNavItem.collectAsStateWithLifecycle()
     val isQuickToolsExpanded by viewModel.isQuickToolsExpanded.collectAsStateWithLifecycle()
@@ -355,7 +369,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                     StandardCalculatorCard("Loan Compare", "Compare 2-4 loans", Icons.Rounded.Balance, Color(0xFF8E24AA), badge = "New", onClick = onNavigateToCompare)
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.Rounded.TrendingUp, Color(0xFF43A047), onClick = onNavigateToSip)
+                    StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF43A047), onClick = onNavigateToSip)
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
                     StandardCalculatorCard("GST Calculator", "Add or remove GST easily", Icons.Rounded.Receipt, Color(0xFFE53935), onClick = onNavigateToGst)
@@ -376,7 +390,9 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                     StandardCalculatorCard("Loan Prepayment", "Check interest saved", Icons.Rounded.EditNote, Color(0xFF5E35B1), onClick = onNavigateToPrepayment)
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("Loan Summary", "View active loans", Icons.Rounded.Summarize, Color(0xFF1E88E5))
+                    val summaryTitle = if (activeLoans.isNotEmpty()) "Active Loans (${activeLoans.size})" else "Loan Summary"
+                    val summaryDesc = if (activeLoans.isNotEmpty()) "Total: ${formatMoney(activeLoans.sumOf { it.principalAmount })}" else "View active loans"
+                    StandardCalculatorCard(summaryTitle, summaryDesc, Icons.Rounded.Summarize, Color(0xFF1E88E5), onClick = onNavigateToLoanSummary)
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
                     StandardCalculatorCard("History", "Recent calculations", Icons.Rounded.History, Color(0xFF607D8B), onClick = onNavigateToHistory)
@@ -406,8 +422,8 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Rounded.Menu,
-            contentDescription = "Menu",
+            imageVector = Icons.Rounded.Settings,
+            contentDescription = "Settings",
             tint = TextPrimary,
             modifier = Modifier
                 .size(LoanMasterTheme.components.iconMedium)
@@ -510,9 +526,12 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
             )
         }
 
+        val context = androidx.compose.ui.platform.LocalContext.current
         // Premium Button
         OutlinedButton(
-            onClick = { },
+            onClick = {
+                android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
+            },
             modifier = Modifier
                 .height(LoanMasterTheme.components.topAppBarHeight)
                 .testTag("premium_button"),
@@ -593,8 +612,11 @@ fun HeroBanner() {
                         lineHeight = LoanMasterTheme.typography.title.fontSize
                     )
                     Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+                    val context = androidx.compose.ui.platform.LocalContext.current
                     Button(
-                        onClick = { },
+                        onClick = { 
+                            android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark),
                         shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
@@ -967,9 +989,12 @@ fun QuickToolsSection(isExpanded: Boolean, onToggleExpand: () -> Unit) {
 fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
     val width = if (LoanMasterTheme.components.iconLarge > 40.dp) 100.dp else 80.dp
     val circleSize = LoanMasterTheme.components.iconLarge + 10.dp
+    val context = androidx.compose.ui.platform.LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(width).clickable { }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
+        modifier = Modifier.width(width).clickable { 
+            android.widget.Toast.makeText(context, "$title is Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
+        }.testTag("quick_tool_${title.replace("\n", "_").lowercase()}")
     ) {
         Box(
             modifier = Modifier
@@ -998,96 +1023,3 @@ fun QuickToolItem(title: String, icon: ImageVector, iconColor: Color) {
     }
 }
 
-@Composable
-fun AppBottomBar(selectedRoute: String = "home", onNavClick: (String) -> Unit = {}) {
-    NavigationBar(
-        containerColor = NavBackground,
-        contentColor = TextSecondary,
-        tonalElevation = 8.dp
-    ) {
-        NavigationBarItem(
-            selected = selectedRoute == "home",
-            onClick = { onNavClick("home") },
-            icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
-            label = { Text("Home", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_home")
-        )
-        NavigationBarItem(
-            selected = selectedRoute == "emi",
-            onClick = { onNavClick("emi") },
-            icon = { Icon(Icons.Rounded.Calculate, contentDescription = "EMI") },
-            label = { Text("EMI", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_emi")
-        )
-        NavigationBarItem(
-            selected = selectedRoute == "sip",
-            onClick = { onNavClick("sip") },
-            icon = { Icon(Icons.Rounded.TrendingUp, contentDescription = "SIP") },
-            label = { Text("SIP", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_sip")
-        )
-        NavigationBarItem(
-            selected = selectedRoute == "gst",
-            onClick = { onNavClick("gst") },
-            icon = { Icon(Icons.Rounded.ReceiptLong, contentDescription = "GST") },
-            label = { Text("GST", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_gst")
-        )
-        NavigationBarItem(
-            selected = selectedRoute == "history",
-            onClick = { onNavClick("history") },
-            icon = { Icon(Icons.Rounded.History, contentDescription = "History") },
-            label = { Text("History", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_history")
-        )
-        NavigationBarItem(
-            selected = selectedRoute == "compare",
-            onClick = { onNavClick("compare") },
-            icon = { Icon(Icons.Rounded.CompareArrows, contentDescription = "Compare") },
-            label = { Text("Compare", maxLines = 1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentYellow,
-                selectedTextColor = AccentYellow,
-                unselectedIconColor = TextSecondary,
-                unselectedTextColor = TextSecondary,
-                indicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.testTag("nav_compare")
-        )
-    }
-}
