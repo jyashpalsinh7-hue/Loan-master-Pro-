@@ -215,7 +215,7 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
         Row(
             modifier = Modifier
                 .weight(1f)
-                .heightIn(min = LoanMasterTheme.components.topAppBarHeight)
+                .heightIn(min = LoanMasterTheme.components.buttonHeight)
                 .shadow(if (isFocused) LoanMasterTheme.spacing.sm else 0.dp, RoundedCornerShape(LoanMasterTheme.components.cardRadius), spotColor = AccentBlue.copy(alpha = glowAlpha))
                 .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .background(SurfaceDark)
@@ -260,7 +260,7 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
                 android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
             },
             modifier = Modifier
-                .heightIn(min = LoanMasterTheme.components.topAppBarHeight)
+                .heightIn(min = LoanMasterTheme.components.buttonHeight)
                 .testTag("premium_button"),
             shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
             colors = ButtonDefaults.outlinedButtonColors(

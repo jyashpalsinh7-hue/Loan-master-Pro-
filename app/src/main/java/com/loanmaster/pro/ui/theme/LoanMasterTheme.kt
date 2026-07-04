@@ -25,24 +25,24 @@ data class AppSpacing(
 
 @Immutable
 data class AppComponents(
-    val buttonHeight: Dp = 56.dp,
+    val buttonHeight: Dp = 48.dp,
     val cardRadius: Dp = 16.dp,
     val iconSmall: Dp = 20.dp,
     val iconMedium: Dp = 24.dp,
     val iconLarge: Dp = 32.dp,
-    val topAppBarHeight: Dp = 64.dp,
-    val bottomNavHeight: Dp = 80.dp,
+    val topAppBarHeight: Dp = 56.dp,
+    val bottomNavHeight: Dp = 72.dp,
     val dialogMaxWidth: Dp = 400.dp,
-    val calculatorCardHeight: Dp = 120.dp,
-    val featuredCardHeight: Dp = 140.dp
+    val calculatorCardHeight: Dp = 100.dp,
+    val featuredCardHeight: Dp = 120.dp
 )
 
 @Immutable
 data class AppTypographyTokens(
-    val display: TextStyle = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, lineHeight = 40.sp),
-    val title: TextStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp),
-    val body: TextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 24.sp),
-    val label: TextStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, lineHeight = 16.sp)
+    val display: TextStyle = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, lineHeight = 36.sp),
+    val title: TextStyle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp),
+    val body: TextStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, lineHeight = 20.sp),
+    val label: TextStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, lineHeight = 14.sp)
 )
 
 @Immutable
@@ -122,7 +122,7 @@ fun LoanMasterTheme(
     } else {
         AppComponents(
             iconSmall = 18.dp, iconMedium = 24.dp, iconLarge = 32.dp,
-            calculatorCardHeight = 120.dp, featuredCardHeight = 140.dp
+            calculatorCardHeight = 100.dp, featuredCardHeight = 120.dp
         )
     }
 
@@ -142,10 +142,10 @@ fun LoanMasterTheme(
         )
     } else {
         AppTypographyTokens(
-            display = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold, lineHeight = 40.sp),
-            title = TextStyle(fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 26.sp),
-            body = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
-            label = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, lineHeight = 16.sp)
+            display = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Bold, lineHeight = 36.sp),
+            title = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp),
+            body = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, lineHeight = 20.sp),
+            label = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, lineHeight = 14.sp)
         )
     }
     
