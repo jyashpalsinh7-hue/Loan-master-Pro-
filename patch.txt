@@ -1,0 +1,2 @@
+s/androidx.compose.foundation.layout.Box(/com.loanmaster.pro.ui.theme.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {\n    androidx.compose.foundation.layout.Box(/g
+s/        }//    }//}/        }\n    }\n}/g
