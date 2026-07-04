@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.animation.togetherWith
@@ -146,9 +148,7 @@ fun PremiumInputField(
     iconTint: Color,
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    suffix: String = "",
-    sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
-    readOnly: Boolean = false,
+    suffix: String = "",    readOnly: Boolean = false,
     onClick: (() -> Unit)? = null,
     infoText: String? = null,
     errorMessage: String? = null,
@@ -195,7 +195,7 @@ fun PremiumInputField(
 
     androidx.compose.foundation.layout.Column(modifier = modifier) {
         androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+            Text(label, color = colors.onSurfaceVariant, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.85f)
             if (infoText != null) {
                 androidx.compose.foundation.layout.Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                 androidx.compose.material3.Icon(
@@ -225,14 +225,14 @@ fun PremiumInputField(
                         .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.gridGutter),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                    androidx.compose.material3.Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f))
                     androidx.compose.foundation.layout.Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.gridGutter))
                     androidx.compose.foundation.text.BasicTextField(
                         value = value,
                         onValueChange = handleValueChange,
                         readOnly = readOnly,
                         enabled = onClick == null,
-                        textStyle = TextStyle(color = textColor, fontSize = ResponsiveUtils.bodyFontSize(sizeClass)),
+                        textStyle = TextStyle(color = textColor, fontSize = LoanMasterTheme.typography.body.fontSize),
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(cursorColor),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -240,19 +240,19 @@ fun PremiumInputField(
                     ) { innerTextField ->
                         androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.xs)) {
                             if (value.isEmpty()) {
-                                Text("0", color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                Text("0", color = colors.onSurfaceVariant, fontSize = LoanMasterTheme.typography.body.fontSize)
                             }
                             innerTextField()
                         }
                     }
                     if (suffix.isNotEmpty()) {
-                        Text(suffix, color = colors.onSurfaceVariant, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
+                        Text(suffix, color = colors.onSurfaceVariant, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f)
                     }
                     if (trailingContent != null) {
                         trailingContent()
                     } else {
                         trailingIcon?.let {
-                            androidx.compose.material3.Icon(imageVector = it, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f))
+                            androidx.compose.material3.Icon(imageVector = it, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f))
                         }
                     }
                 }
@@ -320,11 +320,11 @@ fun CalculatorScreenLayout(
                 .widthIn(max = 840.dp)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = ResponsiveUtils.horizontalPadding(widthSizeClass), vertical = LoanMasterTheme.spacing.md)
+                .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.md)
         ) {
             globalHeader()
 
-            if (widthSizeClass == WindowWidthSizeClass.Expanded) {
+            if (widthSizeClass == WindowWidthSizeClass.EXPANDED) {
                 androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
                 androidx.compose.foundation.layout.Row(
                     modifier = Modifier.fillMaxWidth(),

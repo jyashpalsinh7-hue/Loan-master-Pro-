@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.foundation.background
@@ -39,9 +41,9 @@ fun HistoryScreen(
 ) {
     val configuration = LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val historyItems by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,7 +75,7 @@ fun HistoryScreen(
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                    horizontal = LoanMasterTheme.spacing.screenPadding,
                     vertical = LoanMasterTheme.spacing.md
                 ),
                 verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),

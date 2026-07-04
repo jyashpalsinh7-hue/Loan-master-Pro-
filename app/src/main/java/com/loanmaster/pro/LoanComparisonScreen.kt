@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -265,9 +267,9 @@ fun LoanInputColumn(
 fun LoanComparisonScreen(onNavigateBack: () -> Unit, viewModel: LoanComparisonViewModel = viewModel()) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val bgColor = ResponsiveUtils.BgColor
@@ -338,7 +340,7 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit, viewModel: LoanComparisonVi
                     )
                 },
                 resultsSection = {
-                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+                    Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding)) {
                         val isAnyLoanAdded = processedLoans.any { it.loanAmount > 0.0 || it.interestRate > 0.0 || it.totalMonths > 0 }
                         if (!isAnyLoanAdded) {
                             EmptyStateIllustration()

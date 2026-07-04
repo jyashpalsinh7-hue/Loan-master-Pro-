@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import android.os.Bundle
@@ -49,7 +51,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 import androidx.compose.runtime.compositionLocalOf
 
@@ -87,9 +88,9 @@ class MainActivity : ComponentActivity() {
 
             val configuration = androidx.compose.ui.platform.LocalConfiguration.current
             val windowSizeClass = when {
-                configuration.screenWidthDp < 600 -> com.loanmaster.pro.WindowWidthSizeClass.Compact
-                configuration.screenWidthDp < 840 -> com.loanmaster.pro.WindowWidthSizeClass.Medium
-                else -> com.loanmaster.pro.WindowWidthSizeClass.Expanded
+                configuration.screenWidthDp < 600 -> androidx.window.core.layout.WindowWidthSizeClass.COMPACT
+                configuration.screenWidthDp < 840 -> androidx.window.core.layout.WindowWidthSizeClass.MEDIUM
+                else -> androidx.window.core.layout.WindowWidthSizeClass.EXPANDED
             }
 
             androidx.compose.runtime.CompositionLocalProvider(

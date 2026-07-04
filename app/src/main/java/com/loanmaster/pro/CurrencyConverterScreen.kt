@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -64,9 +66,9 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
     // Force reload comment 3
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -120,7 +122,7 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                     Text(
                         text = "Exchange",
                         color = Color.White,
-                        fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                        fontSize = LoanMasterTheme.typography.title.fontSize,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
@@ -137,7 +139,7 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                 .padding(innerPadding)
                 .fillMaxSize(),
             contentPadding = PaddingValues(
-                horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
+                horizontal = LoanMasterTheme.spacing.screenPadding,
                 vertical = LoanMasterTheme.spacing.md
             ),
             verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
@@ -165,13 +167,13 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                         Text(
                             text = "1 $baseCurrency = ${String.format(Locale.US, "%.5f", exchangeRateTarget)} $targetCurrency",
                             color = Color.White,
-                            fontSize = ResponsiveUtils.subtitleFontSize(sizeClass),
+                            fontSize = LoanMasterTheme.typography.title.fontSize,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Last updated $lastUpdated",
                             color = ResponsiveUtils.TextSecondary,
-                            fontSize = ResponsiveUtils.labelFontSize(sizeClass)
+                            fontSize = LoanMasterTheme.typography.label.fontSize
                         )
                     }
                 }

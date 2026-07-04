@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.animation.*
@@ -49,7 +51,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 enum class GstMode { ADD, REMOVE }
 
@@ -65,7 +66,7 @@ fun GstCalculatorScreen(
     val focusManager = LocalFocusManager.current
     
     val adaptiveInfo = currentWindowAdaptiveInfo()
-    val isWide = adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClassCore.COMPACT
+    val isWide = adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     

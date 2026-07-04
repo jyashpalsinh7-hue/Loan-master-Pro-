@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import androidx.compose.animation.AnimatedVisibility
@@ -41,7 +43,6 @@ import java.text.NumberFormat
 import java.util.Locale
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 data class LoanProfile(val name: String, val baseFoir: Double, val defaultRate: String, val defaultTenure: String)
 
@@ -60,9 +61,9 @@ val loanProfiles = listOf(
 fun LoanEligibilityScreen(viewModel: LoanEligibilityViewModel = viewModel()) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val sizeClass = when (adaptiveInfo.windowSizeClass.windowWidthSizeClass) {
-        WindowWidthSizeClassCore.COMPACT -> WindowWidthSizeClass.Compact
-        WindowWidthSizeClassCore.MEDIUM -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        WindowWidthSizeClass.COMPACT -> WindowWidthSizeClass.COMPACT
+        WindowWidthSizeClass.MEDIUM -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val bgColor = ResponsiveUtils.BgColor

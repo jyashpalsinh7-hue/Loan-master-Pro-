@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -40,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import java.util.Locale
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.window.core.layout.WindowWidthSizeClass as WindowWidthSizeClassCore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,9 +54,9 @@ fun PrepaymentCalculatorScreen(
 ) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
     val adaptiveInfo = currentWindowAdaptiveInfo()
 
@@ -156,7 +157,7 @@ fun PrepaymentCalculatorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = ResponsiveUtils.horizontalPadding(sizeClass)),
+                .padding(horizontal = LoanMasterTheme.spacing.screenPadding),
             verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
         ) {
             item { Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm)) }

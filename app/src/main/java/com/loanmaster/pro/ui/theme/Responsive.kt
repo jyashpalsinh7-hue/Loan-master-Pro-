@@ -1,7 +1,7 @@
 package com.loanmaster.pro.ui.theme
 
 import androidx.compose.foundation.layout.*
-import com.loanmaster.pro.WindowWidthSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 
-val LocalWindowSizeClass = staticCompositionLocalOf<WindowWidthSizeClass> { WindowWidthSizeClass.Compact }
+val LocalWindowSizeClass = staticCompositionLocalOf<WindowWidthSizeClass> { WindowWidthSizeClass.COMPACT }
 
 @Composable
 fun ProvideResponsive(
-    windowSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
+    windowSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     content: @Composable () -> Unit
 ) {
     CompositionLocalProvider(LocalWindowSizeClass provides windowSizeClass) {

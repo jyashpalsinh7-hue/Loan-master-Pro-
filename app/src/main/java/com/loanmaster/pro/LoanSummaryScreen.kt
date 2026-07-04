@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.foundation.Canvas
@@ -48,9 +50,9 @@ fun LoanSummaryScreen(
     val activeLoans by viewModel.activeLoans.collectAsStateWithLifecycle()
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val windowSizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     var showAddLoanDialog by rememberSaveable { mutableStateOf(false) }

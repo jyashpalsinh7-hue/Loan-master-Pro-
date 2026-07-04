@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import androidx.compose.animation.AnimatedVisibility
@@ -71,9 +73,7 @@ fun TenureInputField(
     iconTint: Color,
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color,
-    sizeClass: WindowWidthSizeClass,
-    modifier: Modifier = Modifier
+    secondaryText: Color,    modifier: Modifier = Modifier
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     PremiumInputField(
@@ -82,7 +82,6 @@ fun TenureInputField(
         onValueChange = onValueChange,
         icon = icon,
         iconTint = iconTint,
-        sizeClass = sizeClass,
         modifier = modifier,
         trailingContent = {
             // Compact Toggle Button
@@ -100,7 +99,7 @@ fun TenureInputField(
                 Text(
                     text = if (isMonths) "Mo" else "Yrs",
                     color = Color(0xFF2D7DFF),
-                    fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f,
+                    fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -115,15 +114,13 @@ fun LoanTypeSelector(
     onTypeSelected: (String) -> Unit,
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color,
-    sizeClass: WindowWidthSizeClass,
-    modifier: Modifier = Modifier
+    secondaryText: Color,    modifier: Modifier = Modifier
 ) {
     var isDropdownExpanded by rememberSaveable { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     Column(modifier = modifier) {
-        Text("Loan Type", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.85f)
+        Text("Loan Type", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.85f)
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         Surface(
             shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
@@ -154,15 +151,15 @@ fun LoanTypeSelector(
                         imageVector = icon,
                         contentDescription = null,
                         tint = Color(0xFF22C55E),
-                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
+                        modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f)
                     )
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.gridGutter))
-                    Text(selectedType, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Text(selectedType, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     Icon(
                         imageVector = Icons.Rounded.KeyboardArrowDown,
                         contentDescription = null,
                         tint = secondaryText,
-                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass).value.dp * 0.8f)
+                        modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f)
                     )
                 }
                 androidx.compose.material3.DropdownMenu(
@@ -318,16 +315,16 @@ fun EmiCalculatorScreen(
     val screenWidth = configuration.screenWidthDp.dp
     
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
     
-    val isExpanded = sizeClass == WindowWidthSizeClass.Expanded
-    val isMedium = sizeClass == WindowWidthSizeClass.Medium
+    val isExpanded = sizeClass == WindowWidthSizeClass.EXPANDED
+    val isMedium = sizeClass == WindowWidthSizeClass.MEDIUM
 
-    val horizPadding = ResponsiveUtils.horizontalPadding(sizeClass)
-    val cardSpacing = ResponsiveUtils.cardSpacing(sizeClass)
+    val horizPadding = LoanMasterTheme.spacing.screenPadding
+    val cardSpacing = LoanMasterTheme.spacing.screenPadding
     
     val bgColor = androidx.compose.material3.MaterialTheme.colorScheme.background
     val primaryCard = androidx.compose.material3.MaterialTheme.colorScheme.surface
@@ -495,15 +492,13 @@ fun EmiCalculatorScreen(
                                 content1 = { modifier ->
                                     PremiumInputField(
                                         label = "Loan Amount", value = loanAmountText, onValueChange = { viewModel.updateInputs(loanAmount = it) },
-                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = modifier
+                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, modifier = modifier
                                     )
                                 },
                                 content2 = { modifier ->
                                     PremiumInputField(
                                         label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { viewModel.updateInputs(interestRate = it) },
-                                        icon = Icons.Rounded.Percent, iconTint = blueAccent,
-                                        sizeClass = sizeClass, modifier = modifier,
+                                        icon = Icons.Rounded.Percent, iconTint = blueAccent, modifier = modifier,
                                         infoText = "The annual interest rate charged on your loan."
                                     )
                                 }
@@ -515,14 +510,12 @@ fun EmiCalculatorScreen(
                                         label = "Tenure", value = tenureInputText, onValueChange = { viewModel.updateInputs(tenureInput = it) },
                                         isMonths = isTenureInMonths, onToggleIsMonths = { viewModel.updateInputs(isTenureMonths = it) },
                                         icon = Icons.Rounded.DateRange, iconTint = blueAccent,
-                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = modifier
+                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
                                     )
                                 },
                                 content2 = { modifier ->
                                     LoanTypeSelector(
-                                        selectedType = loanType, onTypeSelected = { viewModel.updateInputs(type = it) }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText,
-                                        sizeClass = sizeClass, modifier = modifier
+                                        selectedType = loanType, onTypeSelected = { viewModel.updateInputs(type = it) }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
                                     )
                                 }
                             )
@@ -543,9 +536,9 @@ fun EmiCalculatorScreen(
                         modifier = Modifier.padding(LoanMasterTheme.spacing.xl).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Rounded.Calculate, contentDescription = null, tint = secondaryText.copy(0.5f), modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass) * 2f))
+                        Icon(Icons.Rounded.Calculate, contentDescription = null, tint = secondaryText.copy(0.5f), modifier = Modifier.size(LoanMasterTheme.components.iconMedium * 2f))
                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-                        Text("Enter loan amount, rate & tenure to see results", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), textAlign = TextAlign.Center)
+                        Text("Enter loan amount, rate & tenure to see results", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -572,11 +565,11 @@ fun EmiCalculatorScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Your Monthly EMI", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f)
+                                        Text("Your Monthly EMI", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f)
                                         AutoResizedText(
                                             text = formatMoney(animatedEmi.toDouble()),
                                             color = blueAccent,
-                                            fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 1.5f,
+                                            fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 1.5f,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.fillMaxWidth()
                                         )
@@ -586,7 +579,7 @@ fun EmiCalculatorScreen(
                                         imageVector = Icons.Rounded.CalendarMonth,
                                         contentDescription = null,
                                         tint = blueAccent.copy(alpha = 0.3f),
-                                        modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass) * 1.5f)
+                                        modifier = Modifier.size(LoanMasterTheme.components.iconMedium * 1.5f)
                                     )
                                 }
 
@@ -614,12 +607,12 @@ fun EmiCalculatorScreen(
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                             Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(blueAccent, CircleShape))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                                            AutoResizedText(text = "Principal ${prinPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                            AutoResizedText(text = "Principal ${prinPct.toInt()}%", color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
                                             Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(goldAccent, CircleShape))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                                            AutoResizedText(text = "Interest ${intPct.toInt()}%", color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                            AutoResizedText(text = "Interest ${intPct.toInt()}%", color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
                                     }
                                 }
@@ -632,13 +625,13 @@ fun EmiCalculatorScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text("Total Interest", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(totalInterest), color = greenAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        AutoResizedText(text = formatMoney(totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text("Total Payment", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(totalPayment), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        Text("Total Payment", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        AutoResizedText(text = formatMoney(totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -654,7 +647,7 @@ fun EmiCalculatorScreen(
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Smart Recommendations", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
+                                Text("Smart Recommendations", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                 Surface(color = Color(0xFF3B2A6E), shape = RoundedCornerShape(LoanMasterTheme.components.iconSmall)) {
                                     Text("PRO", color = Color(0xFFB39DFF), fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = LoanMasterTheme.spacing.xs))
@@ -715,7 +708,6 @@ fun EmiCalculatorScreen(
                             monthlyEmi = monthlyEmi,
                             totalInterest = totalInterest,
                             totalPayment = totalPayment,
-                            sizeClass = sizeClass,
                             alerts = alerts,
                             opportunities = opportunities
                         )
@@ -730,8 +722,8 @@ fun EmiCalculatorScreen(
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Amortization Schedule", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
-                                Text("Full Schedule ›", color = blueAccent, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.9f, modifier = Modifier.clickable { 
+                                Text("Amortization Schedule", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
+                                Text("Full Schedule ›", color = blueAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f, modifier = Modifier.clickable { 
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     showFullSchedule = true 
                                 })
@@ -744,10 +736,10 @@ fun EmiCalculatorScreen(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.sm),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Year", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f))
-                                Text("EMI Paid", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                Text("Principal", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                Text("Interest", color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass).value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                Text("Year", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f, modifier = Modifier.weight(1f))
+                                Text("EMI Paid", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                Text("Principal", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                Text("Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                             }
                             HorizontalDivider(color = borderColor.copy(alpha = 0.5f))
 
@@ -756,10 +748,10 @@ fun EmiCalculatorScreen(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.sm),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("Y${row.year}", color = if (index == scheduleData.lastIndex) secondaryText else primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f))
-                                    Text(formatMoney(row.emi), color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = ResponsiveUtils.bodyFontSize(sizeClass), modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text("Y${row.year}", color = if (index == scheduleData.lastIndex) secondaryText else primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f))
+                                    Text(formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                                 }
                                 if (index < scheduleData.lastIndex) {
                                     HorizontalDivider(color = borderColor.copy(alpha = 0.35f))
@@ -777,7 +769,7 @@ fun EmiCalculatorScreen(
                             border = BorderStroke(1.dp, borderColor)
                         ) {
                             Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
-                                Text("Loan Milestones", color = primaryText, fontSize = ResponsiveUtils.titleFontSize(sizeClass).value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
+                                Text("Loan Milestones", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
 
                                 var cumPrincipal = 0.0
@@ -819,9 +811,9 @@ fun EmiCalculatorScreen(
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(androidx.compose.foundation.shape.CircleShape).background(blueAccent))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                                            Text(pair.first, color = secondaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                                            Text(pair.first, color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
-                                        Text(pair.second, color = primaryText, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Medium)
+                                        Text(pair.second, color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Medium)
                                     }
                                     if (index < milestoneRows.lastIndex) {
                                         HorizontalDivider(color = borderColor.copy(alpha = 0.3f))
@@ -855,9 +847,9 @@ fun EmiCalculatorScreen(
                             shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
                             border = BorderStroke(1.dp, borderColor)
                         ) {
-                            Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)), tint = goldAccent)
+                            Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.components.iconMedium), tint = goldAccent)
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                            Text("Premium Report", fontSize = ResponsiveUtils.bodyFontSize(sizeClass), color = goldAccent)
+                            Text("Premium Report", fontSize = LoanMasterTheme.typography.body.fontSize, color = goldAccent)
                         }
                         Button(
                             onClick = { 
@@ -867,9 +859,9 @@ fun EmiCalculatorScreen(
                             shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
                         ) {
-                            Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(ResponsiveUtils.iconSize(sizeClass)))
+                            Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                            Text("Share", fontSize = ResponsiveUtils.bodyFontSize(sizeClass))
+                            Text("Share", fontSize = LoanMasterTheme.typography.body.fontSize)
                         }
                     }
                 } // closes Column inside AnimatedVisibility

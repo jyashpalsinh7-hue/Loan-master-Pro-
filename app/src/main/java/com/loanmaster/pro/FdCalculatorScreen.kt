@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -55,9 +57,9 @@ fun FdCalculatorScreen(
 ) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -163,27 +165,27 @@ fun FdCalculatorScreen(
                 headerSection = { },
                 inputControlsSection = {
                     // Inputs
-                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding), modifier = Modifier.fillMaxWidth()) {
                         uiState.validationError?.let {
                             Text(it, color = MaterialTheme.colorScheme.error, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.padding(start = LoanMasterTheme.spacing.sm, bottom = LoanMasterTheme.spacing.xs))
                         }
-                if (sizeClass == WindowWidthSizeClass.Compact) {
+                if (sizeClass == WindowWidthSizeClass.COMPACT) {
                     PremiumInputField(
                         label = "Deposit Amount", value = depositAmountText, onValueChange = { viewModel.updateInputs(depositAmount = it) },
-                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
                         label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.updateInputs(interestRatePa = it) },
-                        icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                        icon = Icons.Rounded.Percent, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
                     )
                     PremiumInputField(
                         label = "Tenure (Years)", value = tenureYearsText, onValueChange = { viewModel.updateInputs(tenureYears = it) },
-                        icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                        icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", modifier = Modifier.fillMaxWidth()
                     )
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PremiumInputField(
                             label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
-                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth(),
+                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, modifier = Modifier.fillMaxWidth(),
                             infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
                         )
                         DropdownMenu(
@@ -207,13 +209,13 @@ fun FdCalculatorScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Deposit Amount", value = depositAmountText, onValueChange = { viewModel.updateInputs(depositAmount = it) },
-                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, sizeClass = sizeClass
+                                icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.updateInputs(interestRatePa = it) },
-                                icon = Icons.Rounded.Percent, iconTint = AccentBlue, sizeClass = sizeClass
+                                icon = Icons.Rounded.Percent, iconTint = AccentBlue
                             )
                         }
                     }
@@ -221,13 +223,13 @@ fun FdCalculatorScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Tenure (Years)", value = tenureYearsText, onValueChange = { viewModel.updateInputs(tenureYears = it) },
-                                icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
+                                icon = Icons.Rounded.DateRange, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs"
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
-                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass,
+                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
                                 infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
                             )
                             DropdownMenu(
@@ -251,7 +253,7 @@ fun FdCalculatorScreen(
             }
         },
         resultsSection = {
-            Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))) {
+            Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding)) {
                 // Hero Card
                 Box(
                     modifier = Modifier

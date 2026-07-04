@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import androidx.window.core.layout.WindowWidthSizeClass
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -58,9 +60,9 @@ fun RdCalculatorScreen(
 ) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val sizeClass = when {
-        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.Compact
-        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.Medium
-        else -> WindowWidthSizeClass.Expanded
+        configuration.screenWidthDp < 600 -> WindowWidthSizeClass.COMPACT
+        configuration.screenWidthDp < 840 -> WindowWidthSizeClass.MEDIUM
+        else -> WindowWidthSizeClass.EXPANDED
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -183,7 +185,7 @@ fun RdCalculatorScreen(
                 animationTriggerState = maturityValue,
                 headerSection = { },
                 inputControlsSection = {
-                    Column(verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)), modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding), modifier = Modifier.fillMaxWidth()) {
                         
                         TabRow(
                             selectedTabIndex = if (selectedTab == "Standard") 0 else 1,
@@ -217,30 +219,30 @@ fun RdCalculatorScreen(
                             )
                         }
                         
-                        if (sizeClass == WindowWidthSizeClass.Compact) {
+                        if (sizeClass == WindowWidthSizeClass.COMPACT) {
                             if (selectedTab == "Standard") {
                                 PremiumInputField(
                                     label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { viewModel.onEvent(RdEvent.MonthlyDepositChanged(it)) },
-                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
                                 )
                             } else {
                                 PremiumInputField(
                                     label = "Target Amount", value = targetAmountText, onValueChange = { viewModel.onEvent(RdEvent.TargetAmountChanged(it)) },
-                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.onEvent(RdEvent.InterestRateChanged(it)) },
-                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), modifier = Modifier.fillMaxWidth()
                             )
                             PremiumInputField(
                                 label = "Tenure", value = tenureYearsText, onValueChange = { viewModel.onEvent(RdEvent.TenureChanged(it)) },
-                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass, modifier = Modifier.fillMaxWidth()
+                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", modifier = Modifier.fillMaxWidth()
                             )
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PremiumInputField(
                             label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
-                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass, modifier = Modifier.fillMaxWidth(),
+                            icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, modifier = Modifier.fillMaxWidth(),
                             infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
                         )
                         DropdownMenu(
@@ -265,19 +267,19 @@ fun RdCalculatorScreen(
                             if (selectedTab == "Standard") {
                                 PremiumInputField(
                                     label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { viewModel.onEvent(RdEvent.MonthlyDepositChanged(it)) },
-                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, sizeClass = sizeClass
+                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue
                                 )
                             } else {
                                 PremiumInputField(
                                     label = "Target Amount", value = targetAmountText, onValueChange = { viewModel.onEvent(RdEvent.TargetAmountChanged(it)) },
-                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue, sizeClass = sizeClass
+                                    icon = Icons.Rounded.Flag, iconTint = AccentBlue
                                 )
                             }
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.onEvent(RdEvent.InterestRateChanged(it)) },
-                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF), sizeClass = sizeClass
+                                icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF)
                             )
                         }
                     }
@@ -285,13 +287,13 @@ fun RdCalculatorScreen(
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Tenure", value = tenureYearsText, onValueChange = { viewModel.onEvent(RdEvent.TenureChanged(it)) },
-                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs", sizeClass = sizeClass
+                                icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs"
                             )
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
-                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, sizeClass = sizeClass,
+                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
                                 infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
                             )
                             DropdownMenu(
@@ -318,7 +320,7 @@ fun RdCalculatorScreen(
             Box(modifier = Modifier.fillMaxWidth()) {
                 val isLocked = selectedTab == "Goal Based" && !isPremiumUnlocked
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass)),
+                    verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding),
                     modifier = if (isLocked) Modifier.fillMaxWidth().blur(LoanMasterTheme.spacing.md) else Modifier.fillMaxWidth()
                 ) {
                     // Hero Card

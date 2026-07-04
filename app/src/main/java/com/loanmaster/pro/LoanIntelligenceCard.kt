@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loanmaster.pro.CurrencyFormatter
 import com.loanmaster.pro.ResponsiveUtils
-import com.loanmaster.pro.WindowWidthSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
 import kotlin.math.pow
 
 @Composable
@@ -38,9 +38,7 @@ fun LoanIntelligenceCard(
     totalInterest: Double,
     totalPayment: Double,
     alerts: List<SmartAlert>,
-    opportunities: List<SmartOpportunity>,
-    sizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
-    modifier: Modifier = Modifier
+    opportunities: List<SmartOpportunity>,    modifier: Modifier = Modifier
 ) {
     val interestBurdenRatio = if (loanAmount > 0) totalInterest / loanAmount else 0.0
 
@@ -160,7 +158,7 @@ fun LoanIntelligenceCard(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ResponsiveUtils.cardSpacing(sizeClass))
+        verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding)
     ) {
         // LOAN VERDICT
         Card(
@@ -171,8 +169,8 @@ fun LoanIntelligenceCard(
         ) {
             Column(
                 modifier = Modifier.padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                    horizontal = LoanMasterTheme.spacing.screenPadding,
+                    vertical = LoanMasterTheme.spacing.lg
                 )
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -181,20 +179,20 @@ fun LoanIntelligenceCard(
                     Column {
                         Text(
                             text = "🏆 Loan Verdict",
-                            fontSize = ResponsiveUtils.bodyFontSize(sizeClass),
+                            fontSize = LoanMasterTheme.typography.body.fontSize,
                             color = secondaryText
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = verdictGrade as String,
-                                fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                                fontSize = LoanMasterTheme.typography.title.fontSize,
                                 fontWeight = FontWeight.Bold,
                                 color = verdictColor
                             )
                             Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                             Text(
                                 text = verdictTitle as String,
-                                fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 1.1f,
+                                fontSize = LoanMasterTheme.typography.body.fontSize * 1.1f,
                                 fontWeight = FontWeight.Bold,
                                 color = primaryText
                             )
@@ -204,7 +202,7 @@ fun LoanIntelligenceCard(
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                 Text(
                     text = verdictDesc as String,
-                    fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f,
+                    fontSize = LoanMasterTheme.typography.body.fontSize * 0.9f,
                     color = secondaryText
                 )
             }
@@ -219,13 +217,13 @@ fun LoanIntelligenceCard(
         ) {
             Column(
                 modifier = Modifier.padding(
-                    horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                    vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                    horizontal = LoanMasterTheme.spacing.screenPadding,
+                    vertical = LoanMasterTheme.spacing.lg
                 )
             ) {
                 Text(
                     text = "Cost Breakdown",
-                    fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                    fontSize = LoanMasterTheme.typography.title.fontSize,
                     fontWeight = FontWeight.Bold,
                     color = primaryText
                 )
@@ -245,8 +243,8 @@ fun LoanIntelligenceCard(
                 }
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Principal Share: $principalPercentage%", fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.8f, color = blueAccent)
-                    Text("Interest Share: $interestPercentage%", fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.8f, color = goldAccent)
+                    Text("Principal Share: $principalPercentage%", fontSize = LoanMasterTheme.typography.body.fontSize * 0.8f, color = blueAccent)
+                    Text("Interest Share: $interestPercentage%", fontSize = LoanMasterTheme.typography.body.fontSize * 0.8f, color = goldAccent)
                 }
             }
         }
@@ -261,14 +259,14 @@ fun LoanIntelligenceCard(
             ) {
                 Column(
                     modifier = Modifier.padding(
-                        horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                        vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                        horizontal = LoanMasterTheme.spacing.screenPadding,
+                        vertical = LoanMasterTheme.spacing.lg
                     ),
                     verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
                     Text(
                         text = "Smart Alerts",
-                        fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                        fontSize = LoanMasterTheme.typography.title.fontSize,
                         fontWeight = FontWeight.Bold,
                         color = primaryText
                     )
@@ -285,7 +283,7 @@ fun LoanIntelligenceCard(
                             }
                             Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                            Text(msg, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = secondaryText)
+                            Text(msg, fontSize = LoanMasterTheme.typography.body.fontSize * 0.9f, color = secondaryText)
                         }
                     }
                 }
@@ -302,14 +300,14 @@ fun LoanIntelligenceCard(
             ) {
                 Column(
                     modifier = Modifier.padding(
-                        horizontal = ResponsiveUtils.horizontalPadding(sizeClass),
-                        vertical = ResponsiveUtils.verticalPadding(sizeClass)
+                        horizontal = LoanMasterTheme.spacing.screenPadding,
+                        vertical = LoanMasterTheme.spacing.lg
                     ),
                     verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
                     Text(
                         text = "Smart Opportunities",
-                        fontSize = ResponsiveUtils.titleFontSize(sizeClass),
+                        fontSize = LoanMasterTheme.typography.title.fontSize,
                         fontWeight = FontWeight.Bold,
                         color = primaryText
                     )
@@ -319,10 +317,10 @@ fun LoanIntelligenceCard(
                             Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = goldAccent, modifier = Modifier.size(LoanMasterTheme.components.iconSmall).padding(top = LoanMasterTheme.spacing.xs))
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                             Column {
-                                Text(opp.title, fontSize = ResponsiveUtils.bodyFontSize(sizeClass), fontWeight = FontWeight.Bold, color = primaryText)
+                                Text(opp.title, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, color = primaryText)
                                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                                Text(opp.subtitle1, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = accentGreen)
-                                Text(opp.subtitle2, fontSize = ResponsiveUtils.bodyFontSize(sizeClass) * 0.9f, color = blueAccent)
+                                Text(opp.subtitle1, fontSize = LoanMasterTheme.typography.body.fontSize * 0.9f, color = accentGreen)
+                                Text(opp.subtitle2, fontSize = LoanMasterTheme.typography.body.fontSize * 0.9f, color = blueAccent)
                             }
                         }
                     }
