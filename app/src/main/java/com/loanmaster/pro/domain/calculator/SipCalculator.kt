@@ -1,6 +1,7 @@
 package com.loanmaster.pro.domain.calculator
 
 import com.loanmaster.pro.domain.model.YearlyData
+import kotlin.math.pow
 
 data class SipResult(
     val totalInvested: Double = 0.0,
@@ -24,9 +25,7 @@ class SipCalculator {
         val s = stepUp.toDoubleOrNull() ?: 0.0
 
         if (p <= 0 || r <= 0 || y <= 0) {
-            val inflationRate = 0.06
-        val inflationAdjustedValue = maturityValue / kotlin.math.pow(1 + inflationRate, years.toDouble())
-        return SipResult(isValid = false)
+            return SipResult(isValid = false)
         }
 
         var totalInvested = 0.0
@@ -62,7 +61,7 @@ class SipCalculator {
         val totalGain = maturityValue - totalInvested
 
         val inflationRate = 0.06
-        val inflationAdjustedValue = maturityValue / kotlin.math.pow(1 + inflationRate, years.toDouble())
+        val inflationAdjustedValue = maturityValue / (1 + inflationRate).pow(y.toDouble())
         return SipResult(
             totalInvested = totalInvested,
             totalGain = totalGain,

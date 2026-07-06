@@ -129,7 +129,7 @@ fun PrepaymentScreen(
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
-            viewModel.onEvent(PrepaymentEvent.InitializeFromHistory(initialHistory))
+            viewModel.updateInputs(history = initialHistory)
             onHistoryConsumed()
         }
     }
@@ -148,7 +148,7 @@ fun PrepaymentScreen(
                 param5 = strategy
             )
             historyViewModel.insert(history) { id ->
-                viewModel.onEvent(PrepaymentEvent.HistoryIdUpdated(id))
+                viewModel.updateInputs(historyId = id)
             }
         }
     }
@@ -231,7 +231,7 @@ fun PrepaymentScreen(
                                 .weight(1f)
                                 .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                                 .background(if (strategy == "Tenure") primaryColor else Color.Transparent)
-                                .clickable { viewModel.onEvent(PrepaymentEvent.StrategyChanged("Tenure")) }
+                                .clickable { viewModel.updateInputs(strategy = "Tenure") }
                                 .padding(vertical = LoanMasterTheme.spacing.md),
                             contentAlignment = Alignment.Center
                         ) {
@@ -242,7 +242,7 @@ fun PrepaymentScreen(
                                 .weight(1f)
                                 .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                                 .background(if (strategy == "EMI") primaryColor else Color.Transparent)
-                                .clickable { viewModel.onEvent(PrepaymentEvent.StrategyChanged("EMI")) }
+                                .clickable { viewModel.updateInputs(strategy = "EMI") }
                                 .padding(vertical = LoanMasterTheme.spacing.md),
                             contentAlignment = Alignment.Center
                         ) {
@@ -257,7 +257,7 @@ fun PrepaymentScreen(
                     val currentSliderValue = prePay.toFloat().coerceIn(0f, maxSliderValue)
                     Slider(
                         value = currentSliderValue,
-                        onValueChange = { viewModel.onEvent(PrepaymentEvent.PrepaymentAmountChanged(it.toInt().toString())) },
+                        onValueChange = { viewModel.updateInputs(prepaymentAmount = it.toInt().toString()) },
                         valueRange = 0f..maxSliderValue,
                         colors = SliderDefaults.colors(
                             thumbColor = primaryColor,
@@ -405,14 +405,8 @@ fun PrepaymentScreen(
 
     if (showAmortization) {
         AmortizationBottomSheet(
-            p = p,
-            prePay = prePay,
-            monthlyPrepay = monthlyPrepay,
-            annualPrepay = annualPrepay,
-            r = r,
-            n = n,
-            originalEmi = emi,
-            strategy = strategy,
+            standardSchedule = uiState.standardSchedule,
+            prepaySchedule = uiState.prepaySchedule,
             isUnlocked = isAiUnlocked,
             onUnlockClick = { showUnlockDialog = true },
             onDismiss = { showAmortization = false }

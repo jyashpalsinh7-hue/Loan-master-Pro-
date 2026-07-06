@@ -112,40 +112,58 @@ class CurrencyViewModel : ViewModel() {
         showBaseSelector: Boolean? = null,
         showTargetSelector: Boolean? = null,
         searchQuery: String? = null,
-        tabSelected: Int? = null,
+        tabSelected: String? = null,
         refreshRates: Boolean = false
     ) {
         if (refreshRates) {
-            fetchRates()
+            fetchRates(_uiState.value.baseCurrency)
             return
         }
         
+        var baseCurrencyChanged = false
+        var chartParamsChanged = false
+
         _uiState.update { current ->
             var next = current
-            if (baseAmount != null) next = next.copy(baseAmount = baseAmount)
-            if (baseCurrency != null) next = next.copy(baseCurrency = baseCurrency, showBaseSelector = false)
-            if (targetCurrency != null) next = next.copy(targetCurrency = targetCurrency, showTargetSelector = false)
-            if (showBaseSelector != null) next = next.copy(showBaseSelector = showBaseSelector, searchQuery = "")
-            if (showTargetSelector != null) next = next.copy(showTargetSelector = showTargetSelector, searchQuery = "")
-            if (searchQuery != null) next = next.copy(searchQuery = searchQuery)
-            if (tabSelected != null) next = next.copy(selectedTab = tabSelected)
+            if (baseAmount != null) {
+                next = next.copy(baseAmountText = baseAmount)
+            }
+            if (baseCurrency != null && baseCurrency != current.baseCurrency) {
+                next = next.copy(baseCurrency = baseCurrency, showBaseSelector = false)
+                baseCurrencyChanged = true
+                chartParamsChanged = true
+            }
+            if (targetCurrency != null && targetCurrency != current.targetCurrency) {
+                next = next.copy(targetCurrency = targetCurrency, showTargetSelector = false)
+                chartParamsChanged = true
+            }
+            if (showBaseSelector != null) {
+                next = next.copy(showBaseSelector = showBaseSelector, searchQuery = "")
+            }
+            if (showTargetSelector != null) {
+                next = next.copy(showTargetSelector = showTargetSelector, searchQuery = "")
+            }
+            if (searchQuery != null) {
+                next = next.copy(searchQuery = searchQuery)
+            }
+            if (tabSelected != null && tabSelected != current.selectedTab) {
+                next = next.copy(selectedTab = tabSelected)
+                chartParamsChanged = true
+            }
             
             if (swapCurrencies) {
                 val temp = next.baseCurrency
                 next = next.copy(baseCurrency = next.targetCurrency, targetCurrency = temp)
+                baseCurrencyChanged = true
+                chartParamsChanged = true
             }
-            
-            // Recalculate
-            val baseVal = next.baseAmount.toDoubleOrNull() ?: 0.0
-            val targetRate = next.exchangeRates[next.targetCurrency] ?: 0.0
-            val baseRate = next.exchangeRates[next.baseCurrency] ?: 1.0
-            
-            // Rates in API are based on USD by default.
-            // value in USD = baseVal / baseRate
-            // targetValue = (baseVal / baseRate) * targetRate
-            
-            val targetVal = if (baseRate > 0) (baseVal / baseRate) * targetRate else 0.0
-            next.copy(targetAmount = targetVal)
+            next
+        }
+
+        if (baseCurrencyChanged) {
+            fetchRates(_uiState.value.baseCurrency)
+        } else if (chartParamsChanged) {
+            fetchChartData()
         }
     }
 

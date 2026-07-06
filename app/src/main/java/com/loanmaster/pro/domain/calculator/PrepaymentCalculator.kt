@@ -59,7 +59,7 @@ class PrepaymentCalculator {
 
         var currentEmi = emi
         if (strategy == "EMI") {
-            currentEmi = if (r > 0 && n > 0) balance * (r * kotlin.math.pow(1 + r, n)) / (kotlin.math.pow(1 + r, n) - 1) else balance / n
+            currentEmi = if (r > 0 && n > 0) balance * (r * (1 + r).pow(n)) / ((1 + r).pow(n) - 1) else balance / n
         }
 
         var month = 1

@@ -111,7 +111,7 @@ fun RdScreen(
     
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
-            viewModel.onEvent(RdEvent.InitializeFromHistory(initialHistory))
+            viewModel.updateInputs(history = initialHistory)
             onHistoryConsumed()
         }
     }
@@ -152,7 +152,7 @@ fun RdScreen(
                 param5 = if(selectedTab == "Goal Based") "Target" else "Standard"
             )
             historyViewModel.insert(history) { id ->
-                viewModel.onEvent(RdEvent.HistoryIdUpdated(id))
+                viewModel.updateInputs(historyId = id)
             }
         }
     }
@@ -224,12 +224,12 @@ fun RdScreen(
                         ) {
                             Tab(
                                 selected = selectedTab == "Standard",
-                                onClick = { viewModel.onEvent(RdEvent.TabChanged("Standard")) },
+                                onClick = { viewModel.updateInputs(tab = "Standard") },
                                 text = { Text("Standard RD", color = if (selectedTab == "Standard") AccentBlue else TextSecondary) }
                             )
                             Tab(
                                 selected = selectedTab == "Goal Based",
-                                onClick = { viewModel.onEvent(RdEvent.TabChanged("Goal Based")) },
+                                onClick = { viewModel.updateInputs(tab = "Goal Based") },
                                 text = { 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text("Goal Based", color = if (selectedTab == "Goal Based") AccentBlue else TextSecondary)
@@ -277,7 +277,7 @@ fun RdScreen(
                                 DropdownMenuItem(
                                     text = { Text(option, color = TextPrimary) },
                                     onClick = {
-                                        viewModel.onEvent(RdEvent.CompoundingFrequencyChanged(option))
+                                        viewModel.updateInputs(frequency = option)
                                         showCompoundingDropdown = false
                                     }
                                 )
@@ -328,7 +328,7 @@ fun RdScreen(
                                     DropdownMenuItem(
                                         text = { Text(option, color = TextPrimary) },
                                         onClick = {
-                                            viewModel.onEvent(RdEvent.CompoundingFrequencyChanged(option))
+                                            viewModel.updateInputs(frequency = option)
                                             showCompoundingDropdown = false
                                         }
                                     )

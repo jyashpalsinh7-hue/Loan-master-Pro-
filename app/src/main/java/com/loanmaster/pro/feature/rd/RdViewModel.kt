@@ -16,8 +16,8 @@ class RdViewModel : ViewModel() {
 
     private val calculator = RdCalculator()
 
-        fun updateInputs(
-        tab: Int? = null,
+    fun updateInputs(
+        tab: String? = null,
         monthlyDeposit: String? = null,
         interestRate: String? = null,
         tenureYears: String? = null,
@@ -29,7 +29,7 @@ class RdViewModel : ViewModel() {
         if (history != null) {
             updateState { 
                 it.copy(
-                    selectedTab = if (history.param5 == "Target") 1 else 0,
+                    selectedTab = history.param5 ?: "Standard",
                     monthlyDepositText = history.param1 ?: "",
                     interestRatePaText = history.param2 ?: "",
                     tenureYearsText = history.param3 ?: "",

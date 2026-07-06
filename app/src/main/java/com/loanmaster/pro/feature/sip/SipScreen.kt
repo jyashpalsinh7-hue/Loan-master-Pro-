@@ -112,7 +112,7 @@ fun SipScreen(
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
-            viewModel.onEvent(SipEvent.InitializeFromHistory(initialHistory))
+            viewModel.updateInputs(history = initialHistory)
             onHistoryConsumed()
         }
     }
@@ -130,7 +130,7 @@ fun SipScreen(
                 param4 = stepUpText
             )
             historyViewModel.insert(history) { id ->
-                viewModel.onEvent(SipEvent.HistoryIdUpdated(id))
+                viewModel.updateInputs(historyId = id)
             }
         }
     }
@@ -173,19 +173,21 @@ fun SipScreen(
         ) {
             InputsSection(
                 uiState = uiState, 
-                onEvent = viewModel::onEvent, 
+                updateInputs = { amount, rate, years, stepUp ->
+                    viewModel.updateInputs(amount = amount, rate = rate, years = years, stepUp = stepUp)
+                }, 
                 isWide = isWide
             )
-            HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide)
+            HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide, uiState)
             
             if (isWide) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
                     GrowthVisualizationCard(yearlyDataList, modifier = Modifier.weight(1.5f))
-                    Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years) }
+                    Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState) }
                 }
             } else {
                 GrowthVisualizationCard(yearlyDataList, modifier = Modifier.fillMaxWidth())
-                InflationAdjustedCard(maturityValue, years)
+                InflationAdjustedCard(maturityValue, years, uiState)
             }
             
             LifestyleFundsSection(isWide, maturityValue, years)
@@ -234,17 +236,17 @@ private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
 @Composable
 private fun InputsSection(
     uiState: SipUiState,
-    onEvent: (SipEvent) -> Unit,
+    updateInputs: (amount: String?, rate: String?, years: String?, stepUp: String?) -> Unit,
     isWide: Boolean
 ) {
     val amount = uiState.amountText
     val returnRate = uiState.returnRateText
     val years = uiState.yearsText
     val stepUp = uiState.stepUpText
-    val onAmount: (String) -> Unit = { onEvent(SipEvent.AmountChanged(it)) }
-    val onRate: (String) -> Unit = { onEvent(SipEvent.ReturnRateChanged(it)) }
-    val onYears: (String) -> Unit = { onEvent(SipEvent.YearsChanged(it)) }
-    val onStepUp: (String) -> Unit = { onEvent(SipEvent.StepUpChanged(it)) }
+    val onAmount: (String) -> Unit = { updateInputs(it, null, null, null) }
+    val onRate: (String) -> Unit = { updateInputs(null, it, null, null) }
+    val onYears: (String) -> Unit = { updateInputs(null, null, it, null) }
+    val onStepUp: (String) -> Unit = { updateInputs(null, null, null, it) }
 
     if (isWide) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
@@ -319,7 +321,7 @@ private val exactMoneyFormatter = java.text.NumberFormat.getNumberInstance(java.
 
 
 @Composable
-private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Double, years: Int, isWide: Boolean) {
+private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Double, years: Int, isWide: Boolean, uiState: SipUiState) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val heroFontSize = when {

@@ -116,7 +116,7 @@ fun GstScreen(
 
     LaunchedEffect(initialHistory) {
         if (initialHistory != null) {
-            viewModel.onEvent(GstEvent.InitializeFromHistory(initialHistory))
+            viewModel.updateInputs(history = initialHistory)
             onHistoryConsumed()
         }
     }
@@ -135,7 +135,7 @@ fun GstScreen(
                 param5 = ""
             )
             historyViewModel.insert(history) { id ->
-                viewModel.onEvent(GstEvent.HistoryIdUpdated(id))
+                viewModel.updateInputs(currentHistoryId = id)
             }
         }
     }
@@ -180,7 +180,7 @@ fun GstScreen(
                     }) {
                         Icon(Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextSecondary)
                     }
-                    IconButton(onClick = { viewModel.onEvent(GstEvent.Reset) }) {
+                    IconButton(onClick = { viewModel.updateInputs(reset = true) }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Reset", tint = TextSecondary)
                     }
                 }
@@ -205,7 +205,7 @@ fun GstScreen(
                 verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
             ) {
                 // Segmented Switch for Mode
-                GstModeSelector(mode = mode, onModeSelected = { viewModel.onEvent(GstEvent.ModeChanged(it)) })
+                GstModeSelector(mode = mode, onModeSelected = { viewModel.updateInputs(mode = it) })
 
                 // Main Layout (Responsive)
                 if (isWide) {
@@ -221,14 +221,14 @@ fun GstScreen(
                                 onAmountChange = { viewModel.updateInputs(amount = it) },
                                 selectedRate = selectedRate,
                                 onRateSelected = { rate ->
-                                    viewModel.updateInputs(rate = rate)
+                                    viewModel.updateInputs(selectedRate = rate)
                                 },
                                 showAdvanced = showAdvanced,
-                                onToggleAdvanced = { viewModel.onEvent(GstEvent.ShowAdvancedToggled(!showAdvanced)) },
+                                onToggleAdvanced = { viewModel.updateInputs(showAdvanced = !showAdvanced) },
                                 cessRateText = cessRateText,
-                                onCessRateChange = { viewModel.onEvent(GstEvent.CessRateChanged(it)) },
+                                onCessRateChange = { viewModel.updateInputs(cessRateText = it) },
                                 isIntrastate = isIntrastate,
-                                onToggleInterstate = { viewModel.onEvent(GstEvent.IntrastateToggled(it)) }
+                                onToggleInterstate = { viewModel.updateInputs(isIntrastate = it) }
                             )
                             GstRateQuickCompareSection(amount, actualRate, cessRate, isIntrastate)
                         }
@@ -242,14 +242,14 @@ fun GstScreen(
                         onAmountChange = { viewModel.updateInputs(amount = it) },
                         selectedRate = selectedRate,
                         onRateSelected = { rate ->
-                            viewModel.updateInputs(rate = rate)
+                            viewModel.updateInputs(selectedRate = rate)
                         },
                         showAdvanced = showAdvanced,
-                        onToggleAdvanced = { viewModel.onEvent(GstEvent.ShowAdvancedToggled(!showAdvanced)) },
+                        onToggleAdvanced = { viewModel.updateInputs(showAdvanced = !showAdvanced) },
                         cessRateText = cessRateText,
-                        onCessRateChange = { viewModel.onEvent(GstEvent.CessRateChanged(it)) },
+                        onCessRateChange = { viewModel.updateInputs(cessRateText = it) },
                         isIntrastate = isIntrastate,
-                        onToggleInterstate = { viewModel.onEvent(GstEvent.IntrastateToggled(it)) }
+                        onToggleInterstate = { viewModel.updateInputs(isIntrastate = it) }
                     )
 
                     GstBreakupSection(baseAmount, totalGst, cgst, sgst, igst, totalCess, totalAmount, isIntrastate)

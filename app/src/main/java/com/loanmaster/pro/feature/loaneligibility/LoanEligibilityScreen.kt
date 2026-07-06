@@ -350,7 +350,7 @@ fun LoanEligibilityScreen(viewModel: LoanEligibilityViewModel = viewModel()) {
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .background(if (isSelected) brightBlue else surfaceColor.copy(alpha = 0.3f))
-                                        .clickable { viewModel.updateInputs(creditScoreRange = title, profile.defaultRate) },
+                                        .clickable { viewModel.updateInputs(creditScoreRange = title, defaultRate = profile.defaultRate) },
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
@@ -630,7 +630,7 @@ fun LoanEligibilityScreen(viewModel: LoanEligibilityViewModel = viewModel()) {
                     },
                     content2 = { mod ->
                         Card(modifier = mod.clickable { 
-                            viewModel.updateInputs(creditScoreRange = "Excellent", profile.defaultRate)
+                            viewModel.updateInputs(creditScoreRange = "Excellent", defaultRate = profile.defaultRate)
                         }, colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)), shape = RoundedCornerShape(LoanMasterTheme.spacing.sm), border = androidx.compose.foundation.BorderStroke(1.dp, surfaceColor)) {
                             Row(modifier = Modifier.padding(LoanMasterTheme.components.cardRadius), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Rounded.Percent, contentDescription = null, tint = brightBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))

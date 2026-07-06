@@ -17,31 +17,47 @@ class GstViewModel : ViewModel() {
 
     private val calculator = GstCalculator()
 
-        fun updateInputs(
+    fun updateInputs(
+        mode: GstMode? = null,
         amount: String? = null,
-        rate: String? = null,
-        type: String? = null,
-        historyId: Int? = null,
+        selectedRate: Double? = null,
+        showAdvanced: Boolean? = null,
+        cessRateText: String? = null,
+        isIntrastate: Boolean? = null,
+        currentHistoryId: Int? = null,
+        reset: Boolean = false,
         history: CalculationHistory? = null
     ) {
+        if (reset) {
+            _uiState.update { GstUiState() }
+            return
+        }
+        
         if (history != null) {
-            updateState { 
-                it.copy(
-                    amountText = history.param1 ?: "",
-                    gstRate = history.param2 ?: "",
-                    gstType = history.param3 ?: "Exclusive",
+            updateState { current ->
+                val nextMode = try { GstMode.valueOf(history.param1 ?: "ADD") } catch(e: Exception) { GstMode.ADD }
+                val nextAmount = history.param2 ?: ""
+                val nextRate = history.param3?.toDoubleOrNull() ?: 18.0
+                
+                current.copy(
+                    mode = nextMode,
+                    amountText = nextAmount,
+                    selectedRate = nextRate,
                     currentHistoryId = history.id
                 )
             }
             return
         }
-        
+
         updateState { current ->
             current.copy(
+                mode = mode ?: current.mode,
                 amountText = amount ?: current.amountText,
-                gstRate = rate ?: current.gstRate,
-                gstType = type ?: current.gstType,
-                currentHistoryId = historyId ?: current.currentHistoryId
+                selectedRate = selectedRate ?: current.selectedRate,
+                showAdvanced = showAdvanced ?: current.showAdvanced,
+                cessRateText = cessRateText ?: current.cessRateText,
+                isIntrastate = isIntrastate ?: current.isIntrastate,
+                currentHistoryId = currentHistoryId ?: current.currentHistoryId
             )
         }
     }
