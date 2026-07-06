@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*

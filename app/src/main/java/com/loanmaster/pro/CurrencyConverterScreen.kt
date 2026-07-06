@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.loanmaster.pro.model.*
@@ -44,11 +46,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.util.Locale
 
 // Constants
-val CurrBgColor = ResponsiveUtils.BgColor
-val CurrSurfaceColor = ResponsiveUtils.SurfaceColor
-val CurrPrimaryAccent = ResponsiveUtils.PrimaryAccent
-val CurrSecondaryAccent = ResponsiveUtils.SecondaryAccent
-val CurrCardStrokeColor = ResponsiveUtils.CardStroke
+val CurrBgColor = BackgroundDark
+val CurrSurfaceColor = SurfaceDark
+val CurrPrimaryAccent = AccentYellow
+val CurrSecondaryAccent = AccentBlue
+val CurrCardStrokeColor = CardStroke
 
 fun getFlagEmoji(currencyCode: String): String {
     if (currencyCode.length < 2) return "🌍"
@@ -172,7 +174,7 @@ fun CurrencyConverterScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewM
                         )
                         Text(
                             text = "Last updated $lastUpdated",
-                            color = ResponsiveUtils.TextSecondary,
+                            color = TextSecondary,
                             fontSize = LoanMasterTheme.typography.label.fontSize
                         )
                     }
@@ -271,7 +273,7 @@ fun PremiumConversionCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(ResponsiveUtils.CardShape)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(
                 Brush.linearGradient(
                     colors = listOf(
@@ -280,7 +282,7 @@ fun PremiumConversionCard(
                     )
                 )
             )
-            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.5f), ResponsiveUtils.CardShape)
+            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.5f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .padding(LoanMasterTheme.spacing.lg)
     ) {
         Column {
@@ -366,7 +368,7 @@ fun CurrencyInputSection(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f).padding(end = LoanMasterTheme.spacing.md)) {
-            Text(label, color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
+            Text(label, color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
             if (isEditable) {
                 val textSize = if (amount.length > 12) LoanMasterTheme.typography.title.fontSize else if (amount.length > 8) LoanMasterTheme.typography.title.fontSize else LoanMasterTheme.typography.display.fontSize
@@ -438,9 +440,9 @@ fun PremiumChartSection(viewModel: CurrencyViewModel, exchangeRate: Double, base
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(ResponsiveUtils.CardShape)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(CurrSurfaceColor)
-            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.3f), ResponsiveUtils.CardShape)
+            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.3f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .padding(vertical = LoanMasterTheme.spacing.lg)
     ) {
         Row(
@@ -478,7 +480,7 @@ fun PremiumChartSection(viewModel: CurrencyViewModel, exchangeRate: Double, base
                     ) {
                         Text(
                             text = tab,
-                            color = if (isSelected) Color.White else ResponsiveUtils.TextSecondary,
+                            color = if (isSelected) Color.White else TextSecondary,
                             fontSize = LoanMasterTheme.typography.label.fontSize,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -550,9 +552,9 @@ fun MarketRateCard(currency: String, rate: Double, baseCurrency: String) {
     Column(
         modifier = Modifier
             .widthIn(min = LoanMasterTheme.components.featuredCardHeight)
-            .clip(ResponsiveUtils.CardShape)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(CurrSurfaceColor)
-            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.3f), ResponsiveUtils.CardShape)
+            .border(1.dp, CurrCardStrokeColor.copy(alpha = 0.3f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .padding(LoanMasterTheme.spacing.md)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -586,7 +588,7 @@ fun PremiumQuickAction(title: String, icon: androidx.compose.ui.graphics.vector.
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(ResponsiveUtils.ButtonShape)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.buttonHeight / 2))
             .background(CurrSurfaceColor)
             .clickable { onClick() }
             .padding(LoanMasterTheme.spacing.md),
@@ -627,7 +629,7 @@ fun CurrencySelectorSheet(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search", color = ResponsiveUtils.TextSecondary) },
+                placeholder = { Text("Search", color = TextSecondary) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = CurrSecondaryAccent,
                     unfocusedBorderColor = CurrCardStrokeColor,
@@ -635,7 +637,7 @@ fun CurrencySelectorSheet(
                     unfocusedTextColor = Color.White
                 ),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = ResponsiveUtils.TextSecondary) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = TextSecondary) },
                 shape = RoundedCornerShape(LoanMasterTheme.spacing.md)
             )
             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))

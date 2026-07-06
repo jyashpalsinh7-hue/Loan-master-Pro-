@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

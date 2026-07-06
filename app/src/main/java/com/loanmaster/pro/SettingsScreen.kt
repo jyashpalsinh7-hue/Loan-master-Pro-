@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.loanmaster.pro.ui.theme.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,15 +29,6 @@ import com.loanmaster.pro.ui.theme.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 
-private val BgColor = Color(0xFF020B2D)
-private val CardColor = Color(0xFF071D4D)
-private val BorderColor = Color(0xFF123D9A)
-private val PrimaryBlue = Color(0xFF2D7FF9)
-private val GoldAccent = Color(0xFFF5B82E)
-private val TextPrimary = Color.White
-private val TextSecondary = Color(0xFFB8C5E0)
-private val DestructiveRed = Color(0xFFE53935)
-private val NavBackground = Color(0xFF0A1128)
 
 @Composable
 fun SettingsScreen(
@@ -58,7 +50,7 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = { SettingsTopBar(onNavigateBack) },
-        containerColor = BgColor
+        containerColor = BackgroundDark
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -93,8 +85,8 @@ private fun SettingsTopBar(onNavigateBack: () -> Unit) {
             modifier = Modifier
                 .size(LoanMasterTheme.spacing.xl)
                 .clip(CircleShape)
-                .background(CardColor)
-                .border(1.dp, BorderColor, CircleShape)
+                .background(SurfaceDark)
+                .border(1.dp, CardStroke, CircleShape)
         ) {
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = TextPrimary)
         }
@@ -112,11 +104,11 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(LoanMasterTheme.spacing.md))
-            .background(CardColor)
-            .border(1.dp, BorderColor, RoundedCornerShape(LoanMasterTheme.spacing.md))
+            .background(SurfaceDark)
+            .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.md))
             .padding(LoanMasterTheme.spacing.md)
     ) {
-        Text(title, color = GoldAccent, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md))
+        Text(title, color = AccentYellow, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md))
         content()
     }
 }
@@ -141,17 +133,17 @@ private fun LanguageSection(selectedLang: String, onLanguageChange: (String) -> 
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LoanMasterTheme.components.iconSmall))
-                        .background(if (isSelected) PrimaryBlue.copy(alpha = 0.2f) else BgColor)
-                        .border(1.dp, if (isSelected) PrimaryBlue else BorderColor, RoundedCornerShape(LoanMasterTheme.components.iconSmall))
+                        .background(if (isSelected) AccentBlue.copy(alpha = 0.2f) else BackgroundDark)
+                        .border(1.dp, if (isSelected) AccentBlue else CardStroke, RoundedCornerShape(LoanMasterTheme.components.iconSmall))
                         .clickable { onLanguageChange(lang) }
                         .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isSelected) {
-                        Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Icon(Icons.Rounded.Check, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                         Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     }
-                    Text(lang, color = if (isSelected) PrimaryBlue else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
+                    Text(lang, color = if (isSelected) AccentBlue else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
                 }
             }
         }
@@ -179,8 +171,8 @@ private fun DefaultCurrencySection(selectedCurrency: String, onCurrencyChange: (
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LoanMasterTheme.components.iconSmall))
-                        .background(if (isSelected) highlightColor.copy(alpha = 0.2f) else BgColor)
-                        .border(1.dp, if (isSelected) highlightColor else BorderColor, RoundedCornerShape(LoanMasterTheme.components.iconSmall))
+                        .background(if (isSelected) highlightColor.copy(alpha = 0.2f) else BackgroundDark)
+                        .border(1.dp, if (isSelected) highlightColor else CardStroke, RoundedCornerShape(LoanMasterTheme.components.iconSmall))
                         .clickable { onCurrencyChange(currency) }
                         .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
                     verticalAlignment = Alignment.CenterVertically
@@ -197,7 +189,7 @@ private fun SettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    iconTint: Color = PrimaryBlue,
+    iconTint: Color = AccentBlue,
     titleColor: Color = TextPrimary,
     onClick: () -> Unit = {},
     trailingContent: @Composable () -> Unit
@@ -249,7 +241,7 @@ private fun PreferencesSection(
                 Switch(
                     checked = notificationsEnabled,
                     onCheckedChange = { onNotificationsChange(it) },
-                    colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
+                    colors = SwitchDefaults.colors(checkedThumbColor = AccentBlue, checkedTrackColor = AccentBlue.copy(alpha=0.5f))
                 )
             }
         )
@@ -261,7 +253,7 @@ private fun PreferencesSection(
                 Switch(
                     checked = keepHistoryEnabled,
                     onCheckedChange = { onKeepHistoryChange(it) },
-                    colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
+                    colors = SwitchDefaults.colors(checkedThumbColor = AccentBlue, checkedTrackColor = AccentBlue.copy(alpha=0.5f))
                 )
             }
         )
@@ -325,7 +317,7 @@ private fun RemindersSection(
                                 modifier = Modifier
                                     .size(LoanMasterTheme.components.iconLarge)
                                     .clip(CircleShape)
-                                    .background(if (isSelected) PrimaryBlue else Color.Transparent)
+                                    .background(if (isSelected) AccentBlue else Color.Transparent)
                                     .clickable {
                                         onEmiDueDayChange(day)
                                         showDayPicker = false
@@ -339,10 +331,10 @@ private fun RemindersSection(
                 },
                 confirmButton = {
                     TextButton(onClick = { showDayPicker = false }) {
-                        Text("Close", color = PrimaryBlue)
+                        Text("Close", color = AccentBlue)
                     }
                 },
-                containerColor = BgColor
+                containerColor = BackgroundDark
             )
         }
 
@@ -381,7 +373,7 @@ private fun RemindersSection(
                                 Checkbox(
                                     checked = isSelected,
                                     onCheckedChange = null,
-                                    colors = CheckboxDefaults.colors(checkedColor = PrimaryBlue)
+                                    colors = CheckboxDefaults.colors(checkedColor = AccentBlue)
                                 )
                                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.md))
                                 Text(option.second, color = TextPrimary)
@@ -391,10 +383,10 @@ private fun RemindersSection(
                 },
                 confirmButton = {
                     TextButton(onClick = { showFrequencyPicker = false }) {
-                        Text("Close", color = PrimaryBlue)
+                        Text("Close", color = AccentBlue)
                     }
                 },
-                containerColor = BgColor
+                containerColor = BackgroundDark
             )
         }
 
@@ -406,7 +398,7 @@ private fun RemindersSection(
                 Switch(
                     checked = remindersEnabled,
                     onCheckedChange = { onRemindersChange(it) },
-                    colors = SwitchDefaults.colors(checkedThumbColor = PrimaryBlue, checkedTrackColor = PrimaryBlue.copy(alpha=0.5f))
+                    colors = SwitchDefaults.colors(checkedThumbColor = AccentBlue, checkedTrackColor = AccentBlue.copy(alpha=0.5f))
                 )
             }
         )
@@ -466,10 +458,10 @@ private fun DataBackupSection(onClearHistory: () -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel", color = PrimaryBlue)
+                    Text("Cancel", color = AccentBlue)
                 }
             },
-            containerColor = BgColor
+            containerColor = BackgroundDark
         )
     }
 
@@ -535,7 +527,7 @@ private fun AccountSyncSection() {
             modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Rounded.CloudSync, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(LoanMasterTheme.spacing.xl))
+            Icon(Icons.Rounded.CloudSync, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(LoanMasterTheme.spacing.xl))
             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.md))
             Column(Modifier.weight(1f)) {
                 Text("Sign in to Sync", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
@@ -543,8 +535,8 @@ private fun AccountSyncSection() {
             }
             OutlinedButton(
                 onClick = { },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentBlue),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AccentBlue),
                 shape = RoundedCornerShape(LoanMasterTheme.components.iconSmall)
             ) {
                 Text("Sign In")

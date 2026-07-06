@@ -1,5 +1,7 @@
 package com.loanmaster.pro.ui.theme
 
+import com.loanmaster.pro.ui.theme.*
+
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

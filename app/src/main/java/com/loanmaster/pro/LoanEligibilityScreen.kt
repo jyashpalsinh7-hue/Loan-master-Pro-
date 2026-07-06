@@ -66,14 +66,14 @@ fun LoanEligibilityScreen(viewModel: LoanEligibilityViewModel = viewModel()) {
         else -> WindowWidthSizeClass.EXPANDED
     }
 
-    val bgColor = ResponsiveUtils.BgColor
-    val surfaceColor = ResponsiveUtils.SurfaceColor
+    val bgColor = BackgroundDark
+    val surfaceColor = SurfaceDark
     val neonGreen = Color(0xFF4ADE80)
     val brightBlue = Color(0xFF3B82F6)
     val warningYellow = Color(0xFFFBBF24)
     val dangerRed = Color(0xFFEF4444)
-    val textColor = ResponsiveUtils.TextPrimary
-    val textSecondary = ResponsiveUtils.TextSecondary
+    val textColor = TextPrimary
+    val textSecondary = TextSecondary
     val formatMoney = { amount: Double ->
         com.loanmaster.pro.formatMoney(amount)
     }

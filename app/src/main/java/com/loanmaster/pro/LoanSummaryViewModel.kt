@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope

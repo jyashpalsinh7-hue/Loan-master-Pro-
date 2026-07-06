@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -35,12 +37,12 @@ fun RecommendationBottomSheet(
 ) {
     val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val bgColor = ResponsiveUtils.BgColor
-    val cardColor = ResponsiveUtils.SurfaceColor
-    val inputBg = ResponsiveUtils.SurfaceColor
-    val borderColor = ResponsiveUtils.CardStroke
-    val primaryText = ResponsiveUtils.TextPrimary
-    val secondaryText = ResponsiveUtils.TextSecondary
+    val bgColor = BackgroundDark
+    val cardColor = SurfaceDark
+    val inputBg = SurfaceDark
+    val borderColor = CardStroke
+    val primaryText = TextPrimary
+    val secondaryText = TextSecondary
     val greenAccent = Color(0xFF22C55E)
     val redAccent = Color(0xFFFF5252)
 

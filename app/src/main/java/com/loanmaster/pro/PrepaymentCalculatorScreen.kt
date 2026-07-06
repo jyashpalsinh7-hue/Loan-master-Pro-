@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -60,10 +62,10 @@ fun PrepaymentCalculatorScreen(
     }
     val adaptiveInfo = currentWindowAdaptiveInfo()
 
-    val bgColor = ResponsiveUtils.BgColor
-    val surfaceColor = ResponsiveUtils.SurfaceColor
-    val primaryColor = ResponsiveUtils.PrimaryAccent
-    val secondaryColor = ResponsiveUtils.SecondaryAccent
+    val bgColor = BackgroundDark
+    val surfaceColor = SurfaceDark
+    val primaryColor = AccentYellow
+    val secondaryColor = AccentBlue
     val accentGreen = Color(0xFF4ADE80)
     val accentOrange = Color(0xFFF97316)
     
@@ -174,7 +176,7 @@ fun PrepaymentCalculatorScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(LoanMasterTheme.spacing.lg))
                         .background(surfaceColor)
-                        .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.lg))
+                        .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.lg))
                         .padding(LoanMasterTheme.components.iconSmall),
                     verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
@@ -192,7 +194,7 @@ fun PrepaymentCalculatorScreen(
                     }
                     
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
-                    HorizontalDivider(color = ResponsiveUtils.CardStroke)
+                    HorizontalDivider(color = CardStroke)
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                     
                     Text("Prepayment Details", color = primaryColor, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
@@ -209,7 +211,7 @@ fun PrepaymentCalculatorScreen(
                                 .padding(vertical = LoanMasterTheme.spacing.md),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Reduce Tenure", color = if (strategy == "Tenure") Color.White else ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                            Text("Reduce Tenure", color = if (strategy == "Tenure") Color.White else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                         }
                         Box(
                             modifier = Modifier
@@ -220,7 +222,7 @@ fun PrepaymentCalculatorScreen(
                                 .padding(vertical = LoanMasterTheme.spacing.md),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Reduce EMI", color = if (strategy == "EMI") Color.White else ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                            Text("Reduce EMI", color = if (strategy == "EMI") Color.White else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -403,7 +405,7 @@ fun PrepaymentCalculatorScreen(
                     Text("Unlock Premium Features", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
                 }
             },
-            text = { Text("Watch a short ad or upgrade to Premium to unlock AI Smart Strategy and PDF Export of the Amortization schedule.", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize) },
+            text = { Text("Watch a short ad or upgrade to Premium to unlock AI Smart Strategy and PDF Export of the Amortization schedule.", color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize) },
             confirmButton = {
                 Button(
                     onClick = { 
@@ -433,7 +435,7 @@ fun PrepaymentCalculatorScreen(
                     Text("Buy Premium")
                 }
             },
-            containerColor = ResponsiveUtils.SurfaceColor
+            containerColor = SurfaceDark
         )
     }
 }
@@ -453,9 +455,9 @@ fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiRe
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(ResponsiveUtils.CardShape)
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(Brush.linearGradient(listOf(Color(0xFF0D3B23), surfaceColor)))
-            .border(1.dp, accentColor.copy(alpha = 0.3f), ResponsiveUtils.CardShape)
+            .border(1.dp, accentColor.copy(alpha = 0.3f), RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .padding(LoanMasterTheme.spacing.lg)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -505,11 +507,11 @@ fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, col
             .padding(LoanMasterTheme.spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(title, color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(title, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         Text(formatMoney(totalInterest), color = color, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-        Text("Total Interest", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+        Text("Total Interest", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
     }
 }
 
@@ -518,7 +520,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
     val interactionSource = remember { MutableInteractionSource() }
     
     Column {
-        Text(label, color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
+        Text(label, color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         BasicTextField(
             value = value,
@@ -527,7 +529,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LoanMasterTheme.spacing.md))
                 .background(Color.Black.copy(alpha = 0.2f))
-                .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.md))
+                .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.md))
                 .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
             textStyle = TextStyle(
                 color = Color.White,
@@ -540,7 +542,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
             decorationBox = { innerTextField ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (symbol.isNotEmpty() && symbol == "₹") {
-                        Text(symbol, color = ResponsiveUtils.PrimaryAccent, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
+                        Text(symbol, color = AccentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                     }
                     Box(modifier = Modifier.weight(1f)) {
@@ -551,7 +553,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
                     }
                     if (symbol.isNotEmpty() && symbol == "%" || symbol == "Yrs") {
                         Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                        Text(symbol, color = ResponsiveUtils.PrimaryAccent, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                        Text(symbol, color = AccentYellow, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -584,7 +586,7 @@ fun PrepaymentChartCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(LoanMasterTheme.spacing.lg))
             .background(surfaceColor)
-            .border(1.dp, ResponsiveUtils.CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.lg))
+            .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.lg))
             .padding(LoanMasterTheme.components.iconSmall)
     ) {
         Text("Payment Breakdown", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
@@ -605,11 +607,11 @@ fun PrepaymentChartCard(
                     Text("${(ogIntPct*100).toInt()}%", color = accentOrange, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-                Text("Standard", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                Text("Standard", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
                 Text(com.loanmaster.pro.formatMoney(originalTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
             
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.xl))
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.xl))
             
             // With Prepayment
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -621,7 +623,7 @@ fun PrepaymentChartCard(
                     Text("${(newIntPct*100).toInt()}%", color = accentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-                Text("Prepayment", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                Text("Prepayment", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
                 Text(com.loanmaster.pro.formatMoney(newTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
         }
@@ -631,13 +633,13 @@ fun PrepaymentChartCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(LoanMasterTheme.spacing.gridGutter).clip(CircleShape).background(primaryColor))
                 Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                Text("Principal", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                Text("Principal", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
             }
             Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.lg))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(LoanMasterTheme.spacing.gridGutter).clip(CircleShape).background(accentOrange))
                 Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                Text("Interest", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                Text("Interest", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
             }
         }
     }
@@ -733,7 +735,7 @@ fun AmortizationBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = ResponsiveUtils.SurfaceColor,
+        containerColor = SurfaceDark,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Column(
@@ -796,23 +798,23 @@ fun AmortizationBottomSheet(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
-                        .background(if (isStandard) ResponsiveUtils.PrimaryAccent else Color.Transparent)
+                        .background(if (isStandard) AccentYellow else Color.Transparent)
                         .clickable { isStandard = true }
                         .padding(vertical = LoanMasterTheme.spacing.md),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Standard", color = if (isStandard) Color.White else ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                    Text("Standard", color = if (isStandard) Color.White else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
-                        .background(if (!isStandard) ResponsiveUtils.PrimaryAccent else Color.Transparent)
+                        .background(if (!isStandard) AccentYellow else Color.Transparent)
                         .clickable { isStandard = false }
                         .padding(vertical = LoanMasterTheme.spacing.md),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Prepayment", color = if (!isStandard) Color.White else ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                    Text("Prepayment", color = if (!isStandard) Color.White else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                 }
             }
             
@@ -823,12 +825,12 @@ fun AmortizationBottomSheet(
                 modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.sm),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Mon", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(0.5f))
-                Text("Principal", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                Text("Interest", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                Text("Balance", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                Text("Mon", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(0.5f))
+                Text("Principal", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                Text("Interest", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                Text("Balance", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
             }
-            HorizontalDivider(color = ResponsiveUtils.CardStroke)
+            HorizontalDivider(color = CardStroke)
             
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f, fill = false).heightIn(max = 400.dp)
@@ -845,10 +847,10 @@ fun AmortizationBottomSheet(
                             Text(com.loanmaster.pro.formatMoney(row.balance), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
                         }
                         if (row.label.isNotEmpty()) {
-                            Text(row.label, color = if (row.isPrepayment) ResponsiveUtils.PrimaryAccent else ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))
+                            Text(row.label, color = if (row.isPrepayment) AccentYellow else TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))
                         }
                     }
-                    HorizontalDivider(color = ResponsiveUtils.CardStroke.copy(alpha = 0.5f))
+                    HorizontalDivider(color = CardStroke.copy(alpha = 0.5f))
                 }
             }
         }

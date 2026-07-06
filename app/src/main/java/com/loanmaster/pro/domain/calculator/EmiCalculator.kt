@@ -1,24 +1,69 @@
-
-package com.loanmaster.pro
-
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-
+package com.loanmaster.pro.domain.calculator
 
 import com.loanmaster.pro.model.*
-
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-
-
+import com.loanmaster.pro.formatMoney
 import kotlin.math.pow
 
+class EmiCalculator {
 
-// Top-level function moved from EmiCalculatorScreen.kt
+    data class FullResult(
+        val parsedLoanAmount: Double,
+        val parsedInterestRate: Double,
+        val parsedTenureYears: Int,
+        val totalMonths: Int,
+        val hasValidInput: Boolean,
+        val monthlyEmi: Double,
+        val totalInterest: Double,
+        val totalPayment: Double,
+        val principalPercentage: Double,
+        val interestPercentage: Double,
+        val monthlySchedule: List<MonthlyAmortization>,
+        val yearBreakdown: List<YearBreakdown>,
+        val recommendations: List<SmartRecommendation>,
+        val alerts: List<SmartAlert>,
+        val opportunities: List<SmartOpportunity>
+    )
+
+    fun calculateFull(
+        loanAmount: String,
+        interestRate: String,
+        tenureInput: String,
+        isTenureInMonths: Boolean,
+        loanType: String
+    ): FullResult {
+        val p = loanAmount.toDoubleOrNull() ?: 0.0
+        val r = interestRate.toDoubleOrNull() ?: 0.0
+        val t = tenureInput.toDoubleOrNull()?.toInt()?.coerceIn(0, 1200) ?: 0
+        
+        val months = if (isTenureInMonths) t else t * 12
+        val years = if (isTenureInMonths) t / 12 else t
+        
+        val valid = p > 0 && r > 0 && months > 0
+        
+        if (!valid) {
+            return FullResult(p, r, years, months, false, 0.0, 0.0, 0.0, 0.0, 0.0, emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        }
+
+        val emi = calculateEMI(p, r, months)
+        val totalPayment = emi * months
+        val totalInterest = totalPayment - p
+        
+        val pp = (p / totalPayment) * 100
+        val ip = (totalInterest / totalPayment) * 100
+
+        val schedule = getMonthlyAmortizationSchedule(p, r, months)
+        val yearly = getYearWiseBreakdown(p, r, months)
+        
+        val recommendations = generateRecommendations(p, r, months, emi, totalInterest)
+        val alerts = generateSmartAlerts(loanType, p, r, years, totalInterest, totalPayment)
+        val opportunities = generateSmartOpportunities(p, r, years, emi, totalInterest)
+
+        return FullResult(
+            p, r, years, months, true, emi, totalInterest, totalPayment, pp, ip,
+            schedule, yearly, recommendations, alerts, opportunities
+        )
+    }
+
 fun calculateEMI(principal: Double, annualRate: Double, months: Int): Double {
     if (principal <= 0 || annualRate <= 0 || months <= 0) return 0.0
     val r = annualRate / 12 / 100
@@ -112,193 +157,6 @@ fun getYearWiseBreakdown(
     }
 
     return breakdown
-}
-
-
-
-class EmiCalculatorViewModel(
-    private val historyRepository: HistoryRepository
-) : ViewModel() {
-
-    private val _loanAmountText = MutableStateFlow("")
-    val loanAmountText: StateFlow<String> = _loanAmountText.asStateFlow()
-
-    private val _interestRateText = MutableStateFlow("")
-    val interestRateText: StateFlow<String> = _interestRateText.asStateFlow()
-
-    private val _tenureInputText = MutableStateFlow("")
-    val tenureInputText: StateFlow<String> = _tenureInputText.asStateFlow()
-
-    private val _isTenureInMonths = MutableStateFlow(false)
-    val isTenureInMonths: StateFlow<Boolean> = _isTenureInMonths.asStateFlow()
-
-    private val _loanType = MutableStateFlow("Home Loan")
-    val loanType: StateFlow<String> = _loanType.asStateFlow()
-    
-    private val _currentHistoryId = MutableStateFlow(0)
-    val currentHistoryId: StateFlow<Int> = _currentHistoryId.asStateFlow()
-
-    // Calculated Results
-    private val _monthlyEmi = MutableStateFlow(0.0)
-    val monthlyEmi: StateFlow<Double> = _monthlyEmi.asStateFlow()
-
-    private val _totalInterest = MutableStateFlow(0.0)
-    val totalInterest: StateFlow<Double> = _totalInterest.asStateFlow()
-
-    private val _totalPayment = MutableStateFlow(0.0)
-    val totalPayment: StateFlow<Double> = _totalPayment.asStateFlow()
-    
-    private val _principalPercentage = MutableStateFlow(0.0)
-    val principalPercentage: StateFlow<Double> = _principalPercentage.asStateFlow()
-
-    private val _interestPercentage = MutableStateFlow(0.0)
-    val interestPercentage: StateFlow<Double> = _interestPercentage.asStateFlow()
-    
-    private val _parsedLoanAmount = MutableStateFlow(0.0)
-    val parsedLoanAmount: StateFlow<Double> = _parsedLoanAmount.asStateFlow()
-    
-    private val _parsedInterestRate = MutableStateFlow(0.0)
-    val parsedInterestRate: StateFlow<Double> = _parsedInterestRate.asStateFlow()
-    
-    private val _parsedTenureYears = MutableStateFlow(0)
-    val parsedTenureYears: StateFlow<Int> = _parsedTenureYears.asStateFlow()
-    
-    private val _hasValidInput = MutableStateFlow(false)
-    val hasValidInput: StateFlow<Boolean> = _hasValidInput.asStateFlow()
-    
-    private val _totalMonths = MutableStateFlow(0)
-    val totalMonths: StateFlow<Int> = _totalMonths.asStateFlow()
-
-    private val _monthlySchedule = MutableStateFlow<List<MonthlyAmortization>>(emptyList())
-    val monthlySchedule: StateFlow<List<MonthlyAmortization>> = _monthlySchedule.asStateFlow()
-
-    private val _yearBreakdown = MutableStateFlow<List<YearBreakdown>>(emptyList())
-    val yearBreakdown: StateFlow<List<YearBreakdown>> = _yearBreakdown.asStateFlow()
-
-
-    private val _recommendations = MutableStateFlow<List<SmartRecommendation>>(emptyList())
-    val recommendations: StateFlow<List<SmartRecommendation>> = _recommendations.asStateFlow()
-
-    private val _alerts = MutableStateFlow<List<SmartAlert>>(emptyList())
-    val alerts: StateFlow<List<SmartAlert>> = _alerts.asStateFlow()
-
-    private val _opportunities = MutableStateFlow<List<SmartOpportunity>>(emptyList())
-    val opportunities: StateFlow<List<SmartOpportunity>> = _opportunities.asStateFlow()
-
-    private val _isSavedSuccessfully = MutableStateFlow(false)
-    val isSavedSuccessfully: StateFlow<Boolean> = _isSavedSuccessfully.asStateFlow()
-
-    fun updateHistoryId(id: Int) {
-        _currentHistoryId.value = id
-    }
-    
-    fun loadFromHistory(history: CalculationHistory) {
-        _loanAmountText.value = history.param1 ?: ""
-        _interestRateText.value = history.param2 ?: ""
-        _tenureInputText.value = history.param3 ?: ""
-        _isTenureInMonths.value = history.param4 == "true"
-        _loanType.value = history.param5 ?: "Home Loan"
-        _currentHistoryId.value = history.id
-        calculateResults()
-    }
-
-    fun saveCurrentCalculation() {
-        val amount = _parsedLoanAmount.value
-        val rate = _parsedInterestRate.value
-        val tenure = _parsedTenureYears.value
-        
-        if (amount <= 0 || rate <= 0 || tenure <= 0) return
-
-        val history = CalculationHistory(
-            id = _currentHistoryId.value,
-            calculatorType = "EMI",
-            title = "${_loanType.value} - ${formatMoney(amount)}",
-            param1 = _loanAmountText.value,
-            param2 = _interestRateText.value,
-            param3 = _tenureInputText.value,
-            param4 = _isTenureInMonths.value.toString(),
-            param5 = _loanType.value,
-            result1 = _monthlyEmi.value,
-            result2 = _totalInterest.value,
-            result3 = _totalPayment.value
-        )
-        
-        viewModelScope.launch {
-            val id = historyRepository.saveHistory(history)
-            if (id > 0) {
-                _currentHistoryId.value = id.toInt()
-                _isSavedSuccessfully.value = true
-                delay(2000)
-                _isSavedSuccessfully.value = false
-            }
-        }
-    }
-
-
-    fun updateInputs(
-        loanAmount: String? = null,
-        interestRate: String? = null,
-        tenureInput: String? = null,
-        isTenureMonths: Boolean? = null,
-        type: String? = null
-    ) {
-        loanAmount?.let { _loanAmountText.value = it }
-        interestRate?.let { _interestRateText.value = it }
-        tenureInput?.let { _tenureInputText.value = it }
-        isTenureMonths?.let { _isTenureInMonths.value = it }
-        type?.let { _loanType.value = it }
-
-        calculateResults()
-    }
-
-    private fun calculateResults() {
-        val loanAmount = _loanAmountText.value.toDoubleOrNull() ?: 0.0
-        val interestRate = _interestRateText.value.toDoubleOrNull() ?: 0.0
-        val tenureValue = _tenureInputText.value.toDoubleOrNull()?.toInt()?.coerceIn(0, 1200) ?: 0
-        
-        val months = if (_isTenureInMonths.value) tenureValue else tenureValue * 12
-        _totalMonths.value = months
-
-        val valid = loanAmount > 0 && interestRate > 0 && months > 0
-        _hasValidInput.value = valid
-
-        if (valid) {
-            val emi = calculateEMI(loanAmount, interestRate, months)
-            _monthlyEmi.value = emi
-            
-            val totalPay = emi * months
-            _totalPayment.value = totalPay
-            _totalInterest.value = totalPay - loanAmount
-            
-            _principalPercentage.value = if (totalPay > 0) (loanAmount / totalPay) * 100 else 0.0
-            _interestPercentage.value = if (totalPay > 0) ((totalPay - loanAmount) / totalPay) * 100 else 0.0
-            _parsedLoanAmount.value = loanAmount
-            _parsedInterestRate.value = interestRate
-            _parsedTenureYears.value = if (_isTenureInMonths.value) tenureValue / 12 else tenureValue
-            
-            _monthlySchedule.value = getMonthlyAmortizationSchedule(loanAmount, interestRate, months)
-            _yearBreakdown.value = getYearWiseBreakdown(loanAmount, interestRate, months)
-            _recommendations.value = generateRecommendations(loanAmount, interestRate, months, emi, totalPay - loanAmount)
-            _alerts.value = generateSmartAlerts(_loanType.value, loanAmount, interestRate, if (_isTenureInMonths.value) tenureValue / 12 else tenureValue, totalPay - loanAmount, totalPay)
-            _opportunities.value = generateSmartOpportunities(loanAmount, interestRate, if (_isTenureInMonths.value) tenureValue / 12 else tenureValue, emi, totalPay - loanAmount)
-
-        } else {
-            _parsedLoanAmount.value = 0.0
-            _parsedInterestRate.value = 0.0
-            _parsedTenureYears.value = 0
-            _principalPercentage.value = 0.0
-            _interestPercentage.value = 0.0
-            _monthlyEmi.value = 0.0
-            _totalPayment.value = 0.0
-            _totalInterest.value = 0.0
-            _monthlySchedule.value = emptyList()
-            _yearBreakdown.value = emptyList()
-            _recommendations.value = emptyList()
-            _alerts.value = emptyList()
-            _opportunities.value = emptyList()
-
-        }
-    }
 }
 
 fun generateRecommendations(
@@ -526,15 +384,4 @@ fun generateSmartOpportunities(loanAmount: Double, interestRate: Double, tenureY
     }
     return list
 }
-
-class EmiCalculatorViewModelFactory(
-    private val historyRepository: HistoryRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(EmiCalculatorViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return EmiCalculatorViewModel(historyRepository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
 }

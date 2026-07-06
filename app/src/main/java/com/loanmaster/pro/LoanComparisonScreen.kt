@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.loanmaster.pro.model.*
@@ -272,8 +274,8 @@ fun LoanComparisonScreen(onNavigateBack: () -> Unit, viewModel: LoanComparisonVi
         else -> WindowWidthSizeClass.EXPANDED
     }
 
-    val bgColor = ResponsiveUtils.BgColor
-    val textColor = ResponsiveUtils.TextPrimary
+    val bgColor = BackgroundDark
+    val textColor = TextPrimary
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     

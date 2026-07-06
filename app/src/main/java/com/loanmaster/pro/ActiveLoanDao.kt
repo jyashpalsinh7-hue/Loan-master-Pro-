@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert

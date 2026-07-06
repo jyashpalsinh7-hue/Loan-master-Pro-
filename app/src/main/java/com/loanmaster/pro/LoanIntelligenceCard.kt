@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import com.loanmaster.pro.model.*
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -24,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loanmaster.pro.CurrencyFormatter
-import com.loanmaster.pro.ResponsiveUtils
 import androidx.window.core.layout.WindowWidthSizeClass
 import kotlin.math.pow
 

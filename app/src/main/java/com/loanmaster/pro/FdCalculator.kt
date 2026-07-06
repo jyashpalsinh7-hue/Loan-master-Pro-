@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import kotlin.math.ceil
 import kotlin.math.pow
 

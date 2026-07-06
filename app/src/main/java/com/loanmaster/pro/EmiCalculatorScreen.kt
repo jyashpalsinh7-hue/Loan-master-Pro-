@@ -1,5 +1,8 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+import com.loanmaster.pro.feature.emi.*
+
 import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.loanmaster.pro.model.*
@@ -311,6 +314,7 @@ fun EmiCalculatorScreen(
     onHistoryConsumed: () -> Unit = {},
     viewModel: EmiCalculatorViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     
@@ -338,49 +342,24 @@ fun EmiCalculatorScreen(
     val greenAccent = Color(0xFF22C55E)
     val purpleAccent = Color(0xFF7C4DFF)
 
-    val loanAmountText by viewModel.loanAmountText.collectAsStateWithLifecycle()
-    val interestRateText by viewModel.interestRateText.collectAsStateWithLifecycle()
-    val tenureInputText by viewModel.tenureInputText.collectAsStateWithLifecycle()
-    val isTenureInMonths by viewModel.isTenureInMonths.collectAsStateWithLifecycle()
-    val loanType by viewModel.loanType.collectAsStateWithLifecycle()
-    val currentHistoryId by viewModel.currentHistoryId.collectAsStateWithLifecycle()
-    
-    val monthlyEmi by viewModel.monthlyEmi.collectAsStateWithLifecycle()
-    val totalInterest by viewModel.totalInterest.collectAsStateWithLifecycle()
-    val totalPayment by viewModel.totalPayment.collectAsStateWithLifecycle()
-    val hasValidInput by viewModel.hasValidInput.collectAsStateWithLifecycle()
-    val totalMonths by viewModel.totalMonths.collectAsStateWithLifecycle()
-    
-    val monthlySchedule by viewModel.monthlySchedule.collectAsStateWithLifecycle()
-    val yearBreakdown by viewModel.yearBreakdown.collectAsStateWithLifecycle()
-    val alerts by viewModel.alerts.collectAsStateWithLifecycle()
-    val opportunities by viewModel.opportunities.collectAsStateWithLifecycle()
-    val recommendations by viewModel.recommendations.collectAsStateWithLifecycle()
-    
-    val parsedLoanAmount by viewModel.parsedLoanAmount.collectAsStateWithLifecycle()
-    val parsedInterestRate by viewModel.parsedInterestRate.collectAsStateWithLifecycle()
-    val parsedTenureYears by viewModel.parsedTenureYears.collectAsStateWithLifecycle()
-    val principalPercentage by viewModel.principalPercentage.collectAsStateWithLifecycle()
-    val interestPercentage by viewModel.interestPercentage.collectAsStateWithLifecycle()
-
     var showFullSchedule by rememberSaveable { mutableStateOf(false) }
 
     
-    LaunchedEffect(loanAmountText, interestRateText, tenureInputText, isTenureInMonths, loanType) {
+    LaunchedEffect(uiState.loanAmountText, uiState.interestRateText, uiState.tenureInputText, uiState.isTenureInMonths, uiState.loanType) {
         kotlinx.coroutines.delay(2000)
-        if (historyViewModel != null && hasValidInput) {
+        if (historyViewModel != null && uiState.hasValidInput) {
             val history = CalculationHistory(
-                id = currentHistoryId,
+                id = uiState.currentHistoryId,
                 calculatorType = "EMI",
-                title = "$loanType - ${formatMoney(parsedLoanAmount)}",
-                param1 = loanAmountText,
-                param2 = interestRateText,
-                param3 = tenureInputText,
-                param4 = isTenureInMonths.toString(),
-                param5 = loanType,
-                result1 = monthlyEmi,
-                result2 = totalInterest,
-                result3 = totalPayment
+                title = "$uiState.loanType - ${formatMoney(uiState.parsedLoanAmount)}",
+                param1 = uiState.loanAmountText,
+                param2 = uiState.interestRateText,
+                param3 = uiState.tenureInputText,
+                param4 = uiState.isTenureInMonths.toString(),
+                param5 = uiState.loanType,
+                result1 = uiState.monthlyEmi,
+                result2 = uiState.totalInterest,
+                result3 = uiState.totalPayment
             )
             historyViewModel.insert(history) { id ->
                 viewModel.updateHistoryId(id)
@@ -406,10 +385,10 @@ fun EmiCalculatorScreen(
     
     
 
-    val totalPrincipal = parsedLoanAmount
+    val totalPrincipal = uiState.parsedLoanAmount
 
     val animatedEmi by animateFloatAsState(
-        targetValue = if (hasValidInput) monthlyEmi.toFloat() else 0f,
+        targetValue = if (uiState.hasValidInput) uiState.monthlyEmi.toFloat() else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -419,8 +398,8 @@ fun EmiCalculatorScreen(
 
     
 
-    val prinPct = principalPercentage
-    val intPct = interestPercentage
+    val prinPct = uiState.principalPercentage
+    val intPct = uiState.interestPercentage
 
     Scaffold(
         containerColor = bgColor,
@@ -452,13 +431,13 @@ fun EmiCalculatorScreen(
                             context,
                             "EMI Calculator Report",
                             listOf(
-                                "Loan Amount" to formatMoney(parsedLoanAmount),
-                                "Interest Rate" to "$parsedInterestRate%",
-                                "Tenure" to "$parsedTenureYears Years ${totalMonths % 12} Months",
+                                "Loan Amount" to formatMoney(uiState.parsedLoanAmount),
+                                "Interest Rate" to "$uiState.parsedInterestRate%",
+                                "Tenure" to "$uiState.parsedTenureYears Years ${uiState.totalMonths % 12} Months",
                                 "" to "",
-                                "Monthly EMI" to formatMoney(monthlyEmi),
-                                "Total Interest" to formatMoney(totalInterest),
-                                "Total Payment" to formatMoney(totalPayment)
+                                "Monthly EMI" to formatMoney(uiState.monthlyEmi),
+                                "Total Interest" to formatMoney(uiState.totalInterest),
+                                "Total Payment" to formatMoney(uiState.totalPayment)
                             )
                         )
                     }) {
@@ -476,14 +455,14 @@ fun EmiCalculatorScreen(
         ) {
             CalculatorScreenLayout(
                 widthSizeClass = sizeClass,
-                animationTriggerState = monthlyEmi,
+                animationTriggerState = uiState.monthlyEmi,
                 headerSection = { },
                 inputControlsSection = {
                     // INPUT SECTION
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = ResponsiveUtils.CardShape,
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md), verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
@@ -491,13 +470,13 @@ fun EmiCalculatorScreen(
                                 columns = LoanMasterTheme.grids.calculatorColumns,
                                 content1 = { modifier ->
                                     PremiumInputField(
-                                        label = "Loan Amount", value = loanAmountText, onValueChange = { viewModel.updateInputs(loanAmount = it) },
+                                        label = "Loan Amount", value = uiState.loanAmountText, onValueChange = { viewModel.updateInputs(loanAmount = it) },
                                         icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, modifier = modifier
                                     )
                                 },
                                 content2 = { modifier ->
                                     PremiumInputField(
-                                        label = "Interest Rate (p.a.)", value = interestRateText, onValueChange = { viewModel.updateInputs(interestRate = it) },
+                                        label = "Interest Rate (p.a.)", value = uiState.interestRateText, onValueChange = { viewModel.updateInputs(interestRate = it) },
                                         icon = Icons.Rounded.Percent, iconTint = blueAccent, modifier = modifier,
                                         infoText = "The annual interest rate charged on your loan."
                                     )
@@ -507,15 +486,15 @@ fun EmiCalculatorScreen(
                                 columns = LoanMasterTheme.grids.calculatorColumns,
                                 content1 = { modifier ->
                                     TenureInputField(
-                                        label = "Tenure", value = tenureInputText, onValueChange = { viewModel.updateInputs(tenureInput = it) },
-                                        isMonths = isTenureInMonths, onToggleIsMonths = { viewModel.updateInputs(isTenureMonths = it) },
+                                        label = "Tenure", value = uiState.tenureInputText, onValueChange = { viewModel.updateInputs(tenureInput = it) },
+                                        isMonths = uiState.isTenureInMonths, onToggleIsMonths = { viewModel.updateInputs(isTenureMonths = it) },
                                         icon = Icons.Rounded.DateRange, iconTint = blueAccent,
                                         inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
                                     )
                                 },
                                 content2 = { modifier ->
                                     LoanTypeSelector(
-                                        selectedType = loanType, onTypeSelected = { viewModel.updateInputs(type = it) }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
+                                        selectedType = uiState.loanType, onTypeSelected = { viewModel.updateInputs(type = it) }, inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
                                     )
                                 }
                             )
@@ -525,11 +504,11 @@ fun EmiCalculatorScreen(
                 resultsSection = {
                     Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
             // PLACEHOLDER
-            if (!hasValidInput) {
+            if (!uiState.hasValidInput) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = primaryCard),
-                    shape = ResponsiveUtils.CardShape,
+                    shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                     border = BorderStroke(1.dp, borderColor)
                 ) {
                     Column(
@@ -545,7 +524,7 @@ fun EmiCalculatorScreen(
 
             // ANIMATED RESULTS
             AnimatedVisibility(
-                visible = hasValidInput,
+                visible = uiState.hasValidInput,
                 enter = fadeIn(tween(400)) + scaleIn(initialScale = 0.95f, animationSpec = tween(400))
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
@@ -626,12 +605,12 @@ fun EmiCalculatorScreen(
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = formatMoney(uiState.totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Payment", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = formatMoney(uiState.totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -642,7 +621,7 @@ fun EmiCalculatorScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = ResponsiveUtils.CardShape,
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
@@ -660,7 +639,7 @@ fun EmiCalculatorScreen(
                                 horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
                                 contentPadding = PaddingValues(end = LoanMasterTheme.spacing.md)
                             ) {
-                                items(recommendations, key = { it.id }) { rec ->
+                                items(uiState.recommendations, key = { it.id }) { rec ->
                                     val cardWidth = if (isExpanded) 220.dp else LoanMasterTheme.components.featuredCardHeight
                                     Column(
                                         modifier = Modifier
@@ -699,17 +678,17 @@ fun EmiCalculatorScreen(
                     }
 
                     // ==================== LOAN INTELLIGENCE (Integrated) ====================
-                    if (hasValidInput) {
+                    if (uiState.hasValidInput) {
                         LoanIntelligenceCard(
-                            loanType = loanType,
-                            loanAmount = parsedLoanAmount,
-                            interestRate = parsedInterestRate,
-                            tenureYears = parsedTenureYears,
-                            monthlyEmi = monthlyEmi,
-                            totalInterest = totalInterest,
-                            totalPayment = totalPayment,
-                            alerts = alerts,
-                            opportunities = opportunities
+                            loanType = uiState.loanType,
+                            loanAmount = uiState.parsedLoanAmount,
+                            interestRate = uiState.parsedInterestRate,
+                            tenureYears = uiState.parsedTenureYears,
+                            monthlyEmi = uiState.monthlyEmi,
+                            totalInterest = uiState.totalInterest,
+                            totalPayment = uiState.totalPayment,
+                            alerts = uiState.alerts,
+                            opportunities = uiState.opportunities
                         )
                     }
 
@@ -717,7 +696,7 @@ fun EmiCalculatorScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = primaryCard),
-                        shape = ResponsiveUtils.CardShape,
+                        shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
@@ -730,7 +709,7 @@ fun EmiCalculatorScreen(
                             }
                             Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
 
-                            val scheduleData = if (yearBreakdown.size <= 4) yearBreakdown else yearBreakdown.take(3) + listOf(yearBreakdown.last())
+                            val scheduleData = if (uiState.yearBreakdown.size <= 4) uiState.yearBreakdown else uiState.yearBreakdown.take(3) + listOf(uiState.yearBreakdown.last())
 
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.sm),
@@ -761,11 +740,11 @@ fun EmiCalculatorScreen(
                     }
 
                     // ==================== LOAN MILESTONES ====================
-                    if (hasValidInput && monthlySchedule.isNotEmpty()) {
+                    if (uiState.hasValidInput && uiState.monthlySchedule.isNotEmpty()) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = primaryCard),
-                            shape = ResponsiveUtils.CardShape,
+                            shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                             border = BorderStroke(1.dp, borderColor)
                         ) {
                             Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
@@ -778,11 +757,11 @@ fun EmiCalculatorScreen(
                                 var m75: Int? = null
                                 var mPrinExceedsInt: Int? = null
 
-                                for (item in monthlySchedule) {
+                                for (item in uiState.monthlySchedule) {
                                     cumPrincipal += item.principalPaid
-                                    if (m25 == null && cumPrincipal >= parsedLoanAmount * 0.25) m25 = item.month
-                                    if (m50 == null && cumPrincipal >= parsedLoanAmount * 0.50) m50 = item.month
-                                    if (m75 == null && cumPrincipal >= parsedLoanAmount * 0.75) m75 = item.month
+                                    if (m25 == null && cumPrincipal >= uiState.parsedLoanAmount * 0.25) m25 = item.month
+                                    if (m50 == null && cumPrincipal >= uiState.parsedLoanAmount * 0.50) m50 = item.month
+                                    if (m75 == null && cumPrincipal >= uiState.parsedLoanAmount * 0.75) m75 = item.month
                                     if (mPrinExceedsInt == null && item.principalPaid > item.interestPaid) mPrinExceedsInt = item.month
                                 }
 
@@ -800,7 +779,7 @@ fun EmiCalculatorScreen(
                                     "25% Repaid" to formatMonthYear(m25),
                                     "50% Repaid" to formatMonthYear(m50),
                                     "75% Repaid" to formatMonthYear(m75),
-                                    "Final EMI" to formatMonthYear(monthlySchedule.last().month)
+                                    "Final EMI" to formatMonthYear(uiState.monthlySchedule.last().month)
                                 )
 
                                 milestoneRows.forEachIndexed { index, pair ->
@@ -833,13 +812,13 @@ fun EmiCalculatorScreen(
                                     context,
                                     "EMI Calculator Report",
                                     listOf(
-                                        "Loan Amount" to formatMoney(parsedLoanAmount),
-                                        "Interest Rate" to "$parsedInterestRate%",
-                                        "Tenure" to "$parsedTenureYears Years ${totalMonths % 12} Months",
+                                        "Loan Amount" to formatMoney(uiState.parsedLoanAmount),
+                                        "Interest Rate" to "$uiState.parsedInterestRate%",
+                                        "Tenure" to "$uiState.parsedTenureYears Years ${uiState.totalMonths % 12} Months",
                                         "" to "",
-                                        "Monthly EMI" to formatMoney(monthlyEmi),
-                                        "Total Interest" to formatMoney(totalInterest),
-                                        "Total Payment" to formatMoney(totalPayment)
+                                        "Monthly EMI" to formatMoney(uiState.monthlyEmi),
+                                        "Total Interest" to formatMoney(uiState.totalInterest),
+                                        "Total Payment" to formatMoney(uiState.totalPayment)
                                     )
                                 )
                             },
@@ -873,8 +852,8 @@ fun EmiCalculatorScreen(
     } // closes Scaffold
 
     // FULL SCHEDULE DIALOG
-    if (showFullSchedule && hasValidInput) {
-        FullAmortizationDialog(emi = monthlyEmi, schedule = monthlySchedule, onDismiss = { showFullSchedule = false })
+    if (showFullSchedule && uiState.hasValidInput) {
+        FullAmortizationDialog(emi = uiState.monthlyEmi, schedule = uiState.monthlySchedule, onDismiss = { showFullSchedule = false })
     }
 
     // BOTTOM SHEET

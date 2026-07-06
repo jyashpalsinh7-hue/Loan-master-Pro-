@@ -1,5 +1,7 @@
 package com.loanmaster.pro.ui.theme
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.compose.foundation.layout.*
 import androidx.window.core.layout.WindowWidthSizeClass
 import androidx.compose.runtime.Composable

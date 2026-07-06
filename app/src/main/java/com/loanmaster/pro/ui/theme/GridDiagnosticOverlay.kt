@@ -1,5 +1,7 @@
 package com.loanmaster.pro.ui.theme
 
+import com.loanmaster.pro.ui.theme.*
+
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import androidx.compose.foundation.background

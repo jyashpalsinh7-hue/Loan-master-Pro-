@@ -1,5 +1,7 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.ui.theme.*
+
 import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.loanmaster.pro.ui.theme.LoanMasterTheme
@@ -59,17 +61,17 @@ fun HistoryScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ResponsiveUtils.BgColor)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
             )
         },
-        containerColor = ResponsiveUtils.BgColor
+        containerColor = BackgroundDark
     ) { innerPadding ->
         if (historyItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Rounded.HistoryToggleOff, contentDescription = null, tint = ResponsiveUtils.TextSecondary, modifier = Modifier.size(LoanMasterTheme.components.topAppBarHeight))
+                    Icon(Icons.Rounded.HistoryToggleOff, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(LoanMasterTheme.components.topAppBarHeight))
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-                    Text("No history yet.", color = ResponsiveUtils.TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
+                    Text("No history yet.", color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
                 }
             }
         } else {
@@ -115,7 +117,7 @@ fun HistoryItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onItemClick),
-        colors = CardDefaults.cardColors(containerColor = ResponsiveUtils.SurfaceColor),
+        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
         shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
         elevation = CardDefaults.cardElevation(defaultElevation = LoanMasterTheme.spacing.xs)
     ) {
@@ -129,10 +131,10 @@ fun HistoryItemCard(
                 modifier = Modifier
                     .size(LoanMasterTheme.components.iconLarge)
                     .clip(CircleShape)
-                    .background(ResponsiveUtils.PrimaryAccent.copy(alpha = 0.2f)),
+                    .background(AccentYellow.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = ResponsiveUtils.PrimaryAccent)
+                Icon(icon, contentDescription = null, tint = AccentYellow)
             }
             
             Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
@@ -150,27 +152,27 @@ fun HistoryItemCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.calculatorType,
-                        color = ResponsiveUtils.PrimaryAccent,
+                        color = AccentYellow,
                         fontSize = LoanMasterTheme.typography.label.fontSize,
                         fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                     Text(
                         text = "•",
-                        color = ResponsiveUtils.TextSecondary,
+                        color = TextSecondary,
                         fontSize = LoanMasterTheme.typography.label.fontSize
                     )
                     Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                     Text(
                         text = dateString,
-                        color = ResponsiveUtils.TextSecondary,
+                        color = TextSecondary,
                         fontSize = LoanMasterTheme.typography.label.fontSize
                     )
                 }
             }
             
             IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = ResponsiveUtils.TextSecondary)
+                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = TextSecondary)
             }
         }
     }

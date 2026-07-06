@@ -1,5 +1,7 @@
 package com.loanmaster.pro.model
 
+import com.loanmaster.pro.ui.theme.*
+
 enum class AlertType {
     CRITICAL, WARNING, POSITIVE
 }
