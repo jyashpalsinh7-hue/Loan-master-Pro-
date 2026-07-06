@@ -1,4 +1,13 @@
 package com.loanmaster.pro
+import com.loanmaster.pro.data.local.entity.*
+import com.loanmaster.pro.domain.model.*
+import com.loanmaster.pro.feature.history.*
+import com.loanmaster.pro.feature.prepayment.*
+import com.loanmaster.pro.feature.gst.*
+import com.loanmaster.pro.feature.rd.*
+import com.loanmaster.pro.feature.fd.*
+import com.loanmaster.pro.feature.sip.*
+import com.loanmaster.pro.feature.emi.*
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider

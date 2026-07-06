@@ -1,8 +1,33 @@
 package com.loanmaster.pro
 
+import com.loanmaster.pro.domain.model.*
+import com.loanmaster.pro.feature.gst.*
+import com.loanmaster.pro.feature.sip.*
+import com.loanmaster.pro.core.ui.*
+import com.loanmaster.pro.feature.history.*
+import com.loanmaster.pro.core.theme.*
+import com.loanmaster.pro.data.datastore.*
+import com.loanmaster.pro.feature.settings.*
+import com.loanmaster.pro.feature.rd.*
+import com.loanmaster.pro.domain.calculator.*
+import com.loanmaster.pro.data.local.entity.*
+import com.loanmaster.pro.core.utils.*
+import com.loanmaster.pro.data.local.dao.*
+import com.loanmaster.pro.data.local.room.*
+import com.loanmaster.pro.feature.emi.*
+import com.loanmaster.pro.feature.loansummary.*
+import com.loanmaster.pro.feature.prepayment.*
+import com.loanmaster.pro.core.formatter.*
+import com.loanmaster.pro.feature.fd.*
+import com.loanmaster.pro.data.repository.*
+import com.loanmaster.pro.feature.currency.*
+import com.loanmaster.pro.core.navigation.*
+import com.loanmaster.pro.feature.compare.*
+import com.loanmaster.pro.feature.loaneligibility.*
+import com.loanmaster.pro.core.responsive.*
+import com.loanmaster.pro.feature.home.*
 import androidx.window.core.layout.WindowWidthSizeClass
 
-import com.loanmaster.pro.ui.theme.LoanMasterTheme
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -25,6 +50,7 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +72,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.loanmaster.pro.ui.theme.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
@@ -80,10 +105,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val settingsViewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-            val language by settingsViewModel.language.collectAsStateWithLifecycle()
-            val currency by settingsViewModel.currency.collectAsStateWithLifecycle()
-            val notificationsEnabled by settingsViewModel.notificationsEnabled.collectAsStateWithLifecycle()
-            val keepHistoryEnabled by settingsViewModel.keepHistoryEnabled.collectAsStateWithLifecycle()
+            val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            val language = uiState.language
+            val currency = uiState.currency
+            val notificationsEnabled = uiState.notificationsEnabled
+            val keepHistoryEnabled = uiState.keepHistoryEnabled
 
 
             val configuration = androidx.compose.ui.platform.LocalConfiguration.current
@@ -111,18 +137,14 @@ class MainActivity : ComponentActivity() {
                     )
                     
                     // Prepopulate database with 5 items per calculator if empty
-                    LaunchedEffect(Unit) {
-                        DatabasePrepopulator.prepopulateIfEmpty(context, repository)
-                    }
+                    
 
                     val loanSummaryViewModel: LoanSummaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                         factory = LoanSummaryViewModelFactory(activeLoanRepository)
                     )
                     val navController = rememberNavController()
-                    val mainViewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-                    val activeRoute by mainViewModel.activeBottomNavItem.collectAsStateWithLifecycle()
-                    val selectedHistory by mainViewModel.selectedHistory.collectAsStateWithLifecycle()
-                    
+                    val mainViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+                                                            
                     val adaptiveInfo = currentWindowAdaptiveInfo()
                     
 
