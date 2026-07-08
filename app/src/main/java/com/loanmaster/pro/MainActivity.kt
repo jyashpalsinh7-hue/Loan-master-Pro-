@@ -89,14 +89,12 @@ val LocalKeepHistoryEnabled = compositionLocalOf { true }
 private var APP_DATABASE_INSTANCE: LoanMasterDatabase? = null
 
 fun getDatabase(context: android.content.Context): LoanMasterDatabase {
-    return APP_DATABASE_INSTANCE ?: synchronized(Any()) {
-        val instance = androidx.room.Room.databaseBuilder(
+    return APP_DATABASE_INSTANCE ?: synchronized(LoanMasterDatabase::class.java) {
+        APP_DATABASE_INSTANCE ?: androidx.room.Room.databaseBuilder(
             context.applicationContext,
             LoanMasterDatabase::class.java,
             "loan_master_database"
-        ).fallbackToDestructiveMigration(dropAllTables = true).build()
-        APP_DATABASE_INSTANCE = instance
-        instance
+        ).fallbackToDestructiveMigration().build().also { APP_DATABASE_INSTANCE = it }
     }
 }
 

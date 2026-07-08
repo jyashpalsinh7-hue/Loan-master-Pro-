@@ -283,7 +283,7 @@ fun AppNavigation(
                         ) 
                     }
                     composable("currency") { CurrencyScreen(onNavigateBack = { navController.popBackStack() }) }
-                    composable("eligibility") { LoanEligibilityScreen() }
+                    composable("eligibility") { LoanEligibilityScreen(onNavigateBack = { navController.popBackStack() }) }
                     composable("prepayment") { 
                         PrepaymentScreen(
                             onNavigateBack = { navController.popBackStack() },
