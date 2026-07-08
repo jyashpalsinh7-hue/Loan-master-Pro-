@@ -72,8 +72,14 @@ fun MyApplicationTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
+            
+            val context = view.context
+            val activity = generateSequence(context) { if (it is android.content.ContextWrapper) it.baseContext else null }.firstOrNull { it is Activity } as? Activity
+            val window = activity?.window
+            if (window != null) {
+
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            }
         }
     }
 

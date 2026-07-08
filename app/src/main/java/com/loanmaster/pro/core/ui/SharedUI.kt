@@ -82,11 +82,12 @@ fun AutoSizeText(
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
     minTextSize: TextUnit = LoanMasterTheme.typography.label.fontSize,
-    maxTextSize: TextUnit = TextUnit.Unspecified,
+    maxTextSize: TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = 1,
 ) {
-    var textStyle by remember(text, maxTextSize, fontWeight, color) { mutableStateOf(TextStyle(fontSize = maxTextSize, fontWeight = fontWeight, color = color)) }
+    val actualMaxTextSize = if (maxTextSize == androidx.compose.ui.unit.TextUnit.Unspecified) LoanMasterTheme.typography.body.fontSize else maxTextSize
+    var textStyle by remember(text, actualMaxTextSize, fontWeight, color) { mutableStateOf(TextStyle(fontSize = actualMaxTextSize, fontWeight = fontWeight, color = color)) }
     var readyToDraw by remember(text) { mutableStateOf(false) }
 
     Text(
@@ -122,7 +123,7 @@ fun AutoResizedText(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontSize: TextUnit = TextUnit.Unspecified,
+    fontSize: TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = 1,
 ) {
@@ -142,7 +143,7 @@ fun ScrollingTitleText(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
-    fontSize: TextUnit = TextUnit.Unspecified,
+    fontSize: TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
 ) {
     AutoResizedText(
