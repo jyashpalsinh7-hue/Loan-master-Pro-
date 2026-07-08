@@ -97,6 +97,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val baseAmount = uiState.baseAmountText
     val baseCurrency = uiState.baseCurrency
@@ -447,6 +448,7 @@ fun CurrencyInputSection(
 @Composable
 fun PremiumChartSection(viewModel: CurrencyViewModel, exchangeRate: Double, baseCurrency: String, targetCurrency: String) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val selectedTab = uiState.selectedTab
     
     val dataPoints = uiState.chartPoints

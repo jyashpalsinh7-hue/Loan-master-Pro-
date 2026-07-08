@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun RecommendationBottomSheet(
+    dummyCurrency: String = com.loanmaster.pro.LocalCurrency.current,
     recommendation: SmartRecommendation,
     isExpandedWidth: Boolean,
     isMediumWidth: Boolean,
@@ -150,7 +151,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.Savings,
                         title = "Interest Saved",
-                        value = "₹" + formatMoney(interestSaved).replace("₹", ""),
+                        value = com.loanmaster.pro.core.formatter.formatMoney(interestSaved),
                         accentColor = greenAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -159,7 +160,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.Rounded.MoneyOff,
                         title = "Additional Interest Cost",
-                        value = "₹" + formatMoney(-interestSaved).replace("₹", ""),
+                        value = com.loanmaster.pro.core.formatter.formatMoney(-interestSaved),
                         accentColor = redAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -190,7 +191,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.AutoMirrored.Rounded.TrendingUp,
                         title = "Extra EMI Required",
-                        value = "₹" + formatMoney(extraEmi).replace("₹", "") + " /mo",
+                        value = com.loanmaster.pro.core.formatter.formatMoney(extraEmi) + " /mo",
                         accentColor = Color(0xFFFFC328),
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -199,7 +200,7 @@ fun RecommendationBottomSheet(
                     ImpactCard(
                         icon = Icons.AutoMirrored.Rounded.TrendingDown,
                         title = "EMI Reduced By",
-                        value = "₹" + formatMoney(-extraEmi).replace("₹", "") + " /mo",
+                        value = com.loanmaster.pro.core.formatter.formatMoney(-extraEmi) + " /mo",
                         accentColor = greenAccent,
                         bgColor = cardColor,
                         borderColor = borderColor
@@ -236,7 +237,7 @@ fun RecommendationComparisonCard(
             
             Column {
                 Text("EMI", color = Color(0xFFA8B3D1), fontSize = LoanMasterTheme.typography.label.fontSize)
-                Text(formatMoney(emi), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(emi), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
             
             Column {
@@ -246,7 +247,7 @@ fun RecommendationComparisonCard(
             
             Column {
                 Text("Total Interest", color = Color(0xFFA8B3D1), fontSize = LoanMasterTheme.typography.label.fontSize)
-                Text(formatMoney(totalInterest), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(totalInterest), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize)
             }
         }
     }

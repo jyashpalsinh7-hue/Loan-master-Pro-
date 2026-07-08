@@ -244,7 +244,7 @@ fun FullAmortizationDialog(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "${schedule.size} months • EMI: ${formatMoney(emi)}",
+                    "${schedule.size} months • EMI: ${com.loanmaster.pro.core.formatter.formatMoney(emi)}",
                     color = secondaryText,
                     style = LoanMasterTheme.typography.body
                 )
@@ -278,10 +278,10 @@ fun FullAmortizationDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("M${row.month}", color = secondaryText, style = LoanMasterTheme.typography.label, modifier = Modifier.weight(0.9f))
-                            AutoResizedText(formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
-                            AutoResizedText(formatMoney(row.principalPaid), color = greenAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
-                            AutoResizedText(formatMoney(row.interestPaid), color = goldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
-                            AutoResizedText(formatMoney(row.remainingBalance), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(com.loanmaster.pro.core.formatter.formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(com.loanmaster.pro.core.formatter.formatMoney(row.principalPaid), color = greenAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(com.loanmaster.pro.core.formatter.formatMoney(row.interestPaid), color = goldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.1f).wrapContentWidth(Alignment.End))
+                            AutoResizedText(com.loanmaster.pro.core.formatter.formatMoney(row.remainingBalance), color = primaryText, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.2f).wrapContentWidth(Alignment.End))
                         }
                         if (row.month < schedule.size) {
                             HorizontalDivider(color = borderColor.copy(alpha = 0.3f), thickness = 0.5.dp)
@@ -310,7 +310,7 @@ fun FullAmortizationDialog(
                             ExportUtils.exportToPdf(
                                 context,
                                 "Amortization Schedule",
-                                schedule.map { "Month ${it.month}" to "EMI: ${formatMoney(it.emi)}, Prin: ${formatMoney(it.principalPaid)}, Int: ${formatMoney(it.interestPaid)}, Bal: ${formatMoney(it.remainingBalance)}" }
+                                schedule.map { "Month ${it.month}" to "EMI: ${com.loanmaster.pro.core.formatter.formatMoney(it.emi)}, Prin: ${com.loanmaster.pro.core.formatter.formatMoney(it.principalPaid)}, Int: ${com.loanmaster.pro.core.formatter.formatMoney(it.interestPaid)}, Bal: ${com.loanmaster.pro.core.formatter.formatMoney(it.remainingBalance)}" }
                             )
                         },
                         modifier = Modifier.weight(1f).heightIn(min = LoanMasterTheme.components.buttonHeight),
@@ -338,6 +338,7 @@ fun EmiScreen(
     viewModel: EmiViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     
@@ -374,7 +375,7 @@ fun EmiScreen(
             val history = CalculationHistory(
                 id = uiState.currentHistoryId,
                 calculatorType = "EMI",
-                title = "$uiState.loanType - ${formatMoney(uiState.parsedLoanAmount)}",
+                title = "$uiState.loanType - ${com.loanmaster.pro.core.formatter.formatMoney(uiState.parsedLoanAmount)}",
                 param1 = uiState.loanAmountText,
                 param2 = uiState.interestRateText,
                 param3 = uiState.tenureInputText,
@@ -454,13 +455,13 @@ fun EmiScreen(
                             context,
                             "EMI Calculator Report",
                             listOf(
-                                "Loan Amount" to formatMoney(uiState.parsedLoanAmount),
+                                "Loan Amount" to com.loanmaster.pro.core.formatter.formatMoney(uiState.parsedLoanAmount),
                                 "Interest Rate" to "$uiState.parsedInterestRate%",
                                 "Tenure" to "$uiState.parsedTenureYears Years ${uiState.totalMonths % 12} Months",
                                 "" to "",
-                                "Monthly EMI" to formatMoney(uiState.monthlyEmi),
-                                "Total Interest" to formatMoney(uiState.totalInterest),
-                                "Total Payment" to formatMoney(uiState.totalPayment)
+                                "Monthly EMI" to com.loanmaster.pro.core.formatter.formatMoney(uiState.monthlyEmi),
+                                "Total Interest" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalInterest),
+                                "Total Payment" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalPayment)
                             )
                         )
                     }) {
@@ -569,7 +570,7 @@ fun EmiScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text("Your Monthly EMI", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f)
                                         AutoResizedText(
-                                            text = formatMoney(animatedEmi.toDouble()),
+                                            text = com.loanmaster.pro.core.formatter.formatMoney(animatedEmi.toDouble()),
                                             color = blueAccent,
                                             fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 1.5f,
                                             fontWeight = FontWeight.Bold,
@@ -628,12 +629,12 @@ fun EmiScreen(
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(uiState.totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = com.loanmaster.pro.core.formatter.formatMoney(uiState.totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Text("Total Payment", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
-                                        AutoResizedText(text = formatMoney(uiState.totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
+                                        AutoResizedText(text = com.loanmaster.pro.core.formatter.formatMoney(uiState.totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -751,9 +752,9 @@ fun EmiScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text("Y${row.year}", color = if (index == scheduleData.lastIndex) secondaryText else primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f))
-                                    Text(formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                                    Text(formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(com.loanmaster.pro.core.formatter.formatMoney(row.emi), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(com.loanmaster.pro.core.formatter.formatMoney(row.principalPaid), color = Color(0xFF22C55E), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                                    Text(com.loanmaster.pro.core.formatter.formatMoney(row.interestPaid), color = Color(0xFFFFC328), fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                                 }
                                 if (index < scheduleData.lastIndex) {
                                     HorizontalDivider(color = borderColor.copy(alpha = 0.35f))
@@ -835,13 +836,13 @@ fun EmiScreen(
                                     context,
                                     "EMI Calculator Report",
                                     listOf(
-                                        "Loan Amount" to formatMoney(uiState.parsedLoanAmount),
+                                        "Loan Amount" to com.loanmaster.pro.core.formatter.formatMoney(uiState.parsedLoanAmount),
                                         "Interest Rate" to "$uiState.parsedInterestRate%",
                                         "Tenure" to "$uiState.parsedTenureYears Years ${uiState.totalMonths % 12} Months",
                                         "" to "",
-                                        "Monthly EMI" to formatMoney(uiState.monthlyEmi),
-                                        "Total Interest" to formatMoney(uiState.totalInterest),
-                                        "Total Payment" to formatMoney(uiState.totalPayment)
+                                        "Monthly EMI" to com.loanmaster.pro.core.formatter.formatMoney(uiState.monthlyEmi),
+                                        "Total Interest" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalInterest),
+                                        "Total Payment" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalPayment)
                                     )
                                 )
                             },

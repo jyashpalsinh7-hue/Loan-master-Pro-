@@ -66,14 +66,19 @@ class FdCalculator {
         val wealthGain = if (p > 0) (returns / p) * 100 else 0.0
 
         val maxYears = ceil(t).toInt()
+        var currentBal = p
         val breakdown = (1..maxYears).map { y ->
-            val tMat = p * (1 + ratePerPeriod / n).pow(n * y.toDouble())
-            FdYearBreakdown(
+            val actualYears = if (y > t && y - 1 < t) t else y.toDouble()
+            val tMat = p * (1 + ratePerPeriod / n).pow(n * actualYears)
+            val interestEarned = tMat - currentBal
+            val breakdownRow = FdYearBreakdown(
                 year = y,
-                openingBalance = p,
-                interestEarned = tMat - p,
+                openingBalance = currentBal,
+                interestEarned = interestEarned,
                 closingBalance = tMat
             )
+            currentBal = tMat
+            breakdownRow
         }
 
         return FdResult(

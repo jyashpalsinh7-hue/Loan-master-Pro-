@@ -73,6 +73,7 @@ fun HistoryScreen(
     }
 
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val historyItems = uiState.historyList
 
     Scaffold(

@@ -74,6 +74,7 @@ fun LoanSummaryScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val activeLoans = uiState.activeLoans
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val windowSizeClass = when {
@@ -180,7 +181,7 @@ fun LoanSummaryScreen(
                     // Left: Outstanding
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Total Outstanding", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(formatMoney(totalOutstanding), color = accentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(com.loanmaster.pro.core.formatter.formatMoney(totalOutstanding), color = accentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text("across $totalLoansCount loan${if(totalLoansCount != 1) "s" else ""}", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     
@@ -222,12 +223,12 @@ fun LoanSummaryScreen(
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                         Column(horizontalAlignment = Alignment.Start) {
                             Text("Total Principal Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(formatMoney(totalPrincipalPaid), color = accentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalPrincipalPaid), color = accentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             
                             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                             
                             Text("Total Interest Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(formatMoney(totalInterestPaid), color = accentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalInterestPaid), color = accentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -250,7 +251,7 @@ fun LoanSummaryScreen(
                     ) {
                         StatItem("Total Loans", totalLoansCount.toString(), Icons.Rounded.AccountBalanceWallet)
                         Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
-                        StatItem("EMI / month", com.loanmaster.pro.core.formatter.formatMoney(totalEmi), Icons.Rounded.CurrencyRupee)
+                        StatItem("EMI / month", com.loanmaster.pro.core.formatter.formatMoney(totalEmi), Icons.Rounded.AccountBalanceWallet)
                         Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
                         StatItem("Outstanding", com.loanmaster.pro.core.formatter.formatMoney(totalOutstanding), Icons.Rounded.Savings)
                         Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
@@ -349,7 +350,7 @@ fun NextEmiCard(loan: ActiveLoan) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Next EMI Due  ", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Medium)
-                        Text(formatMoney(loan.emiAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                        Text(com.loanmaster.pro.core.formatter.formatMoney(loan.emiAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                     }
                     Text("on 26 Jul 2026", color = Color(0xFFC084FC), fontSize = LoanMasterTheme.typography.label.fontSize) // Mock date
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
@@ -428,7 +429,7 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Loan Amount", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                    Text(formatMoney(originalAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(com.loanmaster.pro.core.formatter.formatMoney(originalAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -452,7 +453,7 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
             // Progress
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Principal Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize)
-                Text("${formatMoney(paid)} (${(paidPercent * 100).roundToInt()}%)", color = Color(0xFF22C55E), fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold)
+                Text("${com.loanmaster.pro.core.formatter.formatMoney(paid)} (${(paidPercent * 100).roundToInt()}%)", color = Color(0xFF22C55E), fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
             LinearProgressIndicator(
@@ -519,7 +520,7 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
                     value = bankName,
                     onValueChange = { bankName = it },
                     label = { Text("Bank/Lender Name") },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, true),
                     singleLine = true,
                     colors = tfColors,
                     shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
@@ -551,7 +552,7 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
                     value = loanType,
                     onValueChange = { loanType = it },
                     label = { Text("Loan Type") },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, true),
                     singleLine = true,
                     colors = tfColors,
                     shape = RoundedCornerShape(LoanMasterTheme.spacing.md),

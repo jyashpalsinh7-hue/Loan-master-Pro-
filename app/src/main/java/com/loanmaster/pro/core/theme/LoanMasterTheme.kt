@@ -182,7 +182,7 @@ fun LoanMasterTheme(
         )
     } else if (isMedium) {
         AppGrids(
-            calculatorColumns = 3,
+            calculatorColumns = 2,
             scheduleColumns = 1
         )
     } else {

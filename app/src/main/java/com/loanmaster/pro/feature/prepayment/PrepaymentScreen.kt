@@ -94,6 +94,7 @@ fun PrepaymentScreen(
     val accentOrange = Color(0xFFF97316)
     
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val loanAmount = uiState.loanAmountText
     val interestRate = uiState.interestRateText
@@ -140,7 +141,7 @@ fun PrepaymentScreen(
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "Prepayment",
-                title = "₹$loanAmount - Strategy: $strategy",
+                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$loanAmount - Strategy: $strategy",
                 param1 = loanAmount,
                 param2 = interestRate,
                 param3 = tenureYears,
@@ -206,7 +207,7 @@ fun PrepaymentScreen(
                 ) {
                     Text("Loan Details", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
                     
-                    PremiumInputField("Outstanding Loan Amount", "₹", loanAmount) { viewModel.updateInputs(loanAmount = it) }
+                    PremiumInputField("Outstanding Loan Amount", com.loanmaster.pro.core.formatter.currentCurrencySymbol, loanAmount) { viewModel.updateInputs(loanAmount = it) }
                     
                     Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
                         Box(modifier = Modifier.weight(1f)) {
@@ -250,7 +251,7 @@ fun PrepaymentScreen(
                         }
                     }
 
-                    PremiumInputField("Lump Sum Prepayment", "₹", prepaymentAmount) { viewModel.updateInputs(prepaymentAmount = it) }
+                    PremiumInputField("Lump Sum Prepayment", com.loanmaster.pro.core.formatter.currentCurrencySymbol, prepaymentAmount) { viewModel.updateInputs(prepaymentAmount = it) }
                     
                     // Slider for Lump Sum
                     val maxSliderValue = if (p > 0) p.toFloat() else 10000000f
@@ -269,10 +270,10 @@ fun PrepaymentScreen(
                     if (strategy == "Tenure") {
                         Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Monthly Extra", "₹", monthlyPrepayment) { viewModel.updateInputs(monthlyPrepayment = it) }
+                                PremiumInputField("Monthly Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, monthlyPrepayment) { viewModel.updateInputs(monthlyPrepayment = it) }
                             }
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Annual Extra", "₹", annualPrepayment) { viewModel.updateInputs(annualPrepayment = it) }
+                                PremiumInputField("Annual Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, annualPrepayment) { viewModel.updateInputs(annualPrepayment = it) }
                             }
                         }
                     }
@@ -366,7 +367,7 @@ fun PrepaymentScreen(
                             
                             Text("Optimal Prepayment Month: Month $bestMonth", color = Color(0xFF4ADE80), fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
-                            Text("Mathematically, the earlier you prepay, the more principal you reduce. Prepaying ₹${formatMoney(prePay)} in Month 1 saves maximum interest. Delaying this prepayment by just one year will cost you approximately ₹${formatMoney(delayLoss * 12)} in additional interest.", color = Color.White.copy(alpha = 0.8f), fontSize = LoanMasterTheme.typography.body.fontSize, lineHeight = LoanMasterTheme.typography.title.fontSize)
+                            Text("Mathematically, the earlier you prepay, the more principal you reduce. Prepaying ${com.loanmaster.pro.core.formatter.formatMoney(prePay)} in Month 1 saves maximum interest. Delaying this prepayment by just one year will cost you approximately ${com.loanmaster.pro.core.formatter.formatMoney(delayLoss * 12)} in additional interest.", color = Color.White.copy(alpha = 0.8f), fontSize = LoanMasterTheme.typography.body.fontSize, lineHeight = LoanMasterTheme.typography.title.fontSize)
                         }
                     } else {
                         Row(
@@ -461,7 +462,7 @@ fun PrepaymentScreen(
 @Composable
 fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiReduced: Double, strategy: String, accentColor: Color, surfaceColor: Color) {
     val formatMoney = { amount: Double ->
-        formatMoney(amount)
+        com.loanmaster.pro.core.formatter.formatMoney(amount)
     }
     
     val years = (tenureReducedMonths / 12).toInt()
@@ -486,7 +487,7 @@ fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiRe
             }
             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
             AutoSizeText(
-                text = formatMoney(interestSaved),
+                text = com.loanmaster.pro.core.formatter.formatMoney(interestSaved),
                 color = accentColor,
                 minTextSize = LoanMasterTheme.typography.title.fontSize,
                 maxTextSize = 48.sp,
@@ -504,7 +505,7 @@ fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiRe
                 val icon = if(strategy == "Tenure") Icons.Rounded.Event else Icons.Rounded.AccountBalanceWallet
                 Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                 Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                val savedText = if (strategy == "Tenure") "Tenure Reduced by: $tenureText" else "EMI Reduced by: ${formatMoney(emiReduced)}"
+                val savedText = if (strategy == "Tenure") "Tenure Reduced by: $tenureText" else "EMI Reduced by: ${com.loanmaster.pro.core.formatter.formatMoney(emiReduced)}"
                 Text(savedText, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Medium)
             }
         }
@@ -514,7 +515,7 @@ fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiRe
 @Composable
 fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, color: Color, surfaceColor: Color) {
     val formatMoney = { amount: Double ->
-        formatMoney(amount)
+        com.loanmaster.pro.core.formatter.formatMoney(amount)
     }
     
     Column(
@@ -527,7 +528,7 @@ fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, col
     ) {
         Text(title, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
-        Text(formatMoney(totalInterest), color = color, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
+        Text(com.loanmaster.pro.core.formatter.formatMoney(totalInterest), color = color, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
         Text("Total Interest", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
     }
@@ -559,7 +560,7 @@ fun PremiumInputField(label: String, symbol: String, value: String, onValueChang
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (symbol.isNotEmpty() && symbol == "₹") {
+                    if (symbol.isNotEmpty() && symbol == com.loanmaster.pro.core.formatter.currentCurrencySymbol) {
                         Text(symbol, color = AccentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                     }
@@ -626,7 +627,7 @@ fun PrepaymentChartCard(
                 }
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                 Text("Standard", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
-                Text(formatMoney(originalTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(originalTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
             
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.xl))
@@ -642,7 +643,7 @@ fun PrepaymentChartCard(
                 }
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                 Text("Prepayment", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
-                Text(formatMoney(newTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(newTotal), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
         }
         
@@ -782,9 +783,9 @@ fun AmortizationBottomSheet(standardSchedule: List<com.loanmaster.pro.domain.cal
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(if (row.month == 0) "-" else "${row.month}", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f))
-                            Text(formatMoney(row.principal), color = Color(0xFF4ADE80), fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                            Text(if (row.interest > 0) formatMoney(row.interest) else "-", color = Color(0xFFF97316), fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
-                            Text(formatMoney(row.balance), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(row.principal), color = Color(0xFF4ADE80), fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(if (row.interest > 0) com.loanmaster.pro.core.formatter.formatMoney(row.interest) else "-", color = Color(0xFFF97316), fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(row.balance), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
                         }
                         if (row.label.isNotEmpty()) {
                             Text(row.label, color = if (row.isPrepayment) AccentYellow else TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.padding(top = LoanMasterTheme.spacing.xs))

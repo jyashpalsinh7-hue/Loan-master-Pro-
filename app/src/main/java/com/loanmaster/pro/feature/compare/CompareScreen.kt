@@ -200,7 +200,7 @@ fun LoanInputColumn(
             value = state.amountText,
             onValueChange = { onAmountChange(it) },
             label = "Amount",
-            icon = Icons.Rounded.CurrencyRupee,
+            icon = Icons.Rounded.AccountBalanceWallet,
             iconTint = iconTint,
             modifier = Modifier.fillMaxWidth()
         )
@@ -281,6 +281,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
     val textColor = TextPrimary
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val loanAState = uiState.loanA
     val loanBState = uiState.loanB
@@ -402,12 +403,12 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                             val totalInterest = totalPayment - loan.loanAmount
                                             
                                             reportData.add("Loan ${index + 1} (${loan.bankName})" to "")
-                                            reportData.add("Amount" to formatMoney(loan.loanAmount))
+                                            reportData.add("Amount" to com.loanmaster.pro.core.formatter.formatMoney(loan.loanAmount))
                                             reportData.add("Rate" to "${loan.interestRate}%")
                                             reportData.add("Tenure" to "${loan.totalMonths} months")
-                                            reportData.add("Monthly EMI" to formatMoney(emi))
-                                            reportData.add("Total Interest" to formatMoney(totalInterest))
-                                            reportData.add("Total Payment" to formatMoney(totalPayment))
+                                            reportData.add("Monthly EMI" to com.loanmaster.pro.core.formatter.formatMoney(emi))
+                                            reportData.add("Total Interest" to com.loanmaster.pro.core.formatter.formatMoney(totalInterest))
+                                            reportData.add("Total Payment" to com.loanmaster.pro.core.formatter.formatMoney(totalPayment))
                                             reportData.add("" to "")
                                         }
                                         ExportUtils.exportToPdf(context, "Loan Comparison Report", reportData)
@@ -494,7 +495,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                 Row(modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.md), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(loan.bankName, color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text("Processing Fee: ${formatMoney(loan.processingFee)}")
+                                        Text("Processing Fee: ${com.loanmaster.pro.core.formatter.formatMoney(loan.processingFee)}")
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text("Stated: ${loan.interestRate}%", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
@@ -531,12 +532,12 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                 Column(Modifier.padding(LoanMasterTheme.spacing.md)) {
                                     Text("Strategy for ${best.bankName}", color = Color.White, fontWeight = FontWeight.Bold)
                                     Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
-                                    Text("Pay an extra ${formatMoney(yearlyPrepay)} every year:")
+                                    Text("Pay an extra ${com.loanmaster.pro.core.formatter.formatMoney(yearlyPrepay)} every year:")
                                     Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                         Column {
                                             Text("Interest Saved", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
-                                            Text(formatMoney(totalSaved))
+                                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalSaved))
                                         }
                                         Column(horizontalAlignment = Alignment.End) {
                                             Text("Time Saved", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
@@ -565,7 +566,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                 Row(modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.md), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(loan.bankName, color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text("Fee: ${formatMoney(loan.processingFee)}")
+                                        Text("Fee: ${com.loanmaster.pro.core.formatter.formatMoney(loan.processingFee)}")
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
                                         if (breakEvenMonths > 0) {
@@ -602,8 +603,8 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                         if (lowestFeeBank != null && processedLoans.size > 1) {
                             val otherBank = processedLoans.firstOrNull { it.id != lowestFeeBank.id && it.processingFee > lowestFeeBank.processingFee }
                             if (otherBank != null) {
-                                val feeDiff = formatMoney(otherBank.processingFee - lowestFeeBank.processingFee)
-                                val theirFeeStr = if (otherBank.processingFee <= 0.0) "Zero" else formatMoney(otherBank.processingFee)
+                                val feeDiff = com.loanmaster.pro.core.formatter.formatMoney(otherBank.processingFee - lowestFeeBank.processingFee)
+                                val theirFeeStr = if (otherBank.processingFee <= 0.0) "Zero" else com.loanmaster.pro.core.formatter.formatMoney(otherBank.processingFee)
                             }
                         }
                         
@@ -667,6 +668,7 @@ fun LoanEditBottomSheet(
             }
             
             PremiumInputField(
+                isNumeric = false,
                 value = bankName,
                 onValueChange = { bankName = it },
                 label = "Bank Name",
@@ -793,7 +795,7 @@ fun LoanCard(loan: LoanOffer, onEdit: () -> Unit, modifier: Modifier = Modifier)
             }
             
             Column {
-                Text(formatMoney(loan.loanAmount), color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.ExtraBold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(loan.loanAmount), color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("${loan.interestRate}%", color = AccentYellow, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold)
@@ -861,10 +863,10 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                         else if (l.tenureYears > 0) "${l.tenureYears} Yrs"
                         else "${l.tenureMonths} Mo"
                     },
-                    Triple(Icons.Rounded.CurrencyRupee, "Monthly EMI") { l: LoanOffer -> formatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.totalMonths)) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Interest") { l: LoanOffer -> formatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths)) },
-                    Triple(Icons.Rounded.CurrencyRupee, "Total Payment") { l: LoanOffer -> formatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths)) },
-                    Triple(Icons.Rounded.Description, "Processing Fee") { l: LoanOffer -> formatMoney(l.processingFee) },
+                    Triple(Icons.Rounded.AccountBalanceWallet, "Monthly EMI") { l: LoanOffer -> com.loanmaster.pro.core.formatter.formatMoney(localCalculateEMI(l.loanAmount, l.interestRate, l.totalMonths)) },
+                    Triple(Icons.Rounded.AccountBalanceWallet, "Total Interest") { l: LoanOffer -> com.loanmaster.pro.core.formatter.formatMoney(localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths)) },
+                    Triple(Icons.Rounded.AccountBalanceWallet, "Total Payment") { l: LoanOffer -> com.loanmaster.pro.core.formatter.formatMoney(l.loanAmount + localCalculateTotalInterest(l.loanAmount, l.interestRate, l.totalMonths)) },
+                    Triple(Icons.Rounded.Description, "Processing Fee") { l: LoanOffer -> com.loanmaster.pro.core.formatter.formatMoney(l.processingFee) },
                     Triple(Icons.Rounded.Settings, "Effective APR") { l: LoanOffer -> "${l.interestRate + 0.22}%" }
                 )
 
@@ -1023,7 +1025,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
         return FinancialAdvice(
             title = "No loans available.",
             subtitle = "Please add at least one loan to get insights.",
-            savingsText = "${"₹"}0",
+            savingsText = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}0",
             showPremium = false
         )
     }
@@ -1043,7 +1045,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
         return FinancialAdvice(
             title = "All loans are equal.",
             subtitle = "The loan offers have identical terms. You can choose any, or negotiate a 0.5% rate drop to save more.",
-            savingsText = formatMoney(estimatedSavings))
+            savingsText = com.loanmaster.pro.core.formatter.formatMoney(estimatedSavings))
     }
     
     if (loans.size == 1) {
@@ -1055,7 +1057,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
         return FinancialAdvice(
             title = "Analyzing Loan ${loan.id}...",
             subtitle = "Even with one loan, we found a smarter way to negotiate a better deal and save more.",
-            savingsText = formatMoney(estimatedSavings))
+            savingsText = com.loanmaster.pro.core.formatter.formatMoney(estimatedSavings))
     }
 
     val normalizedCosts = loans.map {
@@ -1100,7 +1102,7 @@ private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?
     return FinancialAdvice(
         title = "$loanName is the best choice.",
         subtitle = "This loan is best $reason. We also found strategies to help you save extra.",
-        savingsText = formatMoney(totalEstimatedSavings))
+        savingsText = com.loanmaster.pro.core.formatter.formatMoney(totalEstimatedSavings))
 }
 
 @Composable

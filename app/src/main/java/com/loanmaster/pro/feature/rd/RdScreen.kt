@@ -89,6 +89,7 @@ fun RdScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val selectedTab = uiState.selectedTab
     val monthlyDepositText = uiState.monthlyDepositText
@@ -117,7 +118,7 @@ fun RdScreen(
     }
     
     val formatInr = { value: Double ->
-        formatMoney(value)
+        com.loanmaster.pro.core.formatter.formatMoney(value)
     }
     
 
@@ -144,7 +145,7 @@ fun RdScreen(
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "RD",
-                title = "₹$monthlyDepositText at $interestRatePaText%",
+                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$monthlyDepositText at $interestRatePaText%",
                 param1 = monthlyDepositText,
                 param2 = interestRatePaText,
                 param3 = tenureYearsText,
@@ -246,7 +247,7 @@ fun RdScreen(
                             if (selectedTab == "Standard") {
                                 PremiumInputField(
                                     label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { viewModel.updateInputs(monthlyDeposit = it) },
-                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
+                                    icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue, modifier = Modifier.fillMaxWidth()
                                 )
                             } else {
                                 PremiumInputField(
@@ -264,6 +265,7 @@ fun RdScreen(
                             )
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PremiumInputField(
+                            isNumeric = false,
                             label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
                             icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, modifier = Modifier.fillMaxWidth(),
                             infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
@@ -290,7 +292,7 @@ fun RdScreen(
                             if (selectedTab == "Standard") {
                                 PremiumInputField(
                                     label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { viewModel.updateInputs(monthlyDeposit = it) },
-                                    icon = Icons.Rounded.CurrencyRupee, iconTint = AccentBlue
+                                    icon = Icons.Rounded.AccountBalanceWallet, iconTint = AccentBlue
                                 )
                             } else {
                                 PremiumInputField(
@@ -315,6 +317,7 @@ fun RdScreen(
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
+                                isNumeric = false,
                                 label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
                                 icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
                                 infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."

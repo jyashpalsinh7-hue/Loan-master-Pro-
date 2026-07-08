@@ -94,6 +94,7 @@ fun SipScreen(
     val isWide = configuration.screenWidthDp > 600
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val amountText = uiState.amountText
     val returnRateText = uiState.returnRateText
@@ -123,7 +124,7 @@ fun SipScreen(
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "SIP",
-                title = "₹$amountText for $yearsText Yrs at $returnRateText%",
+                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$amountText for $yearsText Yrs at $returnRateText%",
                 param1 = amountText,
                 param2 = returnRateText,
                 param3 = yearsText,
@@ -250,7 +251,7 @@ private fun InputsSection(
 
     if (isWide) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
-            Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = "₹") }
+            Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = com.loanmaster.pro.core.formatter.currentCurrencySymbol) }
             Box(Modifier.weight(1f)) { CustomInput("Expected Return", returnRate, onRate, Icons.Rounded.Edit, suffix = "%") }
             Box(Modifier.weight(1f)) { CustomInput("Period", years, onYears, Icons.Rounded.KeyboardArrowDown, suffix = " Yr") }
             Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.KeyboardArrowDown, suffix = "%") }
@@ -258,7 +259,7 @@ private fun InputsSection(
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
             Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
-                Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = "₹") }
+                Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = com.loanmaster.pro.core.formatter.currentCurrencySymbol) }
                 Box(Modifier.weight(1f)) { CustomInput("Return Rate", returnRate, onRate, Icons.Rounded.Edit, suffix = "%") }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
@@ -310,7 +311,7 @@ private fun HeroStat(label: String, value: String, color: Color = Color.White, m
             Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(LoanMasterTheme.spacing.md).padding(top = LoanMasterTheme.spacing.xs))
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-        AutoSizeText(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else "${"₹"}$value", color = color, maxTextSize = LoanMasterTheme.typography.body.fontSize, lineHeight = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
+        AutoSizeText(if (label.contains("Multiplier") || label.contains("Return") && !label.contains("Total")) value else value, color = color, maxTextSize = LoanMasterTheme.typography.body.fontSize, lineHeight = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 
@@ -353,7 +354,7 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
                     }
                     Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                     AutoSizeText(
-                        "${"₹"}${com.loanmaster.pro.core.formatter.formatMoney(maturity)}", 
+                        com.loanmaster.pro.core.formatter.formatMoney(maturity), 
                         color = GoldAccent, 
                         minTextSize = LoanMasterTheme.typography.title.fontSize,
                         maxTextSize = heroFontSize, 
@@ -365,7 +366,7 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
                     val adjustedValue = uiState.inflationAdjustedValue
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clip(RoundedCornerShape(LoanMasterTheme.spacing.xs)).background(Color.White.copy(alpha=0.05f)).padding(horizontal = LoanMasterTheme.spacing.sm, vertical = LoanMasterTheme.spacing.xs)) {
                         Text("Real Value Today: ", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1)
-                        Text("${"₹"}${com.loanmaster.pro.core.formatter.formatMoney(adjustedValue)}", color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                        Text(com.loanmaster.pro.core.formatter.formatMoney(adjustedValue), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
                     }
                 }
                 
@@ -586,7 +587,7 @@ private fun LifeCard(title: String, targetAmount: Double, maturityValue: Double,
         
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         if (shortAmount > 0) {
-            Text("${"₹"}${com.loanmaster.pro.core.formatter.formatMoney(shortAmount)} Short", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("${com.loanmaster.pro.core.formatter.formatMoney(shortAmount)} Short", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
         } else {
             Text("Goal Reached", color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
@@ -608,17 +609,17 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int, uiState: Si
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Future Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText("₹" + com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Inflation Adjusted", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText("₹" + com.loanmaster.pro.core.formatter.formatMoney(adjustedValue), color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(adjustedValue), color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Value Lost", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            AutoSizeText("- " + "₹" + com.loanmaster.pro.core.formatter.formatMoney(valueLost), color = Color(0xFFF87171), maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            AutoSizeText("- " + com.loanmaster.pro.core.formatter.formatMoney(valueLost), color = Color(0xFFF87171), maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         
         Spacer(Modifier.heightIn(min = LoanMasterTheme.components.iconSmall))
@@ -661,7 +662,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("Current Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                AutoSizeText("₹" + com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
+                AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
             }
             Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(StrokeNavy))
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1.3f)) {
@@ -672,7 +673,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     val formatted = com.loanmaster.pro.core.formatter.formatMoney(potentialCorpus)
                     val blurredText = if (formatted.length > 5) formatted.take(2) + ",XX,XXX" else "XX,XXX"
-                    AutoSizeText("₹" + blurredText, color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    AutoSizeText(blurredText, color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
                 }
             }
             Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(StrokeNavy))
@@ -684,7 +685,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     val formattedGain = com.loanmaster.pro.core.formatter.formatMoney(potentialGain)
                     val blurredGain = if (formattedGain.length > 5) formattedGain.take(1) + ",XX,XXX" else "X,XXX"
-                    AutoSizeText("+" + "₹" + blurredGain, color = GreenSuccess, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    AutoSizeText("+" + blurredGain, color = GreenSuccess, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
                 }
             }
         }
@@ -757,10 +758,10 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
         rowsToDisplay.forEach { data ->
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.lg, vertical = LoanMasterTheme.spacing.md)) {
                 Text(data.year.toString(), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("₹" + com.loanmaster.pro.core.formatter.formatMoney(data.investedForYear), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("₹" + com.loanmaster.pro.core.formatter.formatMoney(data.totalInvested), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("₹" + com.loanmaster.pro.core.formatter.formatMoney(data.returns), color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("₹" + com.loanmaster.pro.core.formatter.formatMoney(data.maturity), color = GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.investedForYear), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.totalInvested), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.returns), color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.maturity), color = GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             HorizontalDivider(color = StrokeNavy)
         }

@@ -52,6 +52,7 @@ import kotlin.math.pow
 
 @Composable
 fun LoanIntelligenceCard(
+    dummyCurrency: String = com.loanmaster.pro.LocalCurrency.current,
     loanType: String,
     loanAmount: Double,
     interestRate: Double,
@@ -252,9 +253,9 @@ fun LoanIntelligenceCard(
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    BreakdownItem("Borrowed Amount", formatMoney(loanAmount), blueAccent)
-                    BreakdownItem("Interest Cost", formatMoney(totalInterest), goldAccent)
-                    BreakdownItem("Total Repayment", formatMoney(totalPayment), primaryText)
+                    BreakdownItem("Borrowed Amount", com.loanmaster.pro.core.formatter.formatMoney(loanAmount), blueAccent)
+                    BreakdownItem("Interest Cost", com.loanmaster.pro.core.formatter.formatMoney(totalInterest), goldAccent)
+                    BreakdownItem("Total Repayment", com.loanmaster.pro.core.formatter.formatMoney(totalPayment), primaryText)
                 }
 
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
@@ -296,7 +297,7 @@ fun LoanIntelligenceCard(
                     alerts.forEach { alert ->
                         val type = alert.type.name
                         val msg = alert.message
-                        val color = when(alert.type) { AlertType.CRITICAL -> Color(0xFFF44336); AlertType.WARNING -> Color(0xFFFF9800); AlertType.POSITIVE -> Color(0xFF4CAF50); else -> Color.Gray }
+                        val color = when(alert.type) { AlertType.CRITICAL -> Color(0xFFF44336); AlertType.WARNING -> Color(0xFFFF9800); AlertType.POSITIVE -> Color(0xFF4CAF50) }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             val icon = when (type) {
                                 "Critical" -> Icons.Rounded.Warning

@@ -76,6 +76,7 @@ import androidx.compose.runtime.compositionLocalOf
 fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onNavigateToSip: () -> Unit, onNavigateToGst: () -> Unit, onNavigateToRd: () -> Unit, onNavigateToFd: () -> Unit, onNavigateToCurrency: () -> Unit, onNavigateToEligibility: () -> Unit, onNavigateToPrepayment: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, onNavigateBottomNav: (String) -> Unit = {}, onNavigateToHistory: () -> Unit = {},
     onNavigateToCalculator: (CalculationHistory) -> Unit = {}, onNavigateToLoanSummary: () -> Unit = {}, historyItems: List<CalculationHistory> = emptyList(), viewModel: HomeViewModel, activeLoans: List<ActiveLoan> = emptyList()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val searchQuery = uiState.searchQuery
     val isQuickToolsExpanded = uiState.isQuickToolsExpanded
     val activeBottomNavItem = uiState.activeBottomNavItem
@@ -143,7 +144,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
                     val summaryTitle = if (activeLoans.isNotEmpty()) "Active Loans (${activeLoans.size})" else "Loan Summary"
-                    val summaryDesc = if (activeLoans.isNotEmpty()) "Total: ${formatMoney(activeLoans.sumOf { it.principalAmount })}" else "View active loans"
+                    val summaryDesc = if (activeLoans.isNotEmpty()) "Total: ${com.loanmaster.pro.core.formatter.formatMoney(activeLoans.sumOf { it.principalAmount })}" else "View active loans"
                     StandardCalculatorCard(summaryTitle, summaryDesc, Icons.Rounded.Summarize, Color(0xFF1E88E5), onClick = onNavigateToLoanSummary)
                 }
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
@@ -197,7 +198,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.CurrencyRupee,
+                    imageVector = Icons.Rounded.AccountBalanceWallet,
                     contentDescription = null,
                     tint = AccentBlue,
                     modifier = Modifier.size(LoanMasterTheme.components.iconMedium)

@@ -93,6 +93,7 @@ fun GstScreen(
     val isWide = adaptiveInfo.windowSizeClass.windowWidthSizeClass != WindowWidthSizeClass.COMPACT
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     
     val mode = uiState.mode
     val amountText = uiState.amountText
@@ -127,7 +128,7 @@ fun GstScreen(
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "GST",
-                title = "${if(mode == GstMode.ADD) "Add" else "Remove"} ${actualRate}% GST on ${formatMoney(amount)}",
+                title = "${if(mode == GstMode.ADD) "Add" else "Remove"} ${actualRate}% GST on ${com.loanmaster.pro.core.formatter.formatMoney(amount)}",
                 param1 = mode.name,
                 param2 = amountText,
                 param3 = actualRate.toString(),
@@ -165,16 +166,16 @@ fun GstScreen(
                             "GST Calculator Report",
                             listOf(
                                 "Calculation Mode" to if(mode == GstMode.ADD) "Add GST" else "Remove GST",
-                                "Base Amount" to formatMoney(baseAmount),
+                                "Base Amount" to com.loanmaster.pro.core.formatter.formatMoney(baseAmount),
                                 "GST Rate" to "$actualRate%",
                                 "Cess Rate" to "$cessRate%",
                                 "" to "",
-                                "CGST" to formatMoney(cgst),
-                                "SGST" to formatMoney(sgst),
-                                "IGST" to formatMoney(igst),
-                                "Total GST" to formatMoney(totalGst),
-                                "Total Cess" to formatMoney(totalCess),
-                                "Total Amount" to formatMoney(totalAmount)
+                                "CGST" to com.loanmaster.pro.core.formatter.formatMoney(cgst),
+                                "SGST" to com.loanmaster.pro.core.formatter.formatMoney(sgst),
+                                "IGST" to com.loanmaster.pro.core.formatter.formatMoney(igst),
+                                "Total GST" to com.loanmaster.pro.core.formatter.formatMoney(totalGst),
+                                "Total Cess" to com.loanmaster.pro.core.formatter.formatMoney(totalCess),
+                                "Total Amount" to com.loanmaster.pro.core.formatter.formatMoney(totalAmount)
                             )
                         )
                     }) {
@@ -371,7 +372,7 @@ private fun GstHeroResultCard(
                 Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                 
                 AutoResizedText(
-                    text = formatMoney(if (mode == GstMode.ADD) animatedTotal.toDouble() else animatedBase.toDouble()),
+                    text = com.loanmaster.pro.core.formatter.formatMoney(if (mode == GstMode.ADD) animatedTotal.toDouble() else animatedBase.toDouble()),
                     color = Color.White,
                     fontSize = LoanMasterTheme.typography.display.fontSize,
                     fontWeight = FontWeight.ExtraBold
@@ -394,7 +395,7 @@ private fun GstHeroResultCard(
                     )
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                     AutoResizedText(
-                        text = formatMoney(if (mode == GstMode.ADD) animatedBase.toDouble() else animatedTotal.toDouble()),
+                        text = com.loanmaster.pro.core.formatter.formatMoney(if (mode == GstMode.ADD) animatedBase.toDouble() else animatedTotal.toDouble()),
                         color = Color.White,
                         fontSize = LoanMasterTheme.typography.title.fontSize,
                         fontWeight = FontWeight.Bold
@@ -411,7 +412,7 @@ private fun GstHeroResultCard(
                     )
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                     AutoResizedText(
-                        text = "+ " + formatMoney(animatedTax.toDouble()),
+                        text = "+ " + com.loanmaster.pro.core.formatter.formatMoney(animatedTax.toDouble()),
                         color = AccentGreen,
                         fontSize = LoanMasterTheme.typography.title.fontSize,
                         fontWeight = FontWeight.Bold
@@ -462,7 +463,7 @@ private fun GstInputSection(
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(fontSize = LoanMasterTheme.typography.title.fontSize, color = TextPrimary),
                 leadingIcon = {
-                    Text("₹", color = TextSecondary, fontSize = LoanMasterTheme.typography.title.fontSize, modifier = Modifier.padding(start = LoanMasterTheme.spacing.md))
+                    Text(com.loanmaster.pro.core.formatter.currentCurrencySymbol, color = TextSecondary, fontSize = LoanMasterTheme.typography.title.fontSize, modifier = Modifier.padding(start = LoanMasterTheme.spacing.md))
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AccentBlue,
@@ -708,16 +709,16 @@ private fun GstBreakupSection(
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Taxable Base", color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
-                Text(formatMoney(baseAmount), color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(baseAmount), color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Total Tax ${if(totalCess>0) "(GST + CESS)" else ""}", color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
-                Text("+ " + formatMoney(totalGst + totalCess), color = AccentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
+                Text("+ " + com.loanmaster.pro.core.formatter.formatMoney(totalGst + totalCess), color = AccentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             }
             HorizontalDivider(color = CardStroke, modifier = Modifier.padding(vertical = LoanMasterTheme.spacing.xs))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Net Amount", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
-                Text(formatMoney(totalAmount), color = AccentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.ExtraBold)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(totalAmount), color = AccentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.ExtraBold)
             }
         }
     }
@@ -733,7 +734,7 @@ private fun AnimatedGstBreakupItem(label: String, value: Double, color: Color) {
         Box(modifier = Modifier.size(LoanMasterTheme.spacing.gridGutter).clip(CircleShape).background(color))
         Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
         Text(label, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1f))
-        AutoSizeText(formatMoney(animatedValue.toDouble()), color = TextPrimary, minTextSize = 8.sp, maxTextSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.widthIn(max = LoanMasterTheme.components.calculatorCardHeight))
+        AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(animatedValue.toDouble()), color = TextPrimary, minTextSize = 8.sp, maxTextSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.widthIn(max = LoanMasterTheme.components.calculatorCardHeight))
     }
 }
 
@@ -796,14 +797,14 @@ private fun GstRateQuickCompareSection(baseAmount: Double, currentRate: Double, 
                     )
                     
                     Text(
-                        formatMoney(tax), 
+                        com.loanmaster.pro.core.formatter.formatMoney(tax), 
                         color = if (isCurrent) AccentYellow else TextSecondary, 
                         fontSize = LoanMasterTheme.typography.label.fontSize,
                         modifier = Modifier.weight(1.5f).padding(start = LoanMasterTheme.spacing.md)
                     )
                     
                     Text(
-                        formatMoney(total), 
+                        com.loanmaster.pro.core.formatter.formatMoney(total), 
                         color = textColor, 
                         fontSize = LoanMasterTheme.typography.body.fontSize, 
                         fontWeight = FontWeight.Bold,

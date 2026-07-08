@@ -81,6 +81,7 @@ import androidx.compose.runtime.compositionLocalOf
 
 val LocalLanguage = compositionLocalOf { "English" }
 val LocalCurrency = compositionLocalOf { "INR (₹)" }
+val LocalCurrencySymbol = compositionLocalOf { "₹" }
 val LocalNotificationsEnabled = compositionLocalOf { true }
 val LocalKeepHistoryEnabled = compositionLocalOf { true }
 
@@ -93,7 +94,7 @@ fun getDatabase(context: android.content.Context): LoanMasterDatabase {
             context.applicationContext,
             LoanMasterDatabase::class.java,
             "loan_master_database"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(dropAllTables = true).build()
         APP_DATABASE_INSTANCE = instance
         instance
     }
@@ -102,12 +103,18 @@ fun getDatabase(context: android.content.Context): LoanMasterDatabase {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
         enableEdgeToEdge()
         setContent {
             val settingsViewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
             val language = uiState.language
             val currency = uiState.currency
+            
+            // Extract the symbol from format "USD ($)" and update globally
+            val symbol = currency.substringAfter("(").substringBefore(")")
+            com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol = symbol
+            
             val notificationsEnabled = uiState.notificationsEnabled
             val keepHistoryEnabled = uiState.keepHistoryEnabled
 
@@ -122,11 +129,13 @@ class MainActivity : ComponentActivity() {
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalLanguage provides language,
                 LocalCurrency provides currency,
+                LocalCurrencySymbol provides symbol,
                 LocalNotificationsEnabled provides notificationsEnabled,
                 LocalKeepHistoryEnabled provides keepHistoryEnabled
             ) {
                 LoanMasterTheme(windowSizeClass = windowSizeClass) {
-                    val context = androidx.compose.ui.platform.LocalContext.current
+                    androidx.compose.runtime.key(currency) {
+val context = androidx.compose.ui.platform.LocalContext.current
                     val database = getDatabase(context)
                     val repository = HistoryRepository(database.historyDao())
                     val activeLoanRepository = ActiveLoanRepository(database.activeLoanDao())
@@ -156,6 +165,7 @@ class MainActivity : ComponentActivity() {
                         settingsViewModel = settingsViewModel,
                         navController = navController
                     )
+                    }
                 }
             }
         }

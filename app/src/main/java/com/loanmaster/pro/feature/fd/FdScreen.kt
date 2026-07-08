@@ -89,6 +89,7 @@ fun FdScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
 
     LaunchedEffect(uiState.depositText, uiState.rateText, uiState.tenureText, uiState.compounding) {
         if (historyViewModel != null && uiState.hasValidInput) {
@@ -127,7 +128,7 @@ fun FdScreen(
     }
     
     val formatInr = { value: Double ->
-        formatMoney(value)
+        com.loanmaster.pro.core.formatter.formatMoney(value)
     }
 
     LaunchedEffect(depositAmountText, interestRatePaText, tenureYearsText, compoundingFrequency) {
@@ -136,7 +137,7 @@ fun FdScreen(
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "FD",
-                title = "₹${formatInr(totalInvested)} at $interestRatePaText%",
+                title = "${formatInr(totalInvested)} at $interestRatePaText%",
                 param1 = depositAmountText,
                 param2 = interestRatePaText,
                 param3 = tenureYearsText,
@@ -225,6 +226,7 @@ fun FdScreen(
                     )
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PremiumInputField(
+                            isNumeric = false,
                             label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
                             icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown, modifier = Modifier.fillMaxWidth(),
                             infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
@@ -269,6 +271,7 @@ fun FdScreen(
                         }
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
+                                isNumeric = false,
                                 label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
                                 icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
                                 infoText = "How often interest is calculated and added to your principal. More frequent compounding leads to higher returns."
@@ -551,7 +554,7 @@ fun FdScreen(
                     WhatIfActionButton("+1%", "Rate", Icons.AutoMirrored.Rounded.TrendingUp, AccentGreen)
                     WhatIfActionButton("-1%", "Rate", Icons.AutoMirrored.Rounded.TrendingDown, Color(0xFFE53935))
                     WhatIfActionButton("+2 Years", "Tenure", Icons.Rounded.Event, Color(0xFF8E24AA))
-                    WhatIfActionButton("+${"₹"}50,000", "Deposit", Icons.Rounded.AccountBalanceWallet, AccentYellow)
+                    WhatIfActionButton("+${com.loanmaster.pro.core.formatter.currentCurrencySymbol}50,000", "Deposit", Icons.Rounded.AccountBalanceWallet, AccentYellow)
                 }
             }
 
@@ -578,9 +581,9 @@ fun FdScreen(
                 Column(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     Row(modifier = Modifier.defaultMinSize(minWidth = 380.dp).fillMaxWidth().background(CardStroke.copy(alpha = 0.5f)).padding(vertical = LoanMasterTheme.spacing.gridGutter, horizontal = LoanMasterTheme.spacing.md)) {
                         Text("Year", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1f).padding(horizontal = LoanMasterTheme.spacing.xs))
-                        Text("Deposit (${"₹"})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.Center)
-                        Text("Interest (${"₹"})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)
-                        Text("Maturity Value (${"₹"})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)
+                        Text("Deposit (${com.loanmaster.pro.core.formatter.currentCurrencySymbol})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.Center)
+                        Text("Interest (${com.loanmaster.pro.core.formatter.currentCurrencySymbol})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)
+                        Text("Maturity Value (${com.loanmaster.pro.core.formatter.currentCurrencySymbol})", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)
                     }
                     
                     yearBreakdown.forEachIndexed { index, bd ->

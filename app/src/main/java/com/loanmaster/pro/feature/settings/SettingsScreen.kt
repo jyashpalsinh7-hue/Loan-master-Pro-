@@ -62,6 +62,7 @@ fun SettingsScreen(
     activeBottomNavItem: String = "settings"
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     val language = uiState.language
     val currency = uiState.currency
     val notificationsEnabled = uiState.notificationsEnabled

@@ -168,6 +168,7 @@ fun PremiumInputField(
     onClick: (() -> Unit)? = null,
     infoText: String? = null,
     errorMessage: String? = null,
+    isNumeric: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -188,7 +189,7 @@ fun PremiumInputField(
     }
 
     val internalError = remember(value) {
-        if (value.isNotEmpty() && value != "." && value.toDoubleOrNull() == null) {
+        if (isNumeric && value.isNotEmpty() && value != "." && value.toDoubleOrNull() == null) {
             "Invalid numeric entry"
         } else {
             null

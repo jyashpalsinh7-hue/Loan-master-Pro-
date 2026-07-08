@@ -156,15 +156,12 @@ class PrepaymentCalculator {
             var i = 0
             while (bal > 0 && i < totalMonths.toInt()) {
                 val interest = bal * monthlyRate
-                var principalPaid = newEmi - interest + monthlyPrepay
-                if ((i + 1) % 12 == 0) {
-                    principalPaid += annualPrepay
-                }
+                val principalPaid = newEmi - interest
                 newTotalInterest += interest
                 bal -= principalPaid
                 i++
             }
-            newTenureMonths = totalMonths
+            newTenureMonths = i.toDouble()
         } else {
             var bal = effectiveP
             var i = 0

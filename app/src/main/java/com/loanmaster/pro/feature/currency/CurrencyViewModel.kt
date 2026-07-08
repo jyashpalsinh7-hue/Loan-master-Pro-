@@ -128,14 +128,22 @@ class CurrencyViewModel : ViewModel() {
             if (baseAmount != null) {
                 next = next.copy(baseAmountText = baseAmount)
             }
-            if (baseCurrency != null && baseCurrency != current.baseCurrency) {
-                next = next.copy(baseCurrency = baseCurrency, showBaseSelector = false)
-                baseCurrencyChanged = true
-                chartParamsChanged = true
+            if (baseCurrency != null) {
+                if (baseCurrency != current.baseCurrency) {
+                    next = next.copy(baseCurrency = baseCurrency, showBaseSelector = false)
+                    baseCurrencyChanged = true
+                    chartParamsChanged = true
+                } else {
+                    next = next.copy(showBaseSelector = false)
+                }
             }
-            if (targetCurrency != null && targetCurrency != current.targetCurrency) {
-                next = next.copy(targetCurrency = targetCurrency, showTargetSelector = false)
-                chartParamsChanged = true
+            if (targetCurrency != null) {
+                if (targetCurrency != current.targetCurrency) {
+                    next = next.copy(targetCurrency = targetCurrency, showTargetSelector = false)
+                    chartParamsChanged = true
+                } else {
+                    next = next.copy(showTargetSelector = false)
+                }
             }
             if (showBaseSelector != null) {
                 next = next.copy(showBaseSelector = showBaseSelector, searchQuery = "")
