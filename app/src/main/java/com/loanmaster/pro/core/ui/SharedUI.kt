@@ -85,9 +85,10 @@ fun AutoSizeText(
     maxTextSize: TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = 1,
+    style: TextStyle = TextStyle.Default
 ) {
     val actualMaxTextSize = if (maxTextSize == androidx.compose.ui.unit.TextUnit.Unspecified) LoanMasterTheme.typography.body.fontSize else maxTextSize
-    var textStyle by remember(text, actualMaxTextSize, fontWeight, color) { mutableStateOf(TextStyle(fontSize = actualMaxTextSize, fontWeight = fontWeight, color = color)) }
+    var textStyle by remember(text, actualMaxTextSize, fontWeight, color, style) { mutableStateOf(style.copy(fontSize = actualMaxTextSize, fontWeight = fontWeight, color = color)) }
     var readyToDraw by remember(text) { mutableStateOf(false) }
 
     Text(
@@ -126,6 +127,7 @@ fun AutoResizedText(
     fontSize: TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = 1,
+    style: TextStyle = TextStyle.Default
 ) {
     AutoSizeText(
         text = text,
@@ -134,7 +136,8 @@ fun AutoResizedText(
         minTextSize = LoanMasterTheme.typography.label.fontSize,
         maxTextSize = fontSize,
         fontWeight = fontWeight,
-        maxLines = maxLines
+        maxLines = maxLines,
+        style = style
     )
 }
 
