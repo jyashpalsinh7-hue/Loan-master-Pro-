@@ -34,7 +34,6 @@ import com.loanmaster.pro.feature.loaneligibility.util.*
 import com.loanmaster.pro.domain.model.LoanProfile
 
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SummaryCard(
     isInputExpanded: Boolean,
@@ -51,76 +50,48 @@ fun SummaryCard(
     val textSecondary = TextSecondary
     val textColor = TextPrimary
 
-                    AnimatedVisibility(
-                        visible = !isInputExpanded && isResultVisible,
-                        enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
-                        exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
-                    ) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.25f)),
-                            shape = RoundedCornerShape(24.dp),
-                            border = BorderStroke(1.dp, brightBlue.copy(alpha = 0.3f)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            modifier = Modifier.fillMaxWidth().clickable { onEditClick() }
-                        ) {
-                            Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                        
-                                        // Loan Type Chip
-                                        Surface(color = surfaceColor.copy(alpha = 0.8f), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, surfaceColor)) {
-                                            Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Rounded.Home, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(selectedLoanProfile, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                            }
-                                        }
-                                        
-                                        // Tenure Chip
-                                        Surface(color = surfaceColor.copy(alpha = 0.8f), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, surfaceColor)) {
-                                            Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Rounded.Event, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text("$tenureYears Yrs", color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                            }
-                                        }
-                                        
-                                        // Interest Rate Chip
-                                        Surface(color = surfaceColor.copy(alpha = 0.8f), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, surfaceColor)) {
-                                            Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text("$interestRate%", color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                            }
-                                        }
-                                    }
-                                    Surface(
-                                        color = brightBlue.copy(alpha = 0.1f),
-                                        shape = RoundedCornerShape(12.dp),
-                                        border = BorderStroke(1.dp, brightBlue.copy(alpha = 0.3f))
-                                    ) {
-                                        Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(Icons.Rounded.Edit, contentDescription = "Edit", tint = brightBlue, modifier = Modifier.size(16.dp))
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Edit", color = brightBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text("Income", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Normal)
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(formatMoney(totalIncome), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                                        Text("Existing EMI", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Normal)
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(formatMoney(totalExistingEmi), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
-                        }
+    AnimatedVisibility(
+        visible = !isInputExpanded && isResultVisible,
+        enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
+        exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+            modifier = Modifier.fillMaxWidth().heightIn(max = 120.dp).clickable { onEditClick() }
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(selectedLoanProfile, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(" • ", color = textSecondary)
+                        Text("$tenureYears Yrs", color = textSecondary, fontSize = 12.sp)
+                        Text(" • ", color = textSecondary)
+                        Text("$interestRate%", color = textSecondary, fontSize = 12.sp)
                     }
-
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Income: ", color = textSecondary, fontSize = 12.sp)
+                        Text(formatMoney(totalIncome), color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("EMI: ", color = textSecondary, fontSize = 12.sp)
+                        Text(formatMoney(totalExistingEmi), color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                
+                Surface(
+                    color = brightBlue.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
+                        Text("Edit", color = brightBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
 }

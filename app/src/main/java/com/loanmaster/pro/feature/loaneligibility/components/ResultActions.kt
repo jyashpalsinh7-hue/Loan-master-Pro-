@@ -1,43 +1,20 @@
 package com.loanmaster.pro.feature.loaneligibility.components
 
-
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
-import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.*
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.launch
 import com.loanmaster.pro.core.theme.*
-import com.loanmaster.pro.core.ui.*
-import com.loanmaster.pro.core.formatter.formatMoney
-import com.loanmaster.pro.core.responsive.AdaptiveRowCol
-import com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper
-
-import com.loanmaster.pro.feature.loaneligibility.util.*
-import com.loanmaster.pro.feature.loaneligibility.components.*
-import com.loanmaster.pro.domain.model.LoanProfile
-
-
 
 @Composable
 fun ResultActions(
@@ -51,64 +28,75 @@ fun ResultActions(
     val textSecondary = TextSecondary
     val textColor = TextPrimary
 
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        
+        // Compare Banks Destination Card
+        Card(
+            modifier = Modifier.fillMaxWidth().clickable { onCompareClick() }.height(76.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier.size(44.dp).clip(CircleShape).background(brightBlue.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(20.dp))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Compare Banks", color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("Compare offers from multiple lenders", color = textSecondary, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = textSecondary)
+            }
+        }
 
-                                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                // Primary Action
-                                val buttonGradient = Brush.linearGradient(listOf(brightBlue, HighlightBlue))
-                                val compareInteractionSource = remember { MutableInteractionSource() }
-                                val comparePressed by compareInteractionSource.collectIsPressedAsState()
-                                val compareScale by animateFloatAsState(targetValue = if (comparePressed) 0.97f else 1f, animationSpec = tween(150), label = "")
-                                val compareElevation by animateDpAsState(if (comparePressed) 4.dp else 16.dp, label = "")
-                                
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(68.dp)
-                                        .graphicsLayer {
-                                            scaleX = compareScale
-                                            scaleY = compareScale
-                                        }
-                                        .shadow(compareElevation, RoundedCornerShape(24.dp), spotColor = brightBlue.copy(alpha = 0.7f), ambientColor = brightBlue.copy(alpha = 0.3f))
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(buttonGradient)
-                                        .clickable(interactionSource = compareInteractionSource, indication = LocalIndication.current) { },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text("Compare Banks", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp)
-                                    }
-                                }
-                                
-                                // Secondary Actions Grid
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    ActionButton(
-                                        text = "Detailed Report",
-                                        icon = Icons.Rounded.Description,
-                                        color = surfaceColor.copy(alpha = 0.4f),
-                                        contentColor = brightBlue,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = {}
-                                    )
-                                    ActionButton(
-                                        text = "Save Calc",
-                                        icon = Icons.Rounded.Bookmark,
-                                        color = surfaceColor.copy(alpha = 0.4f),
-                                        contentColor = textColor,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = {}
-                                    )
-                                    ActionButton(
-                                        text = "Export PDF",
-                                        icon = Icons.Rounded.PictureAsPdf,
-                                        color = surfaceColor.copy(alpha = 0.4f),
-                                        contentColor = textColor,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = {}
-                                    )
-
+        // Secondary Actions Grid - Compact action cards
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ActionCard(
+                text = "Report",
+                icon = Icons.Rounded.Description,
+                modifier = Modifier.weight(1f),
+                onClick = onDetailedReportClick
+            )
+            ActionCard(
+                text = "Save",
+                icon = Icons.Rounded.BookmarkBorder,
+                modifier = Modifier.weight(1f),
+                onClick = onSaveCalcClick
+            )
+            ActionCard(
+                text = "Export PDF",
+                icon = Icons.Rounded.PictureAsPdf,
+                modifier = Modifier.weight(1f),
+                onClick = onExportPdfClick
+            )
+        }
+    }
 }
 
-}
+@Composable
+fun ActionCard(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(
+        modifier = modifier.clickable { onClick() }.height(72.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(text, color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+        }
+    }
 }

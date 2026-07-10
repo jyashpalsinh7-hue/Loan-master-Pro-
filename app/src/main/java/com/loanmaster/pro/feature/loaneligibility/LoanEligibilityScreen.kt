@@ -151,7 +151,7 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
                                 showEmptyError = true
                             } else {
                                 showEmptyError = false
-                                if (isInputExpanded) {
+                                                                if (isInputExpanded) {
                                     coroutineScope.launch {
                                         isCalculating = true
                                         isResultVisible = false
@@ -175,8 +175,7 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
                                         isResultVisible = true
                                     }
                                 } else {
-                                    isResultVisible = true
-                                    isInputExpanded = false
+                                    isInputExpanded = true
                                 }
                             }
                         }

@@ -1,4 +1,5 @@
 package com.loanmaster.pro.feature.loanintelligence.components
+import androidx.compose.animation.animateContentSize
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -27,10 +28,12 @@ fun LoanIntelligenceCard(
     onWatchAdClick: () -> Unit,
     onPremiumClick: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -88,8 +91,25 @@ fun LoanIntelligenceCard(
                     }
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        state.suggestions.forEach { suggestion ->
-                            IntelligenceSuggestionCard(suggestion = suggestion)
+                        if (isExpanded) {
+                            state.suggestions.forEach { suggestion ->
+                                IntelligenceSuggestionCard(suggestion = suggestion)
+                            }
+                        } else {
+                            IntelligenceSuggestionCard(suggestion = state.suggestions.first())
+                        }
+                        
+                        if (state.suggestions.size > 1) {
+                            TextButton(
+                                onClick = { isExpanded = !isExpanded },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    if (isExpanded) "Show Less" else "View all insights (${state.suggestions.size})",
+                                    color = AccentBlue,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }

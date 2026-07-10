@@ -3,6 +3,7 @@ package com.loanmaster.pro.feature.loanintelligence.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -14,7 +15,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loanmaster.pro.core.theme.*
@@ -26,79 +26,77 @@ fun PremiumLockCard(
     onPremiumClick: () -> Unit
 ) {
     val gradientBrush = Brush.linearGradient(
-        colors = listOf(Color(0xFF6C63FF).copy(alpha = 0.2f), Color(0xFF03DAC5).copy(alpha = 0.1f))
+        colors = listOf(Color(0xFF6C63FF).copy(alpha = 0.10f), Color(0xFF03DAC5).copy(alpha = 0.05f))
     )
     
     Card(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).border(1.dp, Color.White.copy(alpha=0.1f), RoundedCornerShape(24.dp)),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-        shape = RoundedCornerShape(24.dp)
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(1.dp, Color.White.copy(alpha=0.05f), RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(16.dp)
         ) {
-            Icon(
-                Icons.Rounded.Lock,
-                contentDescription = "Locked",
-                tint = Color(0xFFFFD700),
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Unlock Loan Intelligence",
-                color = TextPrimary,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Get AI-powered recommendations to maximize your loan approval and loan amount.",
-                color = TextSecondary,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Button(
-                onClick = onWatchAdClick,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark.copy(alpha=0.5f), contentColor = TextPrimary),
-                border = borderStroke(),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = AccentBlue)
-                } else {
-                    Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Watch Ad & Unlock", fontWeight = FontWeight.Bold)
-                        Text("For this calculation only", fontSize = 10.sp, color = TextSecondary)
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFFFD700).copy(alpha=0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.Lock, contentDescription = "Locked", tint = Color(0xFFFFD700), modifier = Modifier.size(18.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Unlock Loan Intelligence", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("Personalized recommendations to improve approval.", color = TextSecondary, fontSize = 12.sp)
                 }
             }
-            
             Spacer(modifier = Modifier.height(16.dp))
-            
-            Button(
-                onClick = onPremiumClick,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700).copy(alpha=0.2f), contentColor = Color(0xFFFFD700))
-            ) {
-                Icon(Icons.Rounded.Star, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Go Premium", fontWeight = FontWeight.Bold)
-                    Text("Unlimited Loan Intelligence forever", fontSize = 10.sp, color = Color(0xFFFFD700).copy(alpha=0.7f))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = onWatchAdClick,
+                    modifier = Modifier.weight(1f).height(42.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark.copy(alpha=0.8f), contentColor = TextPrimary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha=0.05f)),
+                    enabled = !isLoading,
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = AccentBlue, strokeWidth = 2.dp)
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Watch Ad", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+                    }
+                }
+                
+                Box(modifier = Modifier.weight(1f)) {
+                    Button(
+                        onClick = onPremiumClick,
+                        modifier = Modifier.fillMaxWidth().height(42.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700).copy(alpha=0.15f), contentColor = Color(0xFFFFD700)),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Go Premium", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 6.dp, y = (-6).dp)
+                            .background(Color(0xFFFFD700), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        Text("PRO", color = Color.Black, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
+                    }
                 }
             }
         }
     }
 }
-
-@Composable
-private fun borderStroke() = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha=0.1f))

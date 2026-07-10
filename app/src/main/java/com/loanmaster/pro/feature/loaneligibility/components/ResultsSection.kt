@@ -137,7 +137,7 @@ fun ResultsSection(
                                         onModifyInputsClick = onModifyInputsClick
                                     )
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                         ResultCard(
                                             riskState = riskState,
                                             stateColor = stateColor,
@@ -147,6 +147,9 @@ fun ResultsSection(
                                             animatedTotalIncome = animatedTotalIncome,
                                             animatedTotalExistingEmi = animatedTotalExistingEmi
                                         )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(horizontal = 16.dp))
+                                        Spacer(modifier = Modifier.height(4.dp))
 
                                         ApprovalCard(
                                             approvalProb = approvalProb,
