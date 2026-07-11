@@ -33,7 +33,7 @@ fun ResultCard(
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -46,15 +46,15 @@ fun ResultCard(
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Eligible Loan Amount", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                    Text("Eligible Loan Amount", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     
                     Surface(
                         color = stateColor.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(50),
                     ) {
-                        Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                             val icon = when(riskState) {
                                 "Safe" -> Icons.Rounded.VerifiedUser
                                 "Critical" -> Icons.Rounded.Error
@@ -63,7 +63,7 @@ fun ResultCard(
                             Icon(icon, contentDescription = null, tint = stateColor, modifier = Modifier.size(10.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             AnimatedContent(targetState = riskState, label = "badgeState") { state ->
-                                Text("$state", color = stateColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(state, color = stateColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -74,40 +74,40 @@ fun ResultCard(
                 Text(
                     text = formatMoney(animatedAmount.toDouble()),
                     color = stateColor,
-                    fontSize = 50.sp,
-                    fontWeight = FontWeight.Black,
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = Color.White.copy(alpha = 0.05f), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Monthly EMI Capacity", color = textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(formatMoney(animatedAvailableEmi.toDouble()), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(formatMoney(animatedAvailableEmi.toDouble()), color = textColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Max Affordable EMI", color = textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(formatMoney(animatedMaxAllowedEmi.toDouble()), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(formatMoney(animatedMaxAllowedEmi.toDouble()), color = textColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Income", color = textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(formatMoney(animatedTotalIncome.toDouble()), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(formatMoney(animatedTotalIncome.toDouble()), color = textColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Existing EMI", color = textSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(formatMoney(animatedTotalExistingEmi.toDouble()), color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(formatMoney(animatedTotalExistingEmi.toDouble()), color = textColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

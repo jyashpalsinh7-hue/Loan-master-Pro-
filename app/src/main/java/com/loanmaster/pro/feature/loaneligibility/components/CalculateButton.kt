@@ -46,9 +46,7 @@ fun CalculateButton(
     val textColor = TextPrimary
     val coroutineScope = rememberCoroutineScope()
 
-                    if (isInputExpanded) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                    
                     
                     val buttonInteractionSource = remember { MutableInteractionSource() }
                     val isPressed by buttonInteractionSource.collectIsPressedAsState()
@@ -59,7 +57,7 @@ fun CalculateButton(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp)
+                            .height(56.dp)
                             .graphicsLayer { scaleX = btnScale; scaleY = btnScale }
                             .shadow(elevation, RoundedCornerShape(24.dp), spotColor = brightBlue)
                             .clip(RoundedCornerShape(24.dp))
@@ -81,9 +79,7 @@ onCalculateClick()
                         }
                     }
                     
-                    if (isInputExpanded) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    
                 }
 
 

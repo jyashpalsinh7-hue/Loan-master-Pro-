@@ -33,7 +33,7 @@ fun LoanIntelligenceCard(
     Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -90,7 +90,7 @@ fun LoanIntelligenceCard(
                         }
                     }
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         if (isExpanded) {
                             state.suggestions.forEach { suggestion ->
                                 IntelligenceSuggestionCard(suggestion = suggestion)

@@ -68,7 +68,7 @@ fun ResultsSection(
                         enter = slideInVertically(initialOffsetY = { 150 }, animationSpec = tween(800, easing = FastOutSlowInEasing)) + fadeIn(animationSpec = tween(800)),
                         exit = slideOutVertically(targetOffsetY = { 150 }, animationSpec = tween(500)) + fadeOut(animationSpec = tween(500))
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             
                             val targetApprovalProb = (1.0f - (currentFoir.toFloat() / (foirLimit.toFloat().coerceAtLeast(0.01f)))).coerceIn(0f, 1f)
                             val approvalProb by animateFloatAsState(targetValue = if (isResultVisible && !isInputExpanded) targetApprovalProb else 0f, animationSpec = tween(1500, easing = FastOutSlowInEasing), label = "probAnim")
@@ -137,7 +137,7 @@ fun ResultsSection(
                                         onModifyInputsClick = onModifyInputsClick
                                     )
                                 } else {
-                                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                         ResultCard(
                                             riskState = riskState,
                                             stateColor = stateColor,
@@ -147,9 +147,7 @@ fun ResultsSection(
                                             animatedTotalIncome = animatedTotalIncome,
                                             animatedTotalExistingEmi = animatedTotalExistingEmi
                                         )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(horizontal = 16.dp))
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        
 
                                         ApprovalCard(
                                             approvalProb = approvalProb,

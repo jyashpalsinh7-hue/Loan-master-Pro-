@@ -26,36 +26,36 @@ fun PremiumLockCard(
     onPremiumClick: () -> Unit
 ) {
     val gradientBrush = Brush.linearGradient(
-        colors = listOf(Color(0xFF6C63FF).copy(alpha = 0.10f), Color(0xFF03DAC5).copy(alpha = 0.05f))
+        colors = listOf(AccentBlue.copy(alpha = 0.15f), Color.Transparent)
     )
     
     Card(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(1.dp, Color.White.copy(alpha=0.05f), RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.6f)),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(16.dp)
+            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(14.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFFFD700).copy(alpha=0.1f)),
+                    modifier = Modifier.size(36.dp).clip(CircleShape).background(AccentBlue.copy(alpha=0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Rounded.Lock, contentDescription = "Locked", tint = Color(0xFFFFD700), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Lock, contentDescription = "Locked", tint = AccentBlue, modifier = Modifier.size(18.dp))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Unlock Loan Intelligence", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text("Personalized recommendations to improve approval.", color = TextSecondary, fontSize = 12.sp)
+                    Text("Unlock Loan Intelligence", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Personalized recommendations to improve approval.", color = TextSecondary, fontSize = 11.sp)
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onWatchAdClick,
-                    modifier = Modifier.weight(1f).height(42.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark.copy(alpha=0.8f), contentColor = TextPrimary),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha=0.05f)),
                     enabled = !isLoading,
@@ -75,9 +75,9 @@ fun PremiumLockCard(
                 Box(modifier = Modifier.weight(1f)) {
                     Button(
                         onClick = onPremiumClick,
-                        modifier = Modifier.fillMaxWidth().height(42.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700).copy(alpha=0.15f), contentColor = Color(0xFFFFD700)),
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue.copy(alpha=0.15f), contentColor = AccentBlue),
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -90,10 +90,10 @@ fun PremiumLockCard(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = 6.dp, y = (-6).dp)
-                            .background(Color(0xFFFFD700), RoundedCornerShape(4.dp))
+                            .background(AccentBlue, RoundedCornerShape(4.dp))
                             .padding(horizontal = 4.dp, vertical = 2.dp)
                     ) {
-                        Text("PRO", color = Color.Black, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("PRO", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
             }

@@ -50,27 +50,27 @@ fun ApprovalCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left: Gauge
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(60.dp)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(50.dp)) {
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     color = bgColor,
-                    strokeWidth = 5.dp,
+                    strokeWidth = 4.dp,
                     strokeCap = StrokeCap.Round
                 )
                 CircularProgressIndicator(
                     progress = { animatedApproval },
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(50.dp),
                     color = stateColor,
-                    strokeWidth = 5.dp,
+                    strokeWidth = 4.dp,
                     strokeCap = StrokeCap.Round
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${(animatedApproval * 100).toInt()}%", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("${(animatedApproval * 100).toInt()}%", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Spacer(modifier = Modifier.width(24.dp))
