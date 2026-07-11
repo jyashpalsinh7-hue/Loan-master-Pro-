@@ -92,13 +92,13 @@ fun RecommendationBottomSheet(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     shape = CircleShape,
-                    color = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.2f),
+                    color = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.2f),
                     modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
                 ) {
                     Icon(
-                        imageVector = when(recommendation.id) { "best_savings" -> Icons.Rounded.Savings; "fast_track" -> Icons.Rounded.Speed; "interest_minimizer" -> Icons.AutoMirrored.Rounded.TrendingDown; "custom" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info },
+                        imageVector = when(recommendation.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.AutoMirrored.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info },
                         contentDescription = null,
-                        tint = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) },
+                        tint = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) },
                         modifier = Modifier
                             .padding(LoanMasterTheme.spacing.md)
                             .fillMaxSize()
@@ -136,8 +136,8 @@ fun RecommendationBottomSheet(
                     emi = recommendation.targetEmi,
                     tenureMonths = recommendation.targetTenureMonths,
                     totalInterest = recommendation.targetTotalInterest,
-                    cardColor = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.1f),
-                    borderColor = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.5f),
+                    cardColor = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.1f),
+                    borderColor = when(recommendation.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color(0xFF9E9E9E) }.copy(alpha = 0.5f),
                     modifier = Modifier.weight(1f)
                 )
             }

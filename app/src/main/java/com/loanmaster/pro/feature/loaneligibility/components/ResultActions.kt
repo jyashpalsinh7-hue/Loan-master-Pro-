@@ -30,9 +30,9 @@ fun ResultActions(
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         
-        // Compare Banks Destination Card
+        // Compare Banks Destination Card (60dp)
         Card(
-            modifier = Modifier.fillMaxWidth().height(68.dp).clickable { onCompareClick() },
+            modifier = Modifier.fillMaxWidth().height(60.dp).clickable { onCompareClick() },
             colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
@@ -42,23 +42,23 @@ fun ResultActions(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.size(46.dp).clip(CircleShape).background(brightBlue.copy(alpha = 0.1f)),
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(brightBlue.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(20.dp))
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                    Text("Compare Banks", color = textColor, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("Compare Banks", color = textColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("Compare offers from multiple lenders", color = textSecondary.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text("Compare offers from multiple lenders", color = textSecondary.copy(alpha = 0.7f), fontSize = 11.sp)
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = textSecondary, modifier = Modifier.size(18.dp))
             }
         }
 
-        // Secondary Actions Grid - Compact action cards
+        // Secondary Actions Grid - Compact action cards (68dp)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionCard(
                 text = "Report",
@@ -85,7 +85,7 @@ fun ResultActions(
 @Composable
 fun ActionCard(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        modifier = modifier.height(80.dp).clickable { onClick() },
+        modifier = modifier.height(68.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
@@ -95,8 +95,8 @@ fun ActionCard(text: String, icon: ImageVector, modifier: Modifier = Modifier, o
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(8.dp))
+            Icon(icon, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(22.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(text, color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Medium)
         }
     }

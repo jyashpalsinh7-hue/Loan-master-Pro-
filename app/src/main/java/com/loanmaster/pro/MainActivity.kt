@@ -31,6 +31,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.enableEdgeToEdge
@@ -100,6 +101,7 @@ fun getDatabase(context: android.content.Context): LoanMasterDatabase {
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         enableEdgeToEdge()
@@ -168,4 +170,6 @@ val context = androidx.compose.ui.platform.LocalContext.current
             }
         }
     }
-}
+}// Force refresh
+// Reinstall trigger
+// trigger re-build

@@ -341,15 +341,15 @@ fun CalculatorScreenLayout(
                 .widthIn(max = 840.dp)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.md)
+                .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.xs)
         ) {
             globalHeader()
 
             if (widthSizeClass == WindowWidthSizeClass.EXPANDED) {
-                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
+                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                 androidx.compose.foundation.layout.Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
                     androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
                         inputControlsSection()
@@ -359,9 +359,9 @@ fun CalculatorScreenLayout(
                     }
                 }
             } else {
-                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
+                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 inputControlsSection()
-                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
+                androidx.compose.foundation.layout.Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
                 animatedResults()
             }
         }

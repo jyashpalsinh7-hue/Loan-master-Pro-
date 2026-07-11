@@ -17,6 +17,8 @@ import com.loanmaster.pro.data.local.room.*
 import com.loanmaster.pro.feature.loansummary.*
 import com.loanmaster.pro.feature.prepayment.*
 import com.loanmaster.pro.core.formatter.*
+import com.loanmaster.pro.feature.loaneligibility.util.*
+
 import com.loanmaster.pro.feature.fd.*
 import com.loanmaster.pro.data.repository.*
 import com.loanmaster.pro.feature.currency.*
@@ -99,7 +101,9 @@ fun TenureInputField(
     iconTint: Color,
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color,    modifier: Modifier = Modifier
+    secondaryText: Color,
+    errorMessage: String? = null,
+    modifier: Modifier = Modifier
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     PremiumInputField(
@@ -108,6 +112,7 @@ fun TenureInputField(
         onValueChange = onValueChange,
         icon = icon,
         iconTint = iconTint,
+        errorMessage = errorMessage,
         modifier = modifier,
         trailingContent = {
             // Compact Toggle Button
@@ -140,7 +145,8 @@ fun LoanTypeSelector(
     onTypeSelected: (String) -> Unit,
     inputBg: Color,
     borderColor: Color,
-    secondaryText: Color,    modifier: Modifier = Modifier
+    secondaryText: Color,
+    modifier: Modifier = Modifier
 ) {
     var isDropdownExpanded by rememberSaveable { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -166,15 +172,8 @@ fun LoanTypeSelector(
                         .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.gridGutter),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val icon = when (selectedType) {
-                        "Home Loan" -> Icons.Rounded.Home
-                        "Car Loan" -> Icons.Rounded.DirectionsCar
-                        "Personal Loan" -> Icons.Rounded.Person
-                        "Education Loan" -> Icons.Rounded.School
-                        else -> Icons.Rounded.AccountBalance
-                    }
                     Icon(
-                        imageVector = icon,
+                        imageVector = getLoanTypeIcon(selectedType),
                         contentDescription = null,
                         tint = Color(0xFF22C55E),
                         modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f)
@@ -193,13 +192,15 @@ fun LoanTypeSelector(
                     onDismissRequest = { isDropdownExpanded = false },
                     modifier = Modifier.background(inputBg).border(1.dp, borderColor, RoundedCornerShape(LoanMasterTheme.spacing.sm))
                 ) {
-                    val loanTypes = listOf("Home Loan", "Car Loan", "Personal Loan", "Education Loan", "Business Loan")
-                    loanTypes.forEach { type ->
+                    loanProfiles.forEach { profile ->
                         androidx.compose.material3.DropdownMenuItem(
-                            text = { Text(type, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(profile.name, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
+                            leadingIcon = {
+                                Icon(getLoanTypeIcon(profile.name), contentDescription = null, tint = secondaryText, modifier = Modifier.size(LoanMasterTheme.components.iconMedium.value.dp * 0.8f))
+                            },
                             onClick = {
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                onTypeSelected(type)
+                                onTypeSelected(profile.name)
                                 isDropdownExpanded = false
                             }
                         )
@@ -432,42 +433,15 @@ fun EmiScreen(
             TopAppBar(
                 title = { 
                     Column {
-                        Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.Calculate, contentDescription = null, tint = Color(0xFF2D7DFF), modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.widthIn(min = 8.dp))
+                            Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                         Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = { 
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        onNavigateBack() 
-                    }) {
-                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = primaryText)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.saveCurrentCalculation() }) {
-                        Icon(imageVector = Icons.Rounded.Save, contentDescription = "Save Calculation", tint = primaryText)
-                    }
-
-                    val context = androidx.compose.ui.platform.LocalContext.current
-                    IconButton(onClick = {
-                        ExportUtils.exportToPdf(
-                            context,
-                            "EMI Calculator Report",
-                            listOf(
-                                "Loan Amount" to com.loanmaster.pro.core.formatter.formatMoney(uiState.parsedLoanAmount),
-                                "Interest Rate" to "$uiState.parsedInterestRate%",
-                                "Tenure" to "$uiState.parsedTenureYears Years ${uiState.totalMonths % 12} Months",
-                                "" to "",
-                                "Monthly EMI" to com.loanmaster.pro.core.formatter.formatMoney(uiState.monthlyEmi),
-                                "Total Interest" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalInterest),
-                                "Total Payment" to com.loanmaster.pro.core.formatter.formatMoney(uiState.totalPayment)
-                            )
-                        )
-                    }) {
-                        Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export to PDF", tint = primaryText)
-                    }
-                },
+                actions = {},
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
             )
         },
@@ -489,20 +463,22 @@ fun EmiScreen(
                         shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
-                        Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md), verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
+                        Column(modifier = Modifier.padding(LoanMasterTheme.spacing.sm), verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm)) {
                             AdaptiveRowCol(
                                 columns = LoanMasterTheme.grids.calculatorColumns,
                                 content1 = { modifier ->
                                     PremiumInputField(
                                         label = "Loan Amount", value = uiState.loanAmountText, onValueChange = { viewModel.updateInputs(loanAmount = it) },
-                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, modifier = modifier
+                                        icon = Icons.Rounded.AccountBalanceWallet, iconTint = blueAccent, modifier = modifier,
+                                        errorMessage = uiState.loanAmountError
                                     )
                                 },
                                 content2 = { modifier ->
                                     PremiumInputField(
                                         label = "Interest Rate (p.a.)", value = uiState.interestRateText, onValueChange = { viewModel.updateInputs(interestRate = it) },
                                         icon = Icons.Rounded.Percent, iconTint = blueAccent, modifier = modifier,
-                                        infoText = "The annual interest rate charged on your loan."
+                                        infoText = "The annual interest rate charged on your loan.",
+                                        errorMessage = uiState.interestRateError
                                     )
                                 }
                             )
@@ -513,7 +489,8 @@ fun EmiScreen(
                                         label = "Tenure", value = uiState.tenureInputText, onValueChange = { viewModel.updateInputs(tenureInput = it) },
                                         isMonths = uiState.isTenureInMonths, onToggleIsMonths = { viewModel.updateInputs(isTenureMonths = it) },
                                         icon = Icons.Rounded.DateRange, iconTint = blueAccent,
-                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier
+                                        inputBg = inputBg, borderColor = borderColor, secondaryText = secondaryText, modifier = modifier,
+                                        errorMessage = uiState.tenureError
                                     )
                                 },
                                 content2 = { modifier ->
@@ -586,8 +563,6 @@ fun EmiScreen(
                                     )
                                 }
 
-                                Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
-
                                 // Cost Breakdown Stacked Bar
                                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -620,20 +595,27 @@ fun EmiScreen(
                                     }
                                 }
 
-                                Spacer(Modifier.heightIn(min = 28.dp))
-
+                                Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                 // Totals Row
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
+                                            Spacer(Modifier.widthIn(min = 4.dp))
+                                            Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        }
                                         AutoResizedText(text = com.loanmaster.pro.core.formatter.formatMoney(uiState.totalInterest), color = greenAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text("Total Payment", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Rounded.Payments, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
+                                            Spacer(Modifier.widthIn(min = 4.dp))
+                                            Text("Total Payment", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
+                                        }
                                         AutoResizedText(text = com.loanmaster.pro.core.formatter.formatMoney(uiState.totalPayment), color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 1.1f, fontWeight = FontWeight.Bold)
                                     }
                                 }
@@ -650,7 +632,11 @@ fun EmiScreen(
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Smart Recommendations", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Rounded.Assistant, contentDescription = null, tint = goldAccent, modifier = Modifier.size(20.dp))
+                                    Spacer(Modifier.widthIn(min = 8.dp))
+                                    Text("Smart Recommendations", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.8f, fontWeight = FontWeight.SemiBold)
+                                }
                                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                 Surface(color = Color(0xFF3B2A6E), shape = RoundedCornerShape(LoanMasterTheme.components.iconSmall)) {
                                     Text("PRO", color = Color(0xFFB39DFF), fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 9.dp, vertical = LoanMasterTheme.spacing.xs))
@@ -676,7 +662,7 @@ fun EmiScreen(
                                             }
                                             .border(
                                                 1.dp,
-                                                if (rec.isRecommended) when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color.Gray } else borderColor,
+                                                if (rec.isRecommended) when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray } else borderColor,
                                                 RoundedCornerShape(LoanMasterTheme.spacing.md)
                                             )
                                             .padding(LoanMasterTheme.spacing.md)
@@ -684,17 +670,17 @@ fun EmiScreen(
                                         if (rec.isRecommended) {
                                             Text(
                                                 "RECOMMENDED",
-                                                color = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color.Gray },
+                                                color = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray },
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.sm)
                                             )
                                         }
-                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fast_track" -> Icons.Rounded.Speed; "interest_minimizer" -> Icons.AutoMirrored.Rounded.TrendingDown; "custom" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
+                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.AutoMirrored.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                         Text(rec.title, color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize)
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                                        Text(rec.description, color = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fast_track" -> Color(0xFF3B82F6); "interest_minimizer" -> Color(0xFFA855F7); "custom" -> Color(0xFFF59E0B); else -> Color.Gray }, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, lineHeight = LoanMasterTheme.typography.title.fontSize)
+                                        Text(rec.description, color = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, lineHeight = LoanMasterTheme.typography.title.fontSize)
                                     }
                                 }
                             }
@@ -724,12 +710,19 @@ fun EmiScreen(
                         border = BorderStroke(1.dp, borderColor)
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Amortization Schedule", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
-                                Text("Full Schedule ›", color = blueAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f, modifier = Modifier.clickable { 
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Rounded.TableChart, contentDescription = null, tint = blueAccent, modifier = Modifier.size(20.dp))
+                                    Spacer(Modifier.widthIn(min = 8.dp))
+                                    Text("Amortization Schedule", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize.value.sp * 0.75f, fontWeight = FontWeight.SemiBold)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { 
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     showFullSchedule = true 
-                                })
+                                }) {
+                                    Text("Full Schedule", color = blueAccent, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.9f)
+                                    Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = blueAccent, modifier = Modifier.size(16.dp))
+                                }
                             }
                             Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
 

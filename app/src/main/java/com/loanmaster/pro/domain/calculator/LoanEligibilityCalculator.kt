@@ -25,10 +25,15 @@ data class LoanEligibilityResult(
 
 class LoanEligibilityCalculator {
     private val loanProfiles = listOf(
-        LoanProfile("Home Loan", 0.60, "8.5", "20"),
-        LoanProfile("Personal Loan", 0.50, "12.0", "5"),
-        LoanProfile("Car Loan", 0.55, "9.5", "7"),
-        LoanProfile("Education Loan", 0.40, "10.5", "10")
+        LoanProfile("Home Loan", 0.65, "8.5", "20"),
+        LoanProfile("Personal Loan", 0.50, "11.0", "5"),
+        LoanProfile("Car Loan", 0.55, "9.0", "7"),
+        LoanProfile("Education Loan", 0.50, "10.0", "10"),
+        LoanProfile("Business Loan", 0.50, "12.0", "5"),
+        LoanProfile("Gold Loan", 0.75, "9.5", "2"),
+        LoanProfile("Medical Loan", 0.45, "11.5", "4"),
+        LoanProfile("Travel Loan", 0.40, "12.5", "2"),
+        LoanProfile("Two Wheeler Loan", 0.50, "10.5", "3")
     )
 
     private fun String.safeToDouble(): Double = toDoubleOrNull() ?: 0.0
@@ -56,16 +61,23 @@ class LoanEligibilityCalculator {
         val totalIncome = income1 + income2
         val totalExistingEmi = emi1 + emi2
 
-        val foirLimit = if (isSal) profile.baseFoir else (profile.baseFoir - 0.05)
-        val maxAllowedEmi = totalIncome * foirLimit
+        val baseFoirAdjusted = if (isSal) profile.baseFoir else (profile.baseFoir - 0.05)
+        
+        // FOIR limit logic based on income size for certain loans (e.g. Home Loan)
+        val foirLimit = if (profileName == "Home Loan" && totalIncome > 100000) {
+            baseFoirAdjusted + 0.05 // Higher income = higher capacity
+        } else {
+            baseFoirAdjusted
+        }
 
+        val maxAllowedEmi = totalIncome * foirLimit
         val availableEmi = if (maxAllowedEmi > totalExistingEmi) maxAllowedEmi - totalExistingEmi else 0.0
         val currentFoir = if (totalIncome > 0) totalExistingEmi / totalIncome else 0.0
 
         val tenureYrs = tenureStr.safeToDouble()
         val rate = rateStr.safeToDouble()
-        var eligibleLoanAmount = 0.0
 
+        var eligibleLoanAmount = 0.0
         if (rate > 0 && tenureYrs > 0 && availableEmi > 0) {
             val r = (rate / 100.0) / 12.0
             val n = tenureYrs * 12
@@ -94,15 +106,34 @@ class LoanEligibilityCalculator {
             else -> 20
         }
 
-        val creditMultiplier = when (creditScore) {
-            "Excellent" -> 1.1
-            "Good" -> 1.0
-            "Fair" -> 0.8
-            else -> 0.5
+        val creditMultiplier = when (profileName) {
+            "Gold Loan" -> when (creditScore) {
+                "Excellent" -> 1.1
+                "Good" -> 1.05
+                "Fair" -> 0.95
+                else -> 0.85
+            }
+            "Travel Loan", "Personal Loan" -> when (creditScore) {
+                "Excellent" -> 1.1
+                "Good" -> 0.9
+                "Fair" -> 0.6
+                else -> 0.2
+            }
+            else -> when (creditScore) {
+                "Excellent" -> 1.1
+                "Good" -> 1.0
+                "Fair" -> 0.8
+                else -> 0.5
+            }
         }
 
         var eligibilityScore = ((burdenScore * 0.5 + rateScore * 0.3 + tenureScore * 0.2) * creditMultiplier).toInt().coerceIn(0, 100)
         
+        if (profileName == "Gold Loan") {
+            // Gold loans are heavily collateral-based
+            eligibilityScore = (eligibilityScore + 20).coerceIn(0, 100)
+        }
+
         if (eligibleLoanAmount <= 0) {
             eligibilityScore = 0
         }
@@ -115,20 +146,37 @@ class LoanEligibilityCalculator {
         }
 
         val alerts = mutableListOf<SmartAlert>()
-        if (currentFoir > 0.5) {
+        
+        if (currentFoir > 0.5 && profileName != "Gold Loan") {
             alerts.add(SmartAlert(AlertType.CRITICAL, "Your existing EMIs consume over 50% of your income. Consider clearing small debts before applying."))
         }
-        if (creditScore == "Poor") {
-            alerts.add(SmartAlert(AlertType.WARNING, "A poor credit score drastically reduces approval chances and increases interest rates."))
+        
+        if (creditScore == "Poor" && profileName != "Gold Loan") {
+            alerts.add(SmartAlert(AlertType.WARNING, "A poor credit score drastically reduces approval chances for unsecured loans and increases interest rates."))
         }
-        if (!isSal) {
+        
+        if (!isSal && (profileName == "Personal Loan" || profileName == "Home Loan")) {
             alerts.add(SmartAlert(AlertType.WARNING, "Banks usually require 2-3 years of ITRs for self-employed individuals. Ensure your tax filings are up to date."))
+        }
+        
+        if (profileName == "Business Loan" && isSal) {
+            alerts.add(SmartAlert(AlertType.WARNING, "Business loans are generally intended for self-employed individuals or business entities. You may be offered a Personal Loan instead."))
         }
 
         val opportunities = mutableListOf<SmartOpportunity>()
-        if (!isCoBorrower && currentFoir > 0.4) {
+        
+        if (!isCoBorrower && currentFoir > 0.4 && profileName != "Gold Loan") {
             opportunities.add(SmartOpportunity("Add a Co-borrower", "Adding a working spouse or parent can increase your eligible loan amount significantly.", ""))
         }
+        
+        if (profileName == "Education Loan" && !isCoBorrower) {
+            opportunities.add(SmartOpportunity("Add a Parent as Co-borrower", "Education loans over certain limits usually require a parent as a financial co-applicant.", ""))
+        }
+        
+        if (profileName == "Gold Loan" && eligibilityScore < 80) {
+            opportunities.add(SmartOpportunity("Leverage Gold Value", "Since this is a fully secured loan, approval is heavily based on the value of pledged gold rather than income.", ""))
+        }
+        
         if (tenureYrs < 20 && profileName == "Home Loan" && availableEmi < 20000) {
             opportunities.add(SmartOpportunity("Increase Tenure", "Extending the loan tenure will lower the EMI requirement and increase your eligible amount.", ""))
         }
@@ -143,14 +191,4 @@ class LoanEligibilityCalculator {
             recommendedLoanAmount = recommendedLoanAmount,
             currentFoir = currentFoir,
             burdenScore = burdenScore,
-            rateScore = rateScore,
-            tenureScore = tenureScore,
-            eligibilityScore = eligibilityScore,
-            verdictGrade = grade,
-            verdictTitle = title,
-            verdictDesc = desc,
-            alerts = alerts,
-            opportunities = opportunities
-        )
-    }
-}
+            rateScore = rateScore,            tenureScore = tenureScore,            eligibilityScore = eligibilityScore,            verdictGrade = grade,            verdictTitle = title,            verdictDesc = desc,            alerts = alerts,            opportunities = opportunities        )    }}

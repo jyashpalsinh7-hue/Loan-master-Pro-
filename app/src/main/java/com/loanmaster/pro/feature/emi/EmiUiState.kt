@@ -33,6 +33,10 @@ data class EmiUiState(
     val isTenureInMonths: Boolean = false,
     val loanType: String = "Home Loan",
     
+    val loanAmountError: String? = null,
+    val interestRateError: String? = null,
+    val tenureError: String? = null,
+    
     val parsedLoanAmount: Double = 0.0,
     val parsedInterestRate: Double = 0.0,
     val parsedTenureYears: Int = 0,

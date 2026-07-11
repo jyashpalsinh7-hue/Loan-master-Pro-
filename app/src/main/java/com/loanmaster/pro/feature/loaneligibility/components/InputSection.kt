@@ -88,13 +88,17 @@ fun InputSection(
                                         .clickable { onSalariedChange(true) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = "Salaried",
-                                        color = if (isSalaried) brightBlue else textSecondary,
-                                        fontSize = 14.sp,
-                                        fontWeight = if (isSalaried) FontWeight.Bold else FontWeight.Medium,
-                                        maxLines = 1
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Rounded.BusinessCenter, contentDescription = null, tint = if (isSalaried) brightBlue else textSecondary, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Salaried",
+                                            color = if (isSalaried) brightBlue else textSecondary,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isSalaried) FontWeight.Bold else FontWeight.Medium,
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
                                 Box(
                                     modifier = Modifier
@@ -104,13 +108,17 @@ fun InputSection(
                                         .clickable { onSalariedChange(false) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = "Self-Employed",
-                                        color = if (!isSalaried) brightBlue else textSecondary,
-                                        fontSize = 14.sp,
-                                        fontWeight = if (!isSalaried) FontWeight.Bold else FontWeight.Medium,
-                                        maxLines = 1
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Rounded.Storefront, contentDescription = null, tint = if (!isSalaried) brightBlue else textSecondary, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Self-Employed",
+                                            color = if (!isSalaried) brightBlue else textSecondary,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (!isSalaried) FontWeight.Bold else FontWeight.Medium,
+                                            maxLines = 1
+                                        )
+                                    }
                                 }
                             }
 
@@ -212,7 +220,7 @@ fun InputSection(
                                             value = selectedLoanProfile,
                                             onValueChange = {},
                                             label = { Text("Loan Type", maxLines = 1, fontSize = 12.sp, fontWeight = FontWeight.Normal) },
-                                            leadingIcon = { Icon(Icons.Rounded.HomeWork, contentDescription = null, tint = brightBlue, modifier = Modifier.size(20.dp)) },
+                                            leadingIcon = { Icon(getLoanTypeIcon(selectedLoanProfile), contentDescription = null, tint = brightBlue, modifier = Modifier.size(20.dp)) },
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = loanDropdownExpanded) },
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -241,6 +249,7 @@ fun InputSection(
                                             loanProfiles.forEach { p ->
                                                 DropdownMenuItem(
                                                     text = { Text(p.name, color = textColor, fontWeight = FontWeight.Medium) },
+                                                    leadingIcon = { Icon(getLoanTypeIcon(p.name), contentDescription = null, tint = textSecondary, modifier = Modifier.size(20.dp)) },
                                                     onClick = {
                                                         onSelectedLoanProfileChange(p.name)
                                                         loanDropdownExpanded = false
@@ -273,14 +282,17 @@ fun InputSection(
 
                             // Credit Score Filter Chips
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    "Credit Score",
-                                    color = textSecondary,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(bottom = 12.dp),
-                                    maxLines = 1
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
+                                    Icon(Icons.Rounded.Speed, contentDescription = null, tint = textSecondary, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "Credit Score",
+                                        color = textSecondary,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1
+                                    )
+                                }
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -1,5 +1,8 @@
-
 package com.loanmaster.pro.feature.loaneligibility
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+
+
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -82,15 +85,21 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
             ) {
                 // Header
                 item {
-                    Text(
-                        text = "Loan Eligibility",
-                        color = textColor,
-                        style = LoanMasterTheme.typography.title,
-                        fontWeight = FontWeight.SemiBold,
+                    Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Rounded.Calculate, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(28.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Loan Eligibility",
+                            color = textColor,
+                            style = LoanMasterTheme.typography.title,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 // Collapsed Summary

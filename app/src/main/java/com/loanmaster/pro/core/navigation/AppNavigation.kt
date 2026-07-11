@@ -7,6 +7,7 @@ import com.loanmaster.pro.feature.gst.*
 import com.loanmaster.pro.feature.sip.*
 import com.loanmaster.pro.core.ui.*
 import com.loanmaster.pro.feature.history.*
+import com.loanmaster.pro.feature.splash.SplashScreen
 import com.loanmaster.pro.core.theme.*
 import com.loanmaster.pro.data.datastore.*
 import com.loanmaster.pro.feature.settings.*
@@ -48,6 +49,9 @@ import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,6 +73,11 @@ import androidx.navigation.compose.NavHost
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -94,7 +103,18 @@ fun AppNavigation(
     val activeRoute = mainUiState.activeBottomNavItem
     val selectedHistory = mainUiState.selectedHistory
     
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: "splash"
+    
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val customLayoutType = if (currentRoute == "splash") {
+        NavigationSuiteType.None
+    } else {
+        androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo)
+    }
+    
     NavigationSuiteScaffold(
+        layoutType = customLayoutType,
         navigationSuiteItems = {
                             item(
                                 icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
@@ -164,7 +184,19 @@ fun AppNavigation(
                         },
                         containerColor = NavBackground
                     ) {
-                        NavHost(navController = navController, startDestination = "home") {
+                        NavHost(
+                            navController = navController, 
+                            startDestination = "splash",
+                            enterTransition = { fadeIn(animationSpec = tween(500)) },
+                            exitTransition = { fadeOut(animationSpec = tween(500)) }
+                        ) {
+                                        composable("splash") {
+                        SplashScreen(onNavigateNext = {
+                            navController.navigate("home") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        })
+                    }
                     composable("home") { 
                         val historyUiState by historyViewModel.uiState.collectAsStateWithLifecycle()
                         val historyList = historyUiState.historyList

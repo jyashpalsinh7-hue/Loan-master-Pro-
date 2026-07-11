@@ -70,12 +70,16 @@ onCalculateClick()
                         if (isCalculating) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                         } else {
-                            Text(
-                                text = if (isInputExpanded) "Calculate Eligibility" else "Update Calculation",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(if (isInputExpanded) Icons.Rounded.Calculate else Icons.Rounded.Update, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isInputExpanded) "Calculate Eligibility" else "Update Calculation",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                     

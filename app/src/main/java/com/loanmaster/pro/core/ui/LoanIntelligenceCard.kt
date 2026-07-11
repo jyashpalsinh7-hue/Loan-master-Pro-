@@ -287,12 +287,16 @@ fun LoanIntelligenceCard(
                     ),
                     verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
-                    Text(
-                        text = "Smart Alerts",
-                        fontSize = LoanMasterTheme.typography.title.fontSize,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryText
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.NotificationsActive, contentDescription = null, tint = Color(0xFFF44336), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.widthIn(min = 8.dp))
+                        Text(
+                            text = "Smart Alerts",
+                            fontSize = LoanMasterTheme.typography.title.fontSize,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryText
+                        )
+                    }
                     
                     alerts.forEach { alert ->
                         val type = alert.type.name
@@ -328,12 +332,16 @@ fun LoanIntelligenceCard(
                     ),
                     verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
                 ) {
-                    Text(
-                        text = "Smart Opportunities",
-                        fontSize = LoanMasterTheme.typography.title.fontSize,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryText
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.EmojiObjects, contentDescription = null, tint = goldAccent, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.widthIn(min = 8.dp))
+                        Text(
+                            text = "Smart Opportunities",
+                            fontSize = LoanMasterTheme.typography.title.fontSize,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryText
+                        )
+                    }
 
                     opportunities.forEach { opp ->
                         Row(verticalAlignment = Alignment.Top) {

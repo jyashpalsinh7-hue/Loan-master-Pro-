@@ -1,4 +1,7 @@
 package com.loanmaster.pro.feature.loaneligibility.components
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -50,44 +53,56 @@ fun ApprovalCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left: Gauge
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(50.dp)) {
+            // Left: Gauge (reduced to 42dp)
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(42.dp)) {
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(42.dp),
                     color = bgColor,
-                    strokeWidth = 4.dp,
+                    strokeWidth = 3.5.dp,
                     strokeCap = StrokeCap.Round
                 )
                 CircularProgressIndicator(
                     progress = { animatedApproval },
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(42.dp),
                     color = stateColor,
-                    strokeWidth = 4.dp,
+                    strokeWidth = 3.5.dp,
                     strokeCap = StrokeCap.Round
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${(animatedApproval * 100).toInt()}%", color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("${(animatedApproval * 100).toInt()}%", color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(modifier = Modifier.width(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             
-            // Right: Details
+            // Right: Details (Perfectly aligned)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("FOIR", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.DataUsage, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("FOIR", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    }
                     val foirColor = if (currentFoir < 0.4) neonGreen else if (currentFoir < 0.6) warningYellow else dangerRed
                     Text("${(currentFoir * 100).toInt()}%", color = foirColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Confidence", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Insights, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Confidence", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                     Text(conf, color = stateColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Credit Grade", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Grade, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Credit Grade", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                     Text(gradeRaw, color = gradeColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }

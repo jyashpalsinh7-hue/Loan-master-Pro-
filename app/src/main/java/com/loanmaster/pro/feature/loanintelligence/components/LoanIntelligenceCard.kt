@@ -1,6 +1,8 @@
 package com.loanmaster.pro.feature.loanintelligence.components
-import androidx.compose.animation.animateContentSize
+import androidx.compose.material.icons.rounded.*
 
+
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -9,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,7 +37,7 @@ fun LoanIntelligenceCard(
     Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 4.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -104,11 +108,20 @@ fun LoanIntelligenceCard(
                                 onClick = { isExpanded = !isExpanded },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    if (isExpanded) "Show Less" else "View all insights (${state.suggestions.size})",
-                                    color = AccentBlue,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        if (isExpanded) "Show Less" else "View all insights (${state.suggestions.size})",
+                                        color = AccentBlue,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        if (isExpanded) androidx.compose.material.icons.Icons.Rounded.KeyboardArrowUp else androidx.compose.material.icons.Icons.Rounded.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = AccentBlue,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }

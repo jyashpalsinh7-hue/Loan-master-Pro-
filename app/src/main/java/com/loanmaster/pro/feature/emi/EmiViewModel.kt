@@ -34,6 +34,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.loanmaster.pro.feature.loaneligibility.util.loanProfiles
+
 
 class EmiViewModel(
     private val historyRepository: HistoryRepository? = null
@@ -52,11 +54,26 @@ class EmiViewModel(
         type: String? = null
     ) {
         _uiState.update { current ->
+            var newInterest = interestRate ?: current.interestRateText
+            var newTenure = tenureInput ?: current.tenureInputText
+            var newIsMonths = isTenureMonths ?: current.isTenureInMonths
+            
+            // Auto-fill default interest and tenure if type changes and current inputs are empty,
+            // or if we just want to reset them to standard when changing type
+            if (type != null && type != current.loanType) {
+                val profile = loanProfiles.find { it.name == type }
+                if (profile != null) {
+                    newInterest = profile.defaultRate
+                    newTenure = profile.defaultTenure
+                    newIsMonths = false // default tenure is in years
+                }
+            }
+
             val next = current.copy(
                 loanAmountText = loanAmount ?: current.loanAmountText,
-                interestRateText = interestRate ?: current.interestRateText,
-                tenureInputText = tenureInput ?: current.tenureInputText,
-                isTenureInMonths = isTenureMonths ?: current.isTenureInMonths,
+                interestRateText = newInterest,
+                tenureInputText = newTenure,
+                isTenureInMonths = newIsMonths,
                 loanType = type ?: current.loanType
             )
             calculateAndUpdateState(next)
@@ -104,6 +121,30 @@ class EmiViewModel(
     }
 
     private fun calculateAndUpdateState(state: EmiUiState): EmiUiState {
+        val loanAmt = state.loanAmountText.toDoubleOrNull()
+        val loanAmountError = if (state.loanAmountText.isNotEmpty()) {
+            if (loanAmt == null) "Invalid numeric entry"
+            else if (loanAmt <= 0) "Must be greater than 0"
+            else null
+        } else null
+
+        val interestRate = state.interestRateText.toDoubleOrNull()
+        val interestRateError = if (state.interestRateText.isNotEmpty()) {
+            if (interestRate == null) "Invalid numeric entry"
+            else if (interestRate <= 0) "Must be greater than 0"
+            else if (interestRate > 100) "Max rate is 100%"
+            else null
+        } else null
+
+        val tenureVal = state.tenureInputText.toIntOrNull()
+        val tenureError = if (state.tenureInputText.isNotEmpty()) {
+            if (tenureVal == null) "Invalid numeric entry"
+            else if (tenureVal <= 0) "Must be greater than 0"
+            else if (state.isTenureInMonths && tenureVal > 1200) "Max tenure is 1200 months"
+            else if (!state.isTenureInMonths && tenureVal > 100) "Max tenure is 100 years"
+            else null
+        } else null
+
         val result = emiCalculator.calculateFull(
             loanAmount = state.loanAmountText,
             interestRate = state.interestRateText,
@@ -113,6 +154,9 @@ class EmiViewModel(
         )
 
         return state.copy(
+            loanAmountError = loanAmountError,
+            interestRateError = interestRateError,
+            tenureError = tenureError,
             parsedLoanAmount = result.parsedLoanAmount,
             parsedInterestRate = result.parsedInterestRate,
             parsedTenureYears = result.parsedTenureYears,

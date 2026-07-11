@@ -29,7 +29,7 @@ import com.loanmaster.pro.feature.home.*
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [CalculationHistory::class, ActiveLoan::class], version = 3, exportSchema = false)
+@Database(entities = [CalculationHistory::class, ActiveLoan::class], version = 4, exportSchema = false)
 abstract class LoanMasterDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun activeLoanDao(): ActiveLoanDao
