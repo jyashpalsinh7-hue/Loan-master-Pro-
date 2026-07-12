@@ -184,18 +184,18 @@ fun SipScreen(
             if (isWide) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
                     GrowthVisualizationCard(yearlyDataList, modifier = Modifier.weight(1.5f))
-                    Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState) }
+                    Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { viewModel.unlockPremium() }) }
                 }
             } else {
                 GrowthVisualizationCard(yearlyDataList, modifier = Modifier.fillMaxWidth())
-                InflationAdjustedCard(maturityValue, years, uiState)
+                InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { viewModel.unlockPremium() })
             }
             
             LifestyleFundsSection(isWide, maturityValue, years)
             
-            WealthOpportunityCard(maturityValue)
+            WealthOpportunityCard(maturityValue, uiState, onUnlockPremium = { viewModel.unlockPremium() })
             
-            SipScheduleCard(yearlyDataList)
+            SipScheduleCard(yearlyDataList, uiState, onUnlockPremium = { viewModel.unlockPremium() })
             Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xl))
         }
     }
@@ -595,7 +595,7 @@ private fun LifeCard(title: String, targetAmount: Double, maturityValue: Double,
 }
 
 @Composable
-private fun InflationAdjustedCard(maturityValue: Double, years: Int, uiState: SipUiState) {
+private fun InflationAdjustedCard(maturityValue: Double, years: Int, uiState: SipUiState, onUnlockPremium: () -> Unit) {
     val adjustedValue = uiState.inflationAdjustedValue
     val valueLost = maturityValue - adjustedValue
 
@@ -635,7 +635,7 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int, uiState: Si
 }
 
 @Composable
-private fun WealthOpportunityCard(maturityValue: Double) {
+private fun WealthOpportunityCard(maturityValue: Double, uiState: SipUiState, onUnlockPremium: () -> Unit) {
     val potentialCorpus = maturityValue * 1.35
     val potentialGain = potentialCorpus - maturityValue
 
@@ -669,11 +669,15 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                 Text("Potential Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                    if (!uiState.isPremiumUnlocked) Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     val formatted = com.loanmaster.pro.core.formatter.formatMoney(potentialCorpus)
-                    val blurredText = if (formatted.length > 5) formatted.take(2) + ",XX,XXX" else "XX,XXX"
-                    AutoSizeText(blurredText, color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    if (uiState.isPremiumUnlocked) {
+                        AutoSizeText(formatted, color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
+                    } else {
+                        val blurredText = if (formatted.length > 5) formatted.take(2) + ",XX,XXX" else "XX,XXX"
+                        AutoSizeText(blurredText, color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    }
                 }
             }
             Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(StrokeNavy))
@@ -681,54 +685,83 @@ private fun WealthOpportunityCard(maturityValue: Double) {
                 Text("Potential Gain", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Lock, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                    if (!uiState.isPremiumUnlocked) Icon(Icons.Rounded.Lock, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     val formattedGain = com.loanmaster.pro.core.formatter.formatMoney(potentialGain)
-                    val blurredGain = if (formattedGain.length > 5) formattedGain.take(1) + ",XX,XXX" else "X,XXX"
-                    AutoSizeText("+" + blurredGain, color = GreenSuccess, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    if (uiState.isPremiumUnlocked) {
+                        AutoSizeText("+" + formattedGain, color = GreenSuccess, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
+                    } else {
+                        val blurredGain = if (formattedGain.length > 5) formattedGain.take(1) + ",XX,XXX" else "X,XXX"
+                        AutoSizeText("+" + blurredGain, color = GreenSuccess, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.blur(LoanMasterTheme.spacing.xs), maxLines = 1)
+                    }
                 }
             }
         }
         
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
-        listOf("Better Step-Up Strategy", "Faster Wealth Growth", "Goal Achievement Optimization").forEach { text ->
+        val insights = if (uiState.isPremiumUnlocked) {
+            uiState.premiumInsights.ifEmpty { 
+                listOf(
+                    "Increase annual step-up by 5% to combat inflation",
+                    "Extend tenure by 3 years to maximize compounding",
+                    "Rebalance 20% to mid-cap funds for better returns"
+                )
+            }
+        } else {
+            listOf("Better Step-Up Strategy", "Faster Wealth Growth", "Goal Achievement Optimization")
+        }
+
+        if (uiState.isPremiumUnlocked) {
+            Text(
+                "To achieve this potential corpus, our AI recommends the following strategic adjustments:",
+                color = GoldAccent,
+                fontSize = LoanMasterTheme.typography.label.fontSize,
+                modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md)
+            )
+        }
+
+        insights.forEach { text ->
            Row(modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md), verticalAlignment = Alignment.CenterVertically) {
-               Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+               Icon(if (uiState.isPremiumUnlocked) Icons.Rounded.CheckCircle else Icons.Rounded.AutoAwesome, contentDescription = null, tint = if (uiState.isPremiumUnlocked) GreenSuccess else GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.md))
                Text(text, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize)
                Spacer(Modifier.weight(1f))
-               Box(modifier = Modifier.widthIn(min = LoanMasterTheme.components.calculatorCardHeight).heightIn(min = LoanMasterTheme.spacing.sm).clip(CircleShape).background(Color.White.copy(alpha=0.1f)).blur(LoanMasterTheme.spacing.xs))
-               Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.md))
-               Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+               if (!uiState.isPremiumUnlocked) {
+                   Box(modifier = Modifier.widthIn(min = LoanMasterTheme.components.calculatorCardHeight).heightIn(min = LoanMasterTheme.spacing.sm).clip(CircleShape).background(Color.White.copy(alpha=0.1f)).blur(LoanMasterTheme.spacing.xs))
+                   Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.md))
+                   Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+               }
            }
         }
         
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
-            Button(
-                onClick = {}, modifier = Modifier.weight(1f).heightIn(min = LoanMasterTheme.components.buttonHeight),
-                colors = ButtonDefaults.buttonColors(containerColor = NavyBg.copy(alpha=0.6f), contentColor = Color.White),
-                shape = RoundedCornerShape(LoanMasterTheme.spacing.md), border = BorderStroke(1.dp, StrokeNavy),
-                contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.sm)
-            ) {
-                Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
-                Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                   Text("Watch Ad", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                   Text("Unlock AI Insight", fontSize = 9.sp, color = TextSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (!uiState.isPremiumUnlocked) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
+                Button(
+                    onClick = { onUnlockPremium() }, modifier = Modifier.weight(1f).heightIn(min = LoanMasterTheme.components.buttonHeight),
+                    colors = ButtonDefaults.buttonColors(containerColor = NavyBg.copy(alpha=0.6f), contentColor = Color.White),
+                    shape = RoundedCornerShape(LoanMasterTheme.spacing.md), border = BorderStroke(1.dp, StrokeNavy),
+                    contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.sm)
+                ) {
+                    Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                    Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                       Text("Watch Ad", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                       Text("Unlock AI Insight", fontSize = 9.sp, color = TextSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
-            }
-            Button(
-                onClick = {}, modifier = Modifier.weight(1f).heightIn(min = LoanMasterTheme.components.buttonHeight),
-                colors = ButtonDefaults.buttonColors(containerColor = GoldAccent, contentColor = NavyBg),
-                shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
-                contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.sm)
-            ) {
-                Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
-                Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                   Text("Premium", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                   Text("Unlimited AI Insights", fontSize = 9.sp, color = NavyBg.copy(alpha=0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Button(
+                    onClick = { onUnlockPremium() }, modifier = Modifier.weight(1f).heightIn(min = LoanMasterTheme.components.buttonHeight),
+                    colors = ButtonDefaults.buttonColors(containerColor = GoldAccent, contentColor = NavyBg),
+                    shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
+                    contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.sm)
+                ) {
+                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                    Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                       Text("Premium", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                       Text("Unlimited AI Insights", fontSize = 9.sp, color = NavyBg.copy(alpha=0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }
@@ -736,7 +769,7 @@ private fun WealthOpportunityCard(maturityValue: Double) {
 }
 
 @Composable
-private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
+private fun SipScheduleCard(yearlyDataList: List<YearlyData>, uiState: SipUiState, onUnlockPremium: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(LoanMasterTheme.spacing.md)).background(CardBg).border(1.dp, StrokeNavy, RoundedCornerShape(LoanMasterTheme.spacing.md)).padding(vertical = LoanMasterTheme.spacing.lg)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = LoanMasterTheme.spacing.lg)) {
             Text("SIP Schedule (Year-wise)", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
@@ -752,8 +785,12 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
             Text("Corpus", color = BluePrimary, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         
-        val rowsToDisplay = listOf(1, 5, 10).mapNotNull { targetYear ->
-            yearlyDataList.find { it.year == targetYear }
+        val rowsToDisplay = if (uiState.isPremiumUnlocked) {
+            yearlyDataList
+        } else {
+            listOf(1, 5, 10).mapNotNull { targetYear ->
+                yearlyDataList.find { it.year == targetYear }
+            }
         }
         rowsToDisplay.forEach { data ->
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.lg, vertical = LoanMasterTheme.spacing.md)) {
@@ -766,7 +803,7 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
             HorizontalDivider(color = StrokeNavy)
         }
         
-        if (yearlyDataList.size > 5) {
+        if (!uiState.isPremiumUnlocked && yearlyDataList.size > 5) {
             val remainingYears = yearlyDataList.size - 5
             Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.lg).clip(RoundedCornerShape(LoanMasterTheme.spacing.sm)).background(Color.White.copy(alpha=0.05f)).padding(LoanMasterTheme.spacing.md), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -774,7 +811,7 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>) {
                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                 Text("$remainingYears More Hidden", color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                androidx.compose.material3.Button(onClick = {}, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = GoldAccent), contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = 0.dp), modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl)) {
+                androidx.compose.material3.Button(onClick = { onUnlockPremium() }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = GoldAccent), contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = 0.dp), modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl)) {
                     Text("Unlock", color = Color.Black, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }

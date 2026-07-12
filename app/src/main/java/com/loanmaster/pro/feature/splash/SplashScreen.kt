@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
@@ -49,7 +50,7 @@ fun SplashScreen(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 12000, easing = LinearEasing),
+            animation = tween(durationMillis = 16000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "WavePhase"
@@ -59,17 +60,17 @@ fun SplashScreen(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 40000, easing = LinearEasing),
+            animation = tween(durationMillis = 60000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "CircleRotation"
     )
 
     val logoFloatOffset by infiniteTransition.animateFloat(
-        initialValue = -4f,
-        targetValue = 4f,
+        initialValue = -3f,
+        targetValue = 3f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2500, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "LogoFloat"
@@ -79,47 +80,67 @@ fun SplashScreen(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "LoaderRotation"
     )
+    
+    val loaderGlowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "LoaderGlow"
+    )
+    
+    val particlePhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 10000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ParticlePhase"
+    )
 
     LaunchedEffect(Unit) {
-        // 0-400 ms: Background fades in
-        bgAlpha.animateTo(1f, animationSpec = tween(400))
+        // 0-300 ms: Background fades in
+        bgAlpha.animateTo(1f, animationSpec = tween(300))
         
-        // 400-900 ms: Logo scales from 0.85x to 1.0x, Logo glow appears
+        // 300-800 ms: Logo scales & glow appears
         launch {
             logoScale.animateTo(1f, animationSpec = tween(500, easing = FastOutSlowInEasing))
         }
         launch {
-            glowAlpha.animateTo(0.25f, animationSpec = tween(500, easing = FastOutSlowInEasing))
+            glowAlpha.animateTo(0.35f, animationSpec = tween(500, easing = FastOutSlowInEasing))
         }
-        delay(500)
         
-        // 900-1300 ms: App title fades in from below
+        // 500 ms: Delay for Title (200ms after Logo starts)
+        delay(200) 
         launch {
-            titleAlpha.animateTo(1f, animationSpec = tween(400))
+            titleAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
         }
         launch {
             titleOffsetY.animateTo(0f, animationSpec = tween(400, easing = FastOutSlowInEasing))
         }
-        delay(400)
         
-        // 1300-1600 ms: Subtitle fades in
+        // 700 ms: Delay for Subtitle & Loader
+        delay(200)
         launch {
-            subtitleAlpha.animateTo(1f, animationSpec = tween(300))
+            subtitleAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
         }
         launch {
-            loaderAlpha.animateTo(1f, animationSpec = tween(300))
+            loaderAlpha.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
         }
-        delay(300)
         
-        // 1600-3000 ms: Wait
-        delay(1400)
+        // Wait remainder of 2800ms total
+        // We have consumed: 300 + 200 + 200 = 700ms since start of animations. 
+        // 2100ms left.
+        delay(2100)
         
-        // 3000 ms: Navigate
         onNavigateNext()
     }
 
@@ -158,6 +179,35 @@ fun SplashScreen(
                 center = Offset(0f, 0f),
                 style = Stroke(width = strokeWidth)
             )
+        }
+        
+        // Floating particles
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val numParticles = 12
+            val randomOffsets = listOf(
+                Offset(0.1f, 0.2f), Offset(0.8f, 0.1f), Offset(0.5f, 0.4f),
+                Offset(0.2f, 0.7f), Offset(0.7f, 0.8f), Offset(0.9f, 0.5f),
+                Offset(0.3f, 0.9f), Offset(0.85f, 0.9f), Offset(0.15f, 0.5f),
+                Offset(0.4f, 0.15f), Offset(0.6f, 0.6f), Offset(0.45f, 0.85f)
+            )
+            
+            for (i in 0 until numParticles) {
+                val seed = randomOffsets[i]
+                val speed = 1f + (i % 3) * 0.5f
+                val sizeVal = 2.dp.toPx() + (i % 3).dp.toPx()
+                val moveY = sin(particlePhase * speed + seed.x * 10f) * 40.dp.toPx()
+                val moveX = cos(particlePhase * (speed * 0.8f) + seed.y * 10f) * 20.dp.toPx()
+                
+                val alpha = (0.05f + (sin(particlePhase * speed * 2f + seed.x * 5f) + 1f) * 0.05f).coerceIn(0f, 0.15f)
+                
+                drawCircle(
+                    color = lightBlueAccent.copy(alpha = alpha),
+                    radius = sizeVal,
+                    center = Offset(w * seed.x + moveX, h * seed.y + moveY)
+                )
+            }
         }
 
         // Bottom wave dots pattern
@@ -199,7 +249,7 @@ fun SplashScreen(
             // Logo
             Box(
                 modifier = Modifier
-                    .size(224.dp)
+                    .size(246.dp)
                     .graphicsLayer {
                         scaleX = logoScale.value
                         scaleY = logoScale.value
@@ -221,13 +271,13 @@ fun SplashScreen(
                 }
                 
                 // Custom Logo Drawing
-                Canvas(modifier = Modifier.size(175.dp)) {
+                Canvas(modifier = Modifier.size(192.dp)) {
                     val canvasWidth = size.width
                     val canvasHeight = size.height
                     val center = Offset(canvasWidth / 2, canvasHeight / 2)
                     
                     // Outer split circle
-                    val strokeW = 7.dp.toPx()
+                    val strokeW = 7.5.dp.toPx()
                     
                     // Left/Top Gold Arc
                     drawArc(
@@ -256,12 +306,12 @@ fun SplashScreen(
                     )
                     
                     // Bars
-                    val barWidth = 15.5.dp.toPx()
-                    val barSpacing = 9.dp.toPx()
+                    val barWidth = 17.dp.toPx()
+                    val barSpacing = 10.dp.toPx()
                     val startX = center.x - (barWidth * 2) - (barSpacing * 1.5f)
-                    val baseLine = center.y + 44.dp.toPx()
+                    val baseLine = center.y + 48.dp.toPx()
                     
-                    val heights = listOf(33.dp.toPx(), 49.dp.toPx(), 71.dp.toPx(), 93.dp.toPx())
+                    val heights = listOf(36.dp.toPx(), 54.dp.toPx(), 78.dp.toPx(), 102.dp.toPx())
                     
                     for (i in 0..3) {
                         val h = heights[i]
@@ -279,14 +329,14 @@ fun SplashScreen(
                     
                     // Upward Curved Arrow
                     val arrowPath = androidx.compose.ui.graphics.Path().apply {
-                        val startArrowX = startX - 11.dp.toPx()
-                        val startArrowY = baseLine + 11.dp.toPx()
-                        val endArrowX = startX + (4 * (barWidth + barSpacing)) + 11.dp.toPx()
-                        val endArrowY = baseLine - 99.dp.toPx()
+                        val startArrowX = startX - 12.dp.toPx()
+                        val startArrowY = baseLine + 12.dp.toPx()
+                        val endArrowX = startX + (4 * (barWidth + barSpacing)) + 12.dp.toPx()
+                        val endArrowY = baseLine - 109.dp.toPx()
                         
                         moveTo(startArrowX, startArrowY)
                         quadraticBezierTo(
-                            center.x + 11.dp.toPx(), baseLine + 11.dp.toPx(),
+                            center.x + 12.dp.toPx(), baseLine + 12.dp.toPx(),
                             endArrowX, endArrowY
                         )
                     }
@@ -296,16 +346,16 @@ fun SplashScreen(
                         brush = Brush.linearGradient(
                             colors = listOf(premiumGold, goldAccent)
                         ),
-                        style = Stroke(width = 9.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
                     )
                     
                     // Arrow Head
                     val headPath = androidx.compose.ui.graphics.Path().apply {
-                        val tipX = startX + (4 * (barWidth + barSpacing)) + 13.dp.toPx()
-                        val tipY = baseLine - 101.dp.toPx()
+                        val tipX = startX + (4 * (barWidth + barSpacing)) + 14.dp.toPx()
+                        val tipY = baseLine - 111.dp.toPx()
                         moveTo(tipX, tipY)
-                        lineTo(tipX - 27.5.dp.toPx(), tipY + 5.5.dp.toPx())
-                        lineTo(tipX - 13.dp.toPx(), tipY + 24.dp.toPx())
+                        lineTo(tipX - 30.dp.toPx(), tipY + 6.dp.toPx())
+                        lineTo(tipX - 14.dp.toPx(), tipY + 26.dp.toPx())
                         close()
                     }
                     
@@ -321,13 +371,13 @@ fun SplashScreen(
                 Text(
                     text = "₹",
                     color = premiumGold,
-                    fontSize = 58.sp,
+                    fontSize = 64.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.offset(y = (-22).dp, x = (-11).dp)
+                    modifier = Modifier.offset(y = (-24).dp, x = (-12).dp)
                 )
             }
             
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             
             // Title
             Text(
@@ -407,7 +457,7 @@ fun SplashScreen(
                     // Glow
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(premiumGold.copy(alpha = 0.3f), Color.Transparent)
+                            colors = listOf(premiumGold.copy(alpha = loaderGlowPulse), Color.Transparent)
                         ),
                         radius = size.width / 1.5f
                     )
@@ -415,7 +465,7 @@ fun SplashScreen(
                     // Arc
                     drawArc(
                         brush = Brush.sweepGradient(
-                            colors = listOf(Color.Transparent, premiumGold.copy(alpha = 0.5f), goldAccent)
+                            colors = listOf(Color.Transparent, premiumGold.copy(alpha = 0.6f), goldAccent)
                         ),
                         startAngle = -90f,
                         sweepAngle = 300f,
@@ -431,7 +481,7 @@ fun SplashScreen(
                             alpha = loaderAlpha.value
                         }
                 ) {
-                    drawCircle(color = premiumGold.copy(alpha = 0.5f))
+                    drawCircle(color = premiumGold.copy(alpha = 0.6f))
                 }
             }
         }

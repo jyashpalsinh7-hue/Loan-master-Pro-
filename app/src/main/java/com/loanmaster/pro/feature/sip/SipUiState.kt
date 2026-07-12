@@ -15,5 +15,7 @@ data class SipUiState(
     val maturityValue: Double = 0.0,
     val yearlyDataList: List<YearlyData> = emptyList(),
     val hasValidInput: Boolean = false,
-    val inflationAdjustedValue: Double = 0.0
+    val inflationAdjustedValue: Double = 0.0,
+    val isPremiumUnlocked: Boolean = false,
+    val premiumInsights: List<String> = emptyList()
 )
