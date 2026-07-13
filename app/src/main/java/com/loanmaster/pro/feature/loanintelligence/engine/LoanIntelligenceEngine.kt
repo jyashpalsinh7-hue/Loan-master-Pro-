@@ -2,6 +2,7 @@ package com.loanmaster.pro.feature.loanintelligence.engine
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.ui.graphics.Color
 import com.loanmaster.pro.feature.loanintelligence.model.IntelligenceSuggestion
 import com.loanmaster.pro.core.theme.AccentGreen

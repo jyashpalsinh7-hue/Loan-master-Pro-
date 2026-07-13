@@ -1,0 +1,155 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 6,
+    "identityHash": "97e6485beda486815c6a8c6cf9b700bd",
+    "entities": [
+      {
+        "tableName": "calculation_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `calculatorType` TEXT NOT NULL, `title` TEXT NOT NULL, `param1` TEXT, `param2` TEXT, `param3` TEXT, `param4` TEXT, `param5` TEXT, `result1` REAL, `result2` REAL, `result3` REAL, `timestamp` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calculatorType",
+            "columnName": "calculatorType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "param1",
+            "columnName": "param1",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "param2",
+            "columnName": "param2",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "param3",
+            "columnName": "param3",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "param4",
+            "columnName": "param4",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "param5",
+            "columnName": "param5",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "result1",
+            "columnName": "result1",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "result2",
+            "columnName": "result2",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "result3",
+            "columnName": "result3",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "active_loans",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `bankName` TEXT NOT NULL, `loanType` TEXT NOT NULL, `principalAmount` REAL NOT NULL, `interestRate` REAL NOT NULL, `tenureMonths` INTEGER NOT NULL, `emiAmount` REAL NOT NULL, `startDate` INTEGER NOT NULL, `totalInterest` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bankName",
+            "columnName": "bankName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "loanType",
+            "columnName": "loanType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "principalAmount",
+            "columnName": "principalAmount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "interestRate",
+            "columnName": "interestRate",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tenureMonths",
+            "columnName": "tenureMonths",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "emiAmount",
+            "columnName": "emiAmount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startDate",
+            "columnName": "startDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalInterest",
+            "columnName": "totalInterest",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '97e6485beda486815c6a8c6cf9b700bd')"
+    ]
+  }
+}

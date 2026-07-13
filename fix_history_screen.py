@@ -1,4 +1,6 @@
-package com.loanmaster.pro.feature.history
+import os
+
+content = """package com.loanmaster.pro.feature.history
 
 import com.loanmaster.pro.data.local.entity.CalculationHistory
 import com.loanmaster.pro.core.theme.*
@@ -268,14 +270,14 @@ fun EmptyHistoryIllustration(modifier: Modifier = Modifier) {
             Text(
                 text = "No calculations yet",
                 color = Color.White,
-                fontSize = LoanMasterTheme.typography.title.fontSize,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Your saved calculations will appear here.",
                 color = TextSecondary,
-                fontSize = LoanMasterTheme.typography.body.fontSize
+                fontSize = 14.sp
             )
         }
     }
@@ -284,7 +286,6 @@ fun EmptyHistoryIllustration(modifier: Modifier = Modifier) {
 data class CardData(
     val calculatorName: String,
     val icon: ImageVector,
-    val iconColor: Color,
     val dateString: String,
     val param1Label: String,
     val param1Value: String,
@@ -303,7 +304,7 @@ fun extractCardData(item: CalculationHistory): CardData {
     
     val formatMoney = { value: String -> 
         val d = value.replace(",", "").toDoubleOrNull() ?: 0.0
-        formatMoney(d)
+        formatInr(d)
     }
 
     return when(item.calculatorType) {
@@ -311,7 +312,6 @@ fun extractCardData(item: CalculationHistory): CardData {
             CardData(
                 calculatorName = "EMI Calculator",
                 icon = Icons.Rounded.Calculate,
-                iconColor = Color(0xFF2563EB),
                 dateString = dateString,
                 param1Label = "Principal",
                 param1Value = formatMoney(item.param1 ?: "0"),
@@ -329,7 +329,6 @@ fun extractCardData(item: CalculationHistory): CardData {
             CardData(
                 calculatorName = "SIP Calculator",
                 icon = Icons.AutoMirrored.Rounded.TrendingUp,
-                iconColor = Color(0xFF43A047),
                 dateString = dateString,
                 param1Label = "Monthly",
                 param1Value = formatMoney(item.param1 ?: "0"),
@@ -347,8 +346,7 @@ fun extractCardData(item: CalculationHistory): CardData {
             val res = calc.calculate(item.param1 ?: "0", item.param2 ?: "0", item.param3 ?: "0", freq)
             CardData(
                 calculatorName = "FD Calculator",
-                icon = Icons.Rounded.Savings,
-                iconColor = Color(0xFFD81B60),
+                icon = Icons.Rounded.AccountBalance,
                 dateString = dateString,
                 param1Label = "Deposit",
                 param1Value = formatMoney(item.param1 ?: "0"),
@@ -365,8 +363,7 @@ fun extractCardData(item: CalculationHistory): CardData {
             val res = calc.calculate(item.param5 ?: "Standard", item.param1 ?: "0", item.param2 ?: "0", item.param3 ?: "0", item.param4 ?: "Quarterly", "0")
             CardData(
                 calculatorName = "RD Calculator",
-                icon = Icons.Rounded.CalendarToday,
-                iconColor = Color(0xFFFF9800),
+                icon = Icons.Rounded.Savings,
                 dateString = dateString,
                 param1Label = "Monthly",
                 param1Value = formatMoney(item.param1 ?: "0"),
@@ -383,8 +380,7 @@ fun extractCardData(item: CalculationHistory): CardData {
             val res = calc.calculate(item.param1 ?: "0", item.param2 ?: "0", item.param3 ?: "0", item.param4 ?: "0", item.param5 ?: "Tenure", "0", "0")
             CardData(
                 calculatorName = "Loan Prepayment",
-                icon = Icons.Rounded.EditNote,
-                iconColor = Color(0xFF5E35B1),
+                icon = Icons.Rounded.AttachMoney,
                 dateString = dateString,
                 param1Label = "Time Saved",
                 param1Value = "${res.tenureReducedMonths.toInt()} mo",
@@ -402,8 +398,7 @@ fun extractCardData(item: CalculationHistory): CardData {
             val res = calc.calculate(mode, item.param2 ?: "0", item.param3?.toDoubleOrNull() ?: 0.0, item.param4 ?: "0", true)
             CardData(
                 calculatorName = "GST Calculator",
-                icon = Icons.Rounded.Receipt,
-                iconColor = Color(0xFFE53935),
+                icon = Icons.AutoMirrored.Rounded.ReceiptLong,
                 dateString = dateString,
                 param1Label = "Mode",
                 param1Value = item.param1 ?: "ADD",
@@ -415,59 +410,10 @@ fun extractCardData(item: CalculationHistory): CardData {
                 mainResultValue = formatMoney(res.totalAmount.toString())
             )
         }
-        "Compare" -> {
-            CardData(
-                calculatorName = "Loan Compare",
-                icon = Icons.Rounded.Balance,
-                iconColor = Color(0xFF8E24AA),
-                dateString = dateString,
-                param1Label = "Loan 1",
-                param1Value = formatMoney(item.param1 ?: "0"),
-                param2Label = "Loan 2",
-                param2Value = formatMoney(item.param2 ?: "0"),
-                param3Label = "Difference",
-                param3Value = formatMoney(item.param3 ?: "0"),
-                mainResultLabel = "Better Option",
-                mainResultValue = item.param4 ?: "-"
-            )
-        }
-        "Eligibility" -> {
-            CardData(
-                calculatorName = "Loan Eligibility",
-                icon = Icons.Rounded.PersonSearch,
-                iconColor = Color(0xFF1E88E5),
-                dateString = dateString,
-                param1Label = "Income",
-                param1Value = formatMoney(item.param1 ?: "0"),
-                param2Label = "Obligations",
-                param2Value = formatMoney(item.param2 ?: "0"),
-                param3Label = "Tenure",
-                param3Value = "${item.param3 ?: "0"} Yrs",
-                mainResultLabel = "Eligible Loan",
-                mainResultValue = formatMoney(item.param4 ?: "0")
-            )
-        }
-        "Currency" -> {
-            CardData(
-                calculatorName = "Currency Converter",
-                icon = Icons.Rounded.CurrencyExchange,
-                iconColor = Color(0xFF00ACC1),
-                dateString = dateString,
-                param1Label = "From",
-                param1Value = item.param1 ?: "-",
-                param2Label = "To",
-                param2Value = item.param2 ?: "-",
-                param3Label = "Rate",
-                param3Value = item.param3 ?: "-",
-                mainResultLabel = "Converted",
-                mainResultValue = item.param4 ?: "-"
-            )
-        }
         else -> {
             CardData(
                 calculatorName = item.calculatorType,
                 icon = Icons.Rounded.Calculate,
-                iconColor = AccentYellow,
                 dateString = dateString,
                 param1Label = "-",
                 param1Value = "-",
@@ -486,10 +432,10 @@ fun extractCardData(item: CalculationHistory): CardData {
 @Composable
 fun HistoryItemCard(
     item: CalculationHistory,
-    isSelected: Boolean = false,
-    isMultiSelectMode: Boolean = false,
+    isSelected: Boolean,
+    isMultiSelectMode: Boolean,
     onItemClick: () -> Unit,
-    onLongClick: () -> Unit = {},
+    onLongClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val cardData = extractCardData(item)
@@ -521,10 +467,10 @@ fun HistoryItemCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(cardData.iconColor.copy(alpha = 0.2f)),
+                        .background(AccentYellow.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(cardData.icon, contentDescription = null, tint = cardData.iconColor, modifier = Modifier.size(24.dp))
+                    Icon(cardData.icon, contentDescription = null, tint = AccentYellow, modifier = Modifier.size(24.dp))
                 }
                 
                 Spacer(modifier = Modifier.width(LoanMasterTheme.spacing.md))
@@ -533,14 +479,14 @@ fun HistoryItemCard(
                     Text(
                         text = cardData.calculatorName,
                         color = Color.White,
-                        fontSize = LoanMasterTheme.typography.body.fontSize,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = cardData.dateString,
                         color = TextSecondary,
-                        fontSize = LoanMasterTheme.typography.label.fontSize
+                        fontSize = 12.sp
                     )
                 }
                 
@@ -575,12 +521,12 @@ fun HistoryItemCard(
                     Text(
                         text = cardData.mainResultLabel,
                         color = TextSecondary,
-                        fontSize = LoanMasterTheme.typography.label.fontSize
+                        fontSize = 12.sp
                     )
                     Text(
                         text = cardData.mainResultValue,
                         color = AccentBlue,
-                        fontSize = LoanMasterTheme.typography.title.fontSize,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
@@ -595,13 +541,19 @@ fun ParamRow(label: String, value: String) {
         Text(
             text = "$label: ",
             color = TextSecondary,
-            fontSize = LoanMasterTheme.typography.label.fontSize
+            fontSize = 12.sp
         )
         Text(
             text = value,
             color = Color.White,
-            fontSize = LoanMasterTheme.typography.label.fontSize,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Medium
         )
     }
 }
+"""
+
+with open("app/src/main/java/com/loanmaster/pro/feature/history/HistoryScreen.kt", "w") as f:
+    f.write(content)
+
+print("Done")

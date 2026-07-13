@@ -262,6 +262,8 @@ fun FdScreen(
                             )
                         }
                     }
+                    // FIX: Added Financial Disclaimer
+                    FinancialDisclaimer()
                     Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md), modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(

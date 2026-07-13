@@ -6,13 +6,19 @@ plugins {
 }
 
 android {
+    // FIX: Room schema export
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.incremental", "true")
+    }
   namespace = "com.loanmaster.pro"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
     applicationId = "com.loanmaster.pro"
     minSdk = 26
-    targetSdk = 36
+    // FIX: targetSdk from 36 to 35
+        targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 
@@ -84,7 +90,8 @@ dependencies {
   implementation(libs.converter.moshi)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.logging.interceptor)
+  // FIX: logging-interceptor to debugImplementation
+    debugImplementation(libs.logging.interceptor)
   implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
   implementation(libs.retrofit)

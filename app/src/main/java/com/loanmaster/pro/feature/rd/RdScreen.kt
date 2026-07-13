@@ -301,6 +301,8 @@ fun RdScreen(
                                 )
                             }
                         }
+                    // FIX: Added Financial Disclaimer
+                    FinancialDisclaimer()
                         Box(modifier = Modifier.weight(1f)) {
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.updateInputs(interestRate = it) },

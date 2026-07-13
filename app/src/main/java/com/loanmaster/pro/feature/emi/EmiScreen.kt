@@ -676,7 +676,7 @@ fun EmiScreen(
                                                 modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.sm)
                                             )
                                         }
-                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.AutoMirrored.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
+                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                         Text(rec.title, color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize)
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
@@ -855,11 +855,13 @@ fun EmiScreen(
                             shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F2744))
                         ) {
-                            Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
+                            Icon(Icons.Rounded.Share, contentDescription = "Share as PDF", modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                             Text("Share", fontSize = LoanMasterTheme.typography.body.fontSize)
                         }
                     }
+                // FIX: Added Financial Disclaimer
+                    FinancialDisclaimer()
                 } // closes Column inside AnimatedVisibility
             } // closes AnimatedVisibility
              } // closes Column of resultsSection

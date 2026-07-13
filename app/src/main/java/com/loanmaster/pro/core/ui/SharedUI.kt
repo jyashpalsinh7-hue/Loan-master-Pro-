@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.heightIn
 
@@ -208,15 +209,22 @@ fun PremiumInputField(
         }
     }
 
+    var isFocused by remember { mutableStateOf(false) }
+
     val hasError = finalErrorMessage != null
-    val strokeColor = if (hasError) colors.error else colors.outlineVariant
+    val targetStrokeColor = if (hasError) colors.error else if (isFocused) colors.primary else colors.outlineVariant
     val textColor = if (hasError) colors.error else colors.onSurface
-    val iconColor = if (hasError) colors.error else iconTint
+    val targetIconColor = if (hasError) colors.error else if (isFocused) colors.primary else iconTint
     val cursorColor = if (hasError) colors.error else colors.primary
+    val targetBorderWidth = if (isFocused) 2.dp else 1.dp
+
+    val strokeColor by androidx.compose.animation.animateColorAsState(targetValue = targetStrokeColor, label = "strokeColor")
+    val iconColor by androidx.compose.animation.animateColorAsState(targetValue = targetIconColor, label = "iconColor")
+    val borderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = targetBorderWidth, label = "borderWidth")
 
     androidx.compose.foundation.layout.Column(modifier = modifier) {
         androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = colors.onSurfaceVariant, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.85f)
+            Text(label, color = if (isFocused) colors.primary else colors.onSurfaceVariant, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.85f)
             if (infoText != null) {
                 androidx.compose.foundation.layout.Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                 androidx.compose.material3.Icon(
@@ -236,7 +244,7 @@ fun PremiumInputField(
         androidx.compose.material3.Surface(
             shape = RoundedCornerShape(LoanMasterTheme.spacing.md),
             color = colors.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, strokeColor),
+            border = androidx.compose.foundation.BorderStroke(borderWidth, strokeColor),
             modifier = Modifier.fillMaxWidth()
         ) {
             androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
@@ -255,7 +263,7 @@ fun PremiumInputField(
                         enabled = onClick == null,
                         textStyle = TextStyle(color = textColor, fontSize = LoanMasterTheme.typography.body.fontSize),
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(cursorColor),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).onFocusChanged { isFocused = it.isFocused },
                         singleLine = true,
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
                     ) { innerTextField ->
@@ -398,4 +406,19 @@ fun ResponsiveCard(
 
 fun String.safeToDouble(): Double {
     return this.replace(",", "").trim().toDoubleOrNull() ?: 0.0
+}
+
+// FIX: Added Financial Disclaimer
+@Composable
+fun FinancialDisclaimer(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier) {
+    androidx.compose.material3.Text(
+        text = "⚠ For informational purposes only. Not financial advice. Consult a qualified advisor before making financial decisions.",
+        color = com.loanmaster.pro.core.theme.TextSecondary.copy(alpha = 0.7f),
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    )
 }

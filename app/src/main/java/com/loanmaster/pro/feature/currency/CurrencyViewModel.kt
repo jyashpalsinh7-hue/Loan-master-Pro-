@@ -197,24 +197,15 @@ class CurrencyViewModel : ViewModel() {
                     _uiState.update { it.copy(isLoading = false, error = "Failed to fetch rates") }
                 }
             } catch (e: Exception) {
-                // Fallback to mock rates
-                val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.getDefault())
-                val mockRates = mapOf(
-                    "USD" to 0.011985,
-                    "EUR" to 0.010981,
-                    "GBP" to 0.009498,
-                    "AED" to 0.044002,
-                    "JPY" to 1.8478
-                )
+                // FIX: Removed mock rates, show error instead
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        error = e.localizedMessage,
-                        rates = mockRates,
-                        lastUpdated = LocalDateTime.now().format(formatter)
+                        error = "Live rates unavailable. Please check your connection and refresh.",
+                        rates = emptyMap(),
+                        lastUpdated = ""
                     )
                 }
-                fetchChartData()
             }
         }
     }

@@ -115,7 +115,8 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(CurrBgColor).statusBarsPadding()) {
-                if (uiState.error != null) {
+                // FIX: Remove old offline banner, error handled in body
+                if (uiState.error != null && uiState.rates.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -160,6 +161,38 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
         },
         containerColor = CurrBgColor
     ) { innerPadding ->
+        // FIX: Show full error card if rates are empty and error is present
+        if (uiState.rates.isEmpty() && uiState.error != null) {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .padding(LoanMasterTheme.spacing.screenPadding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Rounded.CloudOff,
+                    contentDescription = "Offline",
+                    tint = TextSecondary,
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(Modifier.height(LoanMasterTheme.spacing.md))
+                Text(
+                    text = uiState.error ?: "Error",
+                    color = TextPrimary,
+                    fontSize = LoanMasterTheme.typography.body.fontSize,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(LoanMasterTheme.spacing.lg))
+                Button(
+                    onClick = { viewModel.updateInputs(refreshRates = true) },
+                    colors = ButtonDefaults.buttonColors(containerColor = CurrSecondaryAccent)
+                ) {
+                    Text("Refresh")
+                }
+            }
+        } else {
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
@@ -258,6 +291,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
             }
         }
         
+        }
         if (showBaseSelector) {
             CurrencySelectorSheet(
                 currencies = distinctCurrencies,
@@ -662,7 +696,7 @@ fun CurrencySelectorSheet(
                     unfocusedTextColor = Color.White
                 ),
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = TextSecondary) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search", tint = TextSecondary) },
                 shape = RoundedCornerShape(LoanMasterTheme.spacing.md)
             )
             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))

@@ -50,9 +50,7 @@ interface HistoryDao {
     @Query("DELETE FROM calculation_history WHERE id = :id")
     suspend fun deleteHistoryById(id: Int)
     
+    // FIX: Removed duplicate clearAllHistory() method
     @Query("DELETE FROM calculation_history")
     suspend fun deleteAllHistory()
-    
-    @Query("DELETE FROM calculation_history")
-    suspend fun clearAllHistory()
 }

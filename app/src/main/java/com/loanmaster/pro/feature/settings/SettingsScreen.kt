@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -143,6 +144,7 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
 private fun LanguageSection(selectedLang: String, onLanguageChange: (String) -> Unit) {
     val languages = listOf("English", "हिंदी", "ગુજરાતી")
     
+    // FIX: Add disclaimer and disable buttons
     SectionCard(title = "Language") {
         Row(Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Select Language", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize)
@@ -158,20 +160,27 @@ private fun LanguageSection(selectedLang: String, onLanguageChange: (String) -> 
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LoanMasterTheme.components.iconSmall))
-                        .background(if (isSelected) AccentBlue.copy(alpha = 0.2f) else BackgroundDark)
-                        .border(1.dp, if (isSelected) AccentBlue else CardStroke, RoundedCornerShape(LoanMasterTheme.components.iconSmall))
-                        .clickable { onLanguageChange(lang) }
+                        .background(if (isSelected) AccentBlue.copy(alpha = 0.2f) else BackgroundDark.copy(alpha = 0.4f))
+                        .border(1.dp, if (isSelected) AccentBlue else CardStroke.copy(alpha = 0.4f), RoundedCornerShape(LoanMasterTheme.components.iconSmall))
                         .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isSelected) {
-                        Icon(Icons.Rounded.Check, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
+                        Icon(Icons.Rounded.Check, contentDescription = null, tint = AccentBlue.copy(alpha = 0.4f), modifier = Modifier.size(LoanMasterTheme.spacing.md))
                         Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     }
-                    Text(lang, color = if (isSelected) AccentBlue else TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize)
+                    Text(lang, color = if (isSelected) AccentBlue.copy(alpha = 0.4f) else TextSecondary.copy(alpha = 0.4f), fontSize = LoanMasterTheme.typography.body.fontSize)
                 }
             }
         }
+        Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
+        Text(
+            text = "Translation coming soon. The app currently displays in English only.",
+            color = TextSecondary,
+            fontSize = LoanMasterTheme.typography.body.fontSize,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Start
+        )
     }
 }
 
@@ -422,7 +431,8 @@ private fun RemindersSection(
             trailingContent = {
                 Switch(
                     checked = remindersEnabled,
-                    onCheckedChange = { onRemindersChange(it) },
+                    onCheckedChange = null,
+                    enabled = false,
                     colors = SwitchDefaults.colors(checkedThumbColor = AccentBlue, checkedTrackColor = AccentBlue.copy(alpha=0.5f))
                 )
             }

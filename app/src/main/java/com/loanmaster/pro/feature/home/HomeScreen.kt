@@ -230,6 +230,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
 fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
     var isFocused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = if (isFocused) AccentBlue else CardStroke)
+    val borderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = if (isFocused) 2.dp else 1.dp)
     val glowAlpha by androidx.compose.animation.core.animateFloatAsState(targetValue = if (isFocused) 0.5f else 0f)
     
     Row(
@@ -245,7 +246,7 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
                 .shadow(if (isFocused) LoanMasterTheme.spacing.sm else 0.dp, RoundedCornerShape(LoanMasterTheme.components.cardRadius), spotColor = AccentBlue.copy(alpha = glowAlpha))
                 .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .background(SurfaceDark)
-                .border(1.dp, borderColor, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+                .border(borderWidth, borderColor, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
                 .padding(horizontal = LoanMasterTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -41,11 +41,13 @@ class EmiViewModel(
     private val historyRepository: HistoryRepository? = null
 ) : ViewModel() {
 
+    private var calculationJob: kotlinx.coroutines.Job? = null
     private val _uiState = MutableStateFlow(EmiUiState())
     val uiState: StateFlow<EmiUiState> = _uiState.asStateFlow()
 
     private val emiCalculator = EmiCalculator()
 
+    // FIX: Debounced async calculation to prevent ANRs
     fun updateInputs(
         loanAmount: String? = null,
         interestRate: String? = null,
@@ -58,25 +60,36 @@ class EmiViewModel(
             var newTenure = tenureInput ?: current.tenureInputText
             var newIsMonths = isTenureMonths ?: current.isTenureInMonths
             
-            // Auto-fill default interest and tenure if type changes and current inputs are empty,
-            // or if we just want to reset them to standard when changing type
             if (type != null && type != current.loanType) {
                 val profile = loanProfiles.find { it.name == type }
                 if (profile != null) {
                     newInterest = profile.defaultRate
                     newTenure = profile.defaultTenure
-                    newIsMonths = false // default tenure is in years
+                    newIsMonths = false 
                 }
             }
-
-            val next = current.copy(
+            
+            current.copy(
                 loanAmountText = loanAmount ?: current.loanAmountText,
                 interestRateText = newInterest,
                 tenureInputText = newTenure,
                 isTenureInMonths = newIsMonths,
-                loanType = type ?: current.loanType
+                loanType = type ?: current.loanType,
+                hasValidInput = false, // Reset validity while typing
+                monthlySchedule = emptyList(), // Clear heavy data
+                yearBreakdown = emptyList() // Clear heavy data
             )
-            calculateAndUpdateState(next)
+        }
+        triggerCalculation()
+    }
+
+    private fun triggerCalculation() {
+        calculationJob?.cancel()
+        calculationJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
+            kotlinx.coroutines.delay(300) // Debounce
+            val currentState = _uiState.value
+            val resultState = calculateAndUpdateState(currentState)
+            _uiState.update { resultState }
         }
     }
 
@@ -108,16 +121,19 @@ class EmiViewModel(
 
     fun loadFromHistory(history: CalculationHistory) {
         _uiState.update { current ->
-            val next = current.copy(
+            current.copy(
                 currentHistoryId = history.id,
                 loanType = history.title ?: "Home Loan",
                 loanAmountText = history.param1 ?: "",
                 interestRateText = history.param2 ?: "",
                 tenureInputText = history.param3 ?: "",
-                isTenureInMonths = false
+                isTenureInMonths = false,
+                hasValidInput = false,
+                monthlySchedule = emptyList(),
+                yearBreakdown = emptyList()
             )
-            calculateAndUpdateState(next)
         }
+        triggerCalculation()
     }
 
     private fun calculateAndUpdateState(state: EmiUiState): EmiUiState {

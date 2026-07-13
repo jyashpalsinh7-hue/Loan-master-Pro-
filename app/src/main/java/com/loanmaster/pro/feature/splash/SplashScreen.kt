@@ -335,7 +335,7 @@ fun SplashScreen(
                         val endArrowY = baseLine - 109.dp.toPx()
                         
                         moveTo(startArrowX, startArrowY)
-                        quadraticBezierTo(
+                        quadraticTo(
                             center.x + 12.dp.toPx(), baseLine + 12.dp.toPx(),
                             endArrowX, endArrowY
                         )

@@ -43,6 +43,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+// FIX: Renamed FinCalc Pro to LoanMaster Pro
 object ExportUtils {
     fun exportToPdf(context: Context, title: String, content: List<Pair<String, String>>) {
         try {
@@ -112,7 +113,7 @@ object ExportUtils {
                 paint.textAlign = Paint.Align.CENTER
                 canvas.save()
                 canvas.rotate(-45f, pageWidth / 2, pageHeight / 2)
-                canvas.drawText("FINCALC REPORT", pageWidth / 2, pageHeight / 2, paint)
+                canvas.drawText("LOANMASTER REPORT", pageWidth / 2, pageHeight / 2, paint)
                 canvas.restore()
                 paint.textAlign = Paint.Align.LEFT
             }
@@ -127,7 +128,7 @@ object ExportUtils {
                     paint.color = textSecondary
                     paint.textSize = 10f
                     paint.textAlign = Paint.Align.CENTER
-                    canvas.drawText("Page $pageNumber | FinCalc Pro", pageWidth / 2, pageHeight - 40f, paint)
+                    canvas.drawText("Page $pageNumber | LoanMaster Pro", pageWidth / 2, pageHeight - 40f, paint)
                     paint.textAlign = Paint.Align.LEFT
                     
                     document.finishPage(page)
@@ -211,7 +212,7 @@ object ExportUtils {
             paint.color = textSecondary
             paint.textSize = 10f
             paint.textAlign = Paint.Align.CENTER
-            canvas.drawText("Page $pageNumber | FinCalc Pro", pageWidth / 2, pageHeight - 40f, paint)
+            canvas.drawText("Page $pageNumber | LoanMaster Pro", pageWidth / 2, pageHeight - 40f, paint)
             paint.textAlign = Paint.Align.LEFT
             
             document.finishPage(page)
