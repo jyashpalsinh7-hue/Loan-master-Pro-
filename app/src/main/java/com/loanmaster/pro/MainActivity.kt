@@ -266,7 +266,7 @@ val context = androidx.compose.ui.platform.LocalContext.current
                                 navController = navController
                             )
                         }
-                        com.loanmaster.pro.core.ui.AdMobBanner()
+                        com.loanmaster.pro.core.ui.AdMobBanner(modifier = Modifier.navigationBarsPadding())
                     }
                 }
             }
