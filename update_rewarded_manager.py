@@ -1,4 +1,7 @@
-package com.loanmaster.pro.core.ads
+import sys
+
+file_path = "app/src/main/java/com/loanmaster/pro/core/ads/RewardedAdManager.kt"
+content = """package com.loanmaster.pro.core.ads
 
 import android.app.Activity
 import android.content.Context
@@ -70,3 +73,8 @@ object RewardedAdManager {
         }
     }
 }
+"""
+
+with open(file_path, "w") as f:
+    f.write(content)
+print("Updated RewardedAdManager")

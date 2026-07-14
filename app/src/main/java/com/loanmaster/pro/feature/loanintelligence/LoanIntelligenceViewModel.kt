@@ -8,13 +8,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.loanmaster.pro.core.managers.PremiumManager
-import com.loanmaster.pro.core.managers.RewardedAdManager
 import com.loanmaster.pro.feature.loanintelligence.engine.LoanIntelligenceEngine
 import com.loanmaster.pro.feature.loanintelligence.model.LoanIntelligenceState
 
 class LoanIntelligenceViewModel : ViewModel() {
     private val premiumManager = PremiumManager()
-    private val adManager = RewardedAdManager()
     private val engine = LoanIntelligenceEngine()
     
     private val _state = MutableStateFlow(LoanIntelligenceState())
@@ -45,17 +43,9 @@ class LoanIntelligenceViewModel : ViewModel() {
         _state.update { it.copy(suggestions = suggestions) }
     }
 
-    fun unlockTemporary() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            val loaded = adManager.loadRewardedAd()
-            if (loaded) {
-                adManager.showRewardedAd {
-                    _state.update { it.copy(isTemporaryUnlocked = true) }
-                }
-            }
-            _state.update { it.copy(isLoading = false) }
-        }
+    // FIX: Removed fake RewardedAdManager and provide direct unlock method to be called from UI
+    fun onTemporaryUnlockEarned() {
+        _state.update { it.copy(isTemporaryUnlocked = true) }
     }
 
     fun unlockPremium() {

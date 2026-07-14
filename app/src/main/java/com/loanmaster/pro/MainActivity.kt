@@ -184,7 +184,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         // Initialize the Mobile Ads SDK.
-        MobileAds.initialize(this) {}
+        MobileAds.initialize(this) {
+            android.util.Log.d("AdMob", "AdMob initialized")
+        }
         
         // Load rewarded ad
         com.loanmaster.pro.core.ads.RewardedAdManager.loadAd(this)

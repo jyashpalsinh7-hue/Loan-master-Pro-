@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,9 @@ import com.loanmaster.pro.domain.calculator.LoanEligibilityCalculator
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligibilityViewModel = viewModel()) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
     val intelligenceViewModel: com.loanmaster.pro.feature.loanintelligence.LoanIntelligenceViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val intelligenceState by intelligenceViewModel.state.collectAsStateWithLifecycle()
@@ -222,7 +227,14 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
                         creditScoreRange = creditScoreRange,
                         onModifyInputsClick = { isInputExpanded = true },
                         intelligenceState = intelligenceState,
-                        onWatchAdClick = { intelligenceViewModel.unlockTemporary() },
+                        // FIX: Use real RewardedAdManager
+                        onWatchAdClick = { 
+                            if (activity != null) {
+                                com.loanmaster.pro.core.ads.RewardedAdManager.showAd(activity) {
+                                    intelligenceViewModel.onTemporaryUnlockEarned()
+                                }
+                            }
+                        },
                         onPremiumClick = { intelligenceViewModel.unlockPremium() }
                     )
                 }

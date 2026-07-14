@@ -1,4 +1,7 @@
-package com.loanmaster.pro.core.ui
+import sys
+
+file_path = "app/src/main/java/com/loanmaster/pro/core/ui/AdMobBanner.kt"
+content = """package com.loanmaster.pro.core.ui
 
 import android.app.Activity
 import android.util.Log
@@ -76,7 +79,6 @@ fun AdMobBanner(modifier: Modifier = Modifier) {
                             }
                         }
                         
-                        Log.d("AdMobBanner", "Banner requested")
                         loadAd(AdRequest.Builder().build())
                     }
                 }
@@ -84,3 +86,8 @@ fun AdMobBanner(modifier: Modifier = Modifier) {
         }
     }
 }
+"""
+
+with open(file_path, "w") as f:
+    f.write(content)
+print("Updated AdMobBanner")
