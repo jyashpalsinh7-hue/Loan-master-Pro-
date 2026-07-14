@@ -366,7 +366,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                 loans = processedLoans,
                                 bestLoan = bestLoan,
                                 isPremiumUnlocked = isPremiumUnlocked,
-                                onUnlockRequested = { isPremiumUnlocked = true }
+                                onUnlockRequested = { showUnlockDialog = true }
                             )
                             WhatYouWillUnlockSection(
                                 isPremiumUnlocked = isPremiumUnlocked,
@@ -445,33 +445,9 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
     }
 
     if (showUnlockDialog) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showUnlockDialog = false },
-            containerColor = SurfaceDark,
-            titleContentColor = Color.White,
-            textContentColor = TextSecondary,
-            title = {
-                Text("Unlock Premium", fontWeight = FontWeight.Bold)
-            },
-            text = {
-                Text("Comparing more than 3 loans is a premium feature. Watch a short ad or upgrade to Premium to unlock unlimited comparisons!")
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        isPremiumUnlocked = true
-                        showUnlockDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color.Black)
-                ) {
-                    Text("Watch Ad / Go Premium", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUnlockDialog = false }) {
-                    Text("Cancel", color = Color.White)
-                }
-            }
+        com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+            onDismiss = { showUnlockDialog = false },
+            onUnlockSuccessful = { isPremiumUnlocked = true }
         )
     }
 

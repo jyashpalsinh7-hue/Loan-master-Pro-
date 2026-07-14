@@ -115,6 +115,10 @@ fun HistoryScreen(
                         if (isMultiSelectMode) {
                             Text("${selectedItems.size} Selected", color = Color.White, fontWeight = FontWeight.Bold)
                         } else if (isSearchActive) {
+                            val focusRequester = remember { FocusRequester() }
+                            LaunchedEffect(Unit) {
+                                focusRequester.requestFocus()
+                            }
                             TextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
@@ -128,7 +132,7 @@ fun HistoryScreen(
                                     unfocusedIndicatorColor = Color.Transparent
                                 ),
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester)
                             )
                         } else {
                             Text("Calculation History", color = Color.White, fontWeight = FontWeight.Bold) 

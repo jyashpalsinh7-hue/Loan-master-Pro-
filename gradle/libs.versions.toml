@@ -1,4 +1,5 @@
 [versions]
+playServicesAds = "23.2.0"
 coreSplashscreen = "1.0.1"
 agp = "9.1.1"
 coreKtx = "1.18.0"
@@ -41,6 +42,7 @@ firebaseBom = "34.12.0"
 secretsGradlePlugin = "2.0.1"
 
 [libraries]
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

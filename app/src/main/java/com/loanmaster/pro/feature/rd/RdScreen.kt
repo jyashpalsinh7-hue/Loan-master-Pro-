@@ -678,38 +678,9 @@ fun RdScreen(
     )
     
     if (showUnlockDialog) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showUnlockDialog = false },
-            containerColor = Color(0xFF0D1B36),
-            titleContentColor = Color.White,
-            textContentColor = TextSecondary,
-            title = {
-                Text("Unlock Premium Features", fontWeight = FontWeight.Bold)
-            },
-            text = {
-                Text("Goal-Based RD calculations, detailed schedules, charts, and downloadable PDF reports are premium features. Watch a short ad or upgrade to Premium to unlock unlimited access!")
-            },
-            confirmButton = {
-                androidx.compose.material3.Button(
-                    onClick = {
-                        isPremiumUnlocked = true
-                        showUnlockDialog = false
-                    },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color(0xFF020B1F))
-                ) {
-                    Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                androidx.compose.material3.TextButton(
-                    onClick = {
-                        isPremiumUnlocked = true
-                        showUnlockDialog = false
-                    }
-                ) {
-                    Text("Buy Premium", color = AccentBlue)
-                }
-            }
+        com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+            onDismiss = { showUnlockDialog = false },
+            onUnlockSuccessful = { isPremiumUnlocked = true }
         )
     }
   }

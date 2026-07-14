@@ -105,58 +105,66 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                     SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
                 }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    HeroBanner()
+                if (searchQuery.isBlank()) {
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        HeroBanner()
+                    }
                 }
                 
                 // Calculators Header
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    CalculatorsSectionHeader()
+                    val headerText = if (searchQuery.isBlank()) "Calculators" else "Search Results"
+                    Text(
+                        text = headerText,
+                        color = TextPrimary,
+                        style = LoanMasterTheme.typography.title,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().padding(top = LoanMasterTheme.spacing.lg, bottom = LoanMasterTheme.spacing.md)
+                    )
                 }
                 
-                // Calculator Cards
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    EmiCalculatorCard(onNavigateToEmi)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("Loan Compare", "Compare 2-4 loans", Icons.Rounded.Balance, Color(0xFF8E24AA), badge = "New", onClick = onNavigateToCompare)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF43A047), onClick = onNavigateToSip)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("GST Calculator", "Add or remove GST easily", Icons.Rounded.Receipt, Color(0xFFE53935), onClick = onNavigateToGst)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onClick = onNavigateToRd)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("Currency Converter", "Live rates & conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onClick = onNavigateToCurrency)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("Loan Eligibility", "Check eligibility quickly", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), badge = "Premium", onClick = onNavigateToEligibility)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("FD Calculator", "Calculate FD returns", Icons.Rounded.Savings, Color(0xFFD81B60), onClick = onNavigateToFd)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("Loan Prepayment", "Check interest saved", Icons.Rounded.EditNote, Color(0xFF5E35B1), onClick = onNavigateToPrepayment)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    val summaryTitle = if (activeLoans.isNotEmpty()) "Active Loans (${activeLoans.size})" else "Loan Summary"
-                    val summaryDesc = if (activeLoans.isNotEmpty()) "Total: ${com.loanmaster.pro.core.formatter.formatMoney(activeLoans.sumOf { it.principalAmount })}" else "View active loans"
-                    StandardCalculatorCard(summaryTitle, summaryDesc, Icons.Rounded.Summarize, Color(0xFF1E88E5), onClick = onNavigateToLoanSummary)
-                }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
-                    StandardCalculatorCard("History", "Recent calculations", Icons.Rounded.History, Color(0xFF607D8B), onClick = onNavigateToHistory)
+                val summaryTitle = if (activeLoans.isNotEmpty()) "Active Loans (${activeLoans.size})" else "Loan Summary"
+                val summaryDesc = if (activeLoans.isNotEmpty()) "Total: ${com.loanmaster.pro.core.formatter.formatMoney(activeLoans.sumOf { it.principalAmount })}" else "View active loans"
+
+                class CardItem(val title: String, val subtitle: String, val content: @Composable () -> Unit)
+                val allCards = listOf(
+                    CardItem("Loan Compare", "Compare 2-4 loans") { StandardCalculatorCard("Loan Compare", "Compare 2-4 loans", Icons.Rounded.Balance, Color(0xFF8E24AA), badge = "New", onClick = onNavigateToCompare) },
+                    CardItem("SIP Calculator", "Plan your SIP & grow wealth") { StandardCalculatorCard("SIP Calculator", "Plan your SIP & grow wealth", Icons.AutoMirrored.Rounded.TrendingUp, Color(0xFF43A047), onClick = onNavigateToSip) },
+                    CardItem("GST Calculator", "Add or remove GST easily") { StandardCalculatorCard("GST Calculator", "Add or remove GST easily", Icons.Rounded.Receipt, Color(0xFFE53935), onClick = onNavigateToGst) },
+                    CardItem("RD Calculator", "Calculate Recurring Deposit") { StandardCalculatorCard("RD Calculator", "Calculate Recurring Deposit", Icons.Rounded.CalendarToday, Color(0xFFFF9800), onClick = onNavigateToRd) },
+                    CardItem("Currency Converter", "Live rates & conversion") { StandardCalculatorCard("Currency Converter", "Live rates & conversion", Icons.Rounded.CurrencyExchange, Color(0xFF00ACC1), onClick = onNavigateToCurrency) },
+                    CardItem("Loan Eligibility", "Check eligibility quickly") { StandardCalculatorCard("Loan Eligibility", "Check eligibility quickly", Icons.Rounded.PersonSearch, Color(0xFF1E88E5), badge = "Premium", onClick = onNavigateToEligibility) },
+                    CardItem("FD Calculator", "Calculate FD returns") { StandardCalculatorCard("FD Calculator", "Calculate FD returns", Icons.Rounded.Savings, Color(0xFFD81B60), onClick = onNavigateToFd) },
+                    CardItem("Loan Prepayment", "Check interest saved") { StandardCalculatorCard("Loan Prepayment", "Check interest saved", Icons.Rounded.EditNote, Color(0xFF5E35B1), onClick = onNavigateToPrepayment) },
+                    CardItem(summaryTitle, summaryDesc) { StandardCalculatorCard(summaryTitle, summaryDesc, Icons.Rounded.Summarize, Color(0xFF1E88E5), onClick = onNavigateToLoanSummary) },
+                    CardItem("History", "Recent calculations") { StandardCalculatorCard("History", "Recent calculations", Icons.Rounded.History, Color(0xFF607D8B), onClick = onNavigateToHistory) }
+                )
+
+                val filteredCards = allCards.filter {
+                    it.title.contains(searchQuery, ignoreCase = true) || it.subtitle.contains(searchQuery, ignoreCase = true)
                 }
 
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    RecentCalculationsBanner(historyItems, onNavigateToHistory, onNavigateToCalculator)
+                if ("EMI Calculator".contains(searchQuery, ignoreCase = true) || "Calculate monthly EMI".contains(searchQuery, ignoreCase = true)) {
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        EmiCalculatorCard(onNavigateToEmi)
+                    }
                 }
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    QuickToolsSection(isQuickToolsExpanded, onToggleExpand = { viewModel.toggleQuickToolsExpanded() })
+
+                filteredCards.forEach { cardInfo ->
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(1) }) {
+                        cardInfo.content()
+                    }
                 }
+
+                if (searchQuery.isBlank()) {
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        RecentCalculationsBanner(historyItems, onNavigateToHistory, onNavigateToCalculator)
+                    }
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        QuickToolsSection(isQuickToolsExpanded, onToggleExpand = { viewModel.toggleQuickToolsExpanded() })
+                    }
+                }
+                
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl))
                 }
@@ -626,63 +634,40 @@ fun RecentCalculationsBanner(
     onNavigateToHistory: () -> Unit,
     onNavigateToCalculator: (CalculationHistory) -> Unit
 ) {
-    if (historyItems.isEmpty()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
-                .background(SurfaceDark)
-                .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
-                .clickable { onNavigateToHistory() }
-                .padding(LoanMasterTheme.spacing.md)
-                .testTag("recent_calc_banner"),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.AccessTime,
-                contentDescription = null,
-                tint = AccentBlue,
-                modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+            .background(SurfaceDark)
+            .border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.components.cardRadius))
+            .clickable { onNavigateToHistory() }
+            .padding(LoanMasterTheme.spacing.md)
+            .testTag("recent_calc_banner"),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.AccessTime,
+            contentDescription = null,
+            tint = AccentBlue,
+            modifier = Modifier.size(LoanMasterTheme.components.iconLarge)
+        )
+        Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
+        Column(modifier = Modifier.weight(1f, fill=false).padding(end=LoanMasterTheme.spacing.xs)) {
+            ScrollingTitleText(
+                "Recent Calculations", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
-            Column(modifier = Modifier.weight(1f, fill=false).padding(end=LoanMasterTheme.spacing.xs)) {
-                ScrollingTitleText(
-                    "Recent Calculations", color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold
-                )
-                ScrollingTitleText(
-                    "No history available yet", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize
-                )
-            }
-            Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-            Icon(
-                imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
+            ScrollingTitleText(
+                if (historyItems.isEmpty()) "No history available yet" else "${historyItems.size} calculations saved", 
+                color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize
             )
         }
-    } else {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.xs, vertical = LoanMasterTheme.spacing.sm),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Recent Calculations", color = TextPrimary, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
-                TextButton(onClick = onNavigateToHistory) {
-                    Text("View All", color = AccentBlue)
-                }
-            }
-            
-            historyItems.take(3).forEach { item ->
-                HistoryItemCard(
-                    item = item,
-                    onItemClick = { onNavigateToCalculator(item) },
-                    onDeleteClick = {} // Read-only on home screen
-                )
-                Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
-            }
-        }
+        Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = TextSecondary,
+            modifier = Modifier.size(LoanMasterTheme.components.iconMedium)
+        )
     }
 }
 

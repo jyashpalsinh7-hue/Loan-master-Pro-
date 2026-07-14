@@ -1,22 +1,34 @@
-import re
+import os
 
-with open("app/src/main/java/com/loanmaster/pro/MainActivity.kt", "r") as f:
+file_path = "app/src/main/java/com/loanmaster/pro/MainActivity.kt"
+with open(file_path, "r") as f:
     content = f.read()
 
-repo_init = """
-                    val historyViewModel: HistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                        factory = HistoryViewModelFactory(repository, settingsRepository)
-                    )
-                    
-                    // Prepopulate database with 5 items per calculator if empty
-                    LaunchedEffect(Unit) {
-                        DatabasePrepopulator.prepopulateIfEmpty(context, repository)
-                    }
-"""
+target = """                    AppNavigation(
+                        historyViewModel = historyViewModel,
+                        loanSummaryViewModel = loanSummaryViewModel,
+                        mainViewModel = mainViewModel,
+                        settingsViewModel = settingsViewModel,
+                        navController = navController
+                    )"""
 
-content = content.replace("""                    val historyViewModel: HistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                        factory = HistoryViewModelFactory(repository, settingsRepository)
-                    )""", repo_init)
+replacement = """                    Column(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            AppNavigation(
+                                historyViewModel = historyViewModel,
+                                loanSummaryViewModel = loanSummaryViewModel,
+                                mainViewModel = mainViewModel,
+                                settingsViewModel = settingsViewModel,
+                                navController = navController
+                            )
+                        }
+                        com.loanmaster.pro.core.ui.AdMobBanner()
+                    }"""
 
-with open("app/src/main/java/com/loanmaster/pro/MainActivity.kt", "w") as f:
-    f.write(content)
+if "Column(modifier = Modifier.fillMaxSize())" not in content:
+    content = content.replace(target, replacement)
+    with open(file_path, "w") as f:
+        f.write(content)
+    print("Done")
+else:
+    print("Target not found")

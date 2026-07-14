@@ -1,5 +1,13 @@
 package com.loanmaster.pro.feature.settings
 
+import android.Manifest
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.loanmaster.pro.core.managers.NotificationHelper
+
 import com.loanmaster.pro.domain.model.*
 import com.loanmaster.pro.feature.gst.*
 import com.loanmaster.pro.feature.sip.*
@@ -90,6 +98,7 @@ fun SettingsScreen(
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
             item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }
             item { DataBackupSection(onClearHistory = onClearHistory) }
+            item { SupportAppSection() }
             item { AboutSupportSection() }
             item { AccountSyncSection() }
             item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }
@@ -254,6 +263,23 @@ private fun PreferencesSection(
     onNotificationsChange: (Boolean) -> Unit,
     onKeepHistoryChange: (Boolean) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            onNotificationsChange(true)
+            NotificationHelper.sendImmediateNotification(
+                context, 
+                "Notifications Enabled", 
+                "You will now receive finance reminders."
+            )
+        } else {
+            onNotificationsChange(false)
+        }
+    }
+
     SectionCard(title = "Preferences") {
         SettingsRow(
             icon = Icons.Rounded.Numbers,
@@ -274,7 +300,23 @@ private fun PreferencesSection(
             trailingContent = {
                 Switch(
                     checked = notificationsEnabled,
-                    onCheckedChange = { onNotificationsChange(it) },
+                    onCheckedChange = { checked -> 
+                        if (checked) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                    onNotificationsChange(true)
+                                    NotificationHelper.sendImmediateNotification(context, "Notifications Enabled", "You will now receive finance reminders.")
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            } else {
+                                onNotificationsChange(true)
+                                NotificationHelper.sendImmediateNotification(context, "Notifications Enabled", "You will now receive finance reminders.")
+                            }
+                        } else {
+                            onNotificationsChange(false)
+                        }
+                    },
                     colors = SwitchDefaults.colors(checkedThumbColor = AccentBlue, checkedTrackColor = AccentBlue.copy(alpha=0.5f))
                 )
             }
@@ -581,3 +623,84 @@ private fun AccountSyncSection() {
         }
 
 
+
+@Composable
+private fun SupportAppSection() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var isAdPlaying by remember { mutableStateOf(false) }
+
+    SectionCard(title = "Premium & Support") {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = LoanMasterTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = LoanMasterTheme.spacing.md)) {
+                    Text(
+                        text = "Unlock Premium",
+                        color = Color.White,
+                        fontSize = LoanMasterTheme.typography.body.fontSize,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Remove ads and get advanced features.",
+                        color = TextSecondary,
+                        fontSize = LoanMasterTheme.typography.label.fontSize
+                    )
+                }
+                Button(
+                    onClick = {
+                        android.widget.Toast.makeText(context, "Premium coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = BackgroundDark)
+                ) {
+                    Text("Buy Premium")
+                }
+            }
+            
+            HorizontalDivider(color = SurfaceDark)
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = LoanMasterTheme.spacing.md)) {
+                    Text(
+                        text = "Support with Ads",
+                        color = Color.White,
+                        fontSize = LoanMasterTheme.typography.body.fontSize,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Watch a short ad to support the developer.",
+                        color = TextSecondary,
+                        fontSize = LoanMasterTheme.typography.label.fontSize
+                    )
+                }
+                Button(
+                    onClick = {
+                        val activity = context as? android.app.Activity
+                        if (activity != null) {
+                            isAdPlaying = true
+                            com.loanmaster.pro.core.ads.RewardedAdManager.showAd(activity) {
+                                isAdPlaying = false
+                                android.widget.Toast.makeText(context, "Thank you for your support!", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    enabled = !isAdPlaying,
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark, contentColor = Color.White)
+                ) {
+                    Text("Watch Ad")
+                }
+            }
+        }
+    }
+}

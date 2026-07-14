@@ -96,6 +96,7 @@ fun SipScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
+    var showPremiumDialog by rememberSaveable { mutableStateOf(false) }
     
     val amountText = uiState.amountText
     val returnRateText = uiState.returnRateText
@@ -180,24 +181,37 @@ fun SipScreen(
                 }, 
                 isWide = isWide
             )
-            HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide, uiState)
             
-            if (isWide) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
-                    GrowthVisualizationCard(yearlyDataList, modifier = Modifier.weight(1.5f))
-                    Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { viewModel.unlockPremium() }) }
+            if (hasValidInput) {
+                HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide, uiState)
+                
+                if (isWide) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
+                        GrowthVisualizationCard(yearlyDataList, modifier = Modifier.weight(1.5f))
+                        Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { showPremiumDialog = true }) }
+                    }
+                } else {
+                    GrowthVisualizationCard(yearlyDataList, modifier = Modifier.fillMaxWidth())
+                    InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { showPremiumDialog = true })
                 }
+                
+                LifestyleFundsSection(isWide, maturityValue, years)
+                
+                WealthOpportunityCard(maturityValue, uiState, onUnlockPremium = { showPremiumDialog = true })
+                
+                SipScheduleCard(yearlyDataList, uiState, onUnlockPremium = { showPremiumDialog = true })
             } else {
-                GrowthVisualizationCard(yearlyDataList, modifier = Modifier.fillMaxWidth())
-                InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { viewModel.unlockPremium() })
+                EmptyStateUi()
             }
             
-            LifestyleFundsSection(isWide, maturityValue, years)
-            
-            WealthOpportunityCard(maturityValue, uiState, onUnlockPremium = { viewModel.unlockPremium() })
-            
-            SipScheduleCard(yearlyDataList, uiState, onUnlockPremium = { viewModel.unlockPremium() })
+            if (showPremiumDialog) {
+                com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+                    onDismiss = { showPremiumDialog = false },
+                    onUnlockSuccessful = { viewModel.unlockPremium() }
+                )
+            }
             Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xl))
+
         }
     }
 }
@@ -255,7 +269,7 @@ private fun InputsSection(
             Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = com.loanmaster.pro.core.formatter.currentCurrencySymbol) }
             Box(Modifier.weight(1f)) { CustomInput("Expected Return", returnRate, onRate, Icons.Rounded.Edit, suffix = "%") }
             Box(Modifier.weight(1f)) { CustomInput("Period", years, onYears, Icons.Rounded.KeyboardArrowDown, suffix = " Yr") }
-            Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.KeyboardArrowDown, suffix = "%") }
+            Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.Edit, suffix = "%") }
         }
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
@@ -265,7 +279,7 @@ private fun InputsSection(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
                 Box(Modifier.weight(1f)) { CustomInput("Period", years, onYears, Icons.Rounded.KeyboardArrowDown, suffix = " Yr") }
-                Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.KeyboardArrowDown, suffix = "%") }
+                Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.Edit, suffix = "%") }
             }
         }
     }
@@ -871,4 +885,44 @@ fun AutoSizeText(
             }
         }
     )
+}
+
+@Composable
+private fun EmptyStateUi() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = LoanMasterTheme.spacing.xl, horizontal = LoanMasterTheme.spacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .background(Color.White.copy(alpha = 0.05f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Analytics,
+                contentDescription = null,
+                tint = TextSec.copy(alpha = 0.5f),
+                modifier = Modifier.size(40.dp)
+            )
+        }
+        Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
+        Text(
+            "Enter details to see projection",
+            color = Color.White,
+            fontSize = LoanMasterTheme.typography.title.fontSize,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
+        Text(
+            "Fill in your monthly SIP amount, expected return, and period to calculate your wealth growth.",
+            color = TextSec,
+            fontSize = LoanMasterTheme.typography.body.fontSize,
+            textAlign = TextAlign.Center,
+            lineHeight = LoanMasterTheme.typography.title.fontSize
+        )
+    }
 }

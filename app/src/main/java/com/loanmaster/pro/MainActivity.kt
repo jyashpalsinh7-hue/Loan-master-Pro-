@@ -54,6 +54,7 @@ import com.loanmaster.pro.feature.home.*
 
 import androidx.window.core.layout.WindowWidthSizeClass
 
+import com.google.android.gms.ads.MobileAds
 import android.os.Bundle
 
 import androidx.activity.ComponentActivity
@@ -182,6 +183,13 @@ class MainActivity : ComponentActivity() {
         
         super.onCreate(savedInstanceState)
         
+        // Initialize the Mobile Ads SDK.
+        MobileAds.initialize(this) {}
+        
+        // Load rewarded ad
+        com.loanmaster.pro.core.ads.RewardedAdManager.loadAd(this)
+
+        
         
         enableEdgeToEdge()
         
@@ -248,13 +256,18 @@ val context = androidx.compose.ui.platform.LocalContext.current
                     
                     
                     
-                    AppNavigation(
-                        historyViewModel = historyViewModel,
-                        loanSummaryViewModel = loanSummaryViewModel,
-                        mainViewModel = mainViewModel,
-                        settingsViewModel = settingsViewModel,
-                        navController = navController
-                    )
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            AppNavigation(
+                                historyViewModel = historyViewModel,
+                                loanSummaryViewModel = loanSummaryViewModel,
+                                mainViewModel = mainViewModel,
+                                settingsViewModel = settingsViewModel,
+                                navController = navController
+                            )
+                        }
+                        com.loanmaster.pro.core.ui.AdMobBanner()
+                    }
                 }
             }
         }
