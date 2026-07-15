@@ -84,7 +84,7 @@ fun LoanIntelligenceCard(
                         colors = CardDefaults.cardColors(containerColor = AccentGreen.copy(alpha=0.1f)),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(modifier = Modifier.padding(LoanMasterTheme.spacing.md), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(32.dp))
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {

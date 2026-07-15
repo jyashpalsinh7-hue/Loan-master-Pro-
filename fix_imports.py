@@ -1,38 +1,23 @@
-import os
+import sys
 
-# 1. Fix SharedUI.kt
-file_path = "app/src/main/java/com/loanmaster/pro/core/ui/SharedUI.kt"
-with open(file_path, "r") as f:
-    content = f.read()
+def fix_file(path):
+    with open(path, "r") as f:
+        lines = f.readlines()
+    
+    if len(lines) > 0 and "import com.loanmaster.pro.core.theme.*" in lines[0]:
+        lines.pop(0) # remove from line 1
+        # find where imports start, or insert after package
+        insert_idx = 1
+        for i, line in enumerate(lines):
+            if line.startswith("package "):
+                insert_idx = i + 1
+                break
+        
+        lines.insert(insert_idx, "\nimport com.loanmaster.pro.core.theme.LoanMasterTheme\n")
+        
+        with open(path, "w") as f:
+            f.writelines(lines)
+        print(f"Fixed {path}")
 
-if "import androidx.compose.ui.focus.onFocusChanged" not in content:
-    content = content.replace("import androidx.compose.ui.unit.sp", "import androidx.compose.ui.unit.sp\nimport androidx.compose.ui.focus.onFocusChanged")
-
-with open(file_path, "w") as f:
-    f.write(content)
-
-# 2. Fix PrepaymentScreen.kt
-file_path = "app/src/main/java/com/loanmaster/pro/feature/prepayment/PrepaymentScreen.kt"
-with open(file_path, "r") as f:
-    content = f.read()
-
-if "import androidx.compose.ui.focus.onFocusChanged" not in content:
-    content = content.replace("import androidx.compose.ui.unit.sp", "import androidx.compose.ui.unit.sp\nimport androidx.compose.ui.focus.onFocusChanged")
-
-with open(file_path, "w") as f:
-    f.write(content)
-
-# 3. Fix SipScreen.kt
-file_path = "app/src/main/java/com/loanmaster/pro/feature/sip/SipScreen.kt"
-with open(file_path, "r") as f:
-    content = f.read()
-
-if "import androidx.compose.ui.focus.onFocusChanged" not in content:
-    content = content.replace("import androidx.compose.ui.unit.sp", "import androidx.compose.ui.unit.sp\nimport androidx.compose.ui.focus.onFocusChanged")
-
-content = content.replace(".androidx.compose.ui.focus.onFocusChanged", ".onFocusChanged")
-
-with open(file_path, "w") as f:
-    f.write(content)
-
-print("Done")
+fix_file("app/src/main/java/com/loanmaster/pro/feature/loanintelligence/components/IntelligenceSuggestionCard.kt")
+fix_file("app/src/main/java/com/loanmaster/pro/feature/splash/SplashScreen.kt")

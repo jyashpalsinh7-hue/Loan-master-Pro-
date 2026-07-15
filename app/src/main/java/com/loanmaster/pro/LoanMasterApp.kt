@@ -5,6 +5,7 @@ import android.content.Context
 
 class LoanMasterApp : Application() {
     override fun getAttributionTag(): String {
-        return "default_tag"
+        return "AdMob"
     }
+
 }

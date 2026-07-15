@@ -268,7 +268,7 @@ fun EmptyHistoryIllustration(modifier: Modifier = Modifier) {
                     tint = AccentBlue
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
             Text(
                 text = "No calculations yet",
                 color = Color.White,
@@ -562,7 +562,7 @@ fun HistoryItemCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),

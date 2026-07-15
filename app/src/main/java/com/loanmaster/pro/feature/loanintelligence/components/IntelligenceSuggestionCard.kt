@@ -1,4 +1,6 @@
 package com.loanmaster.pro.feature.loanintelligence.components
+
+import com.loanmaster.pro.core.theme.LoanMasterTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 
@@ -30,7 +32,7 @@ fun IntelligenceSuggestionCard(suggestion: IntelligenceSuggestion) {
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(LoanMasterTheme.spacing.md)) {
             Row(verticalAlignment = Alignment.Top) {
                 Box(
                     modifier = Modifier.size(32.dp).clip(CircleShape).background(suggestion.color.copy(alpha = 0.15f)),
@@ -53,7 +55,7 @@ fun IntelligenceSuggestionCard(suggestion: IntelligenceSuggestion) {
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
             
             // Badges
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

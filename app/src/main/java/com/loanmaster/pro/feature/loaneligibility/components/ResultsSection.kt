@@ -171,7 +171,7 @@ fun ResultsSection(
                                             onSaveCalcClick = { },
                                             onExportPdfClick = { }
                                         )
-                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
                                     }
                                 }
                             }

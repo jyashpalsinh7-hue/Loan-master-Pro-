@@ -60,9 +60,9 @@ fun EmptyState(
                             ) {
                                 Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(44.dp))
                             }
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                             Text("Check Your Loan Eligibility", color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
                             Text("Enter your income and loan details to calculate the maximum amount you can borrow instantly.", color = textSecondary, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp), fontWeight = FontWeight.Normal)
                         }
                     }

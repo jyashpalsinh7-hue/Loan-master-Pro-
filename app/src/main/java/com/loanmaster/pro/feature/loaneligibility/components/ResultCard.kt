@@ -37,7 +37,7 @@ fun ResultCard(
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.md)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.MonetizationOn, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))

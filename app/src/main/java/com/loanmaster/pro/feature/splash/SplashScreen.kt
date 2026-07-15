@@ -1,5 +1,7 @@
 package com.loanmaster.pro.feature.splash
 
+import com.loanmaster.pro.core.theme.LoanMasterTheme
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -163,19 +165,19 @@ fun SplashScreen(
             val strokeWidth = 1.5.dp.toPx()
             drawCircle(
                 color = Color.White.copy(alpha = 0.04f),
-                radius = 160.dp.toPx(),
+                radius = (size.width * 0.4f),
                 center = Offset(0f, 0f),
                 style = Stroke(width = strokeWidth)
             )
             drawCircle(
                 color = Color.White.copy(alpha = 0.05f),
-                radius = 240.dp.toPx(),
+                radius = (size.width * 0.6f),
                 center = Offset(0f, 0f),
                 style = Stroke(width = strokeWidth)
             )
             drawCircle(
                 color = Color.White.copy(alpha = 0.03f),
-                radius = 330.dp.toPx(),
+                radius = (size.width * 0.8f),
                 center = Offset(0f, 0f),
                 style = Stroke(width = strokeWidth)
             )
@@ -220,7 +222,7 @@ fun SplashScreen(
             
             for (line in 0 until linesCount) {
                 val yOffsetBase = height * 0.82f + (line * 16.dp.toPx())
-                val amplitude = 32.dp.toPx() + (line * 6.dp.toPx())
+                val amplitude = 32.dp.toPx() + (line * (size.width * 0.03f))
                 val speedMultiplier = 1f + (line * 0.15f)
                 val phaseOffset = line * 0.4f
                 
@@ -271,7 +273,7 @@ fun SplashScreen(
                 }
                 
                 // Custom Logo Drawing
-                Canvas(modifier = Modifier.size(192.dp)) {
+                Canvas(modifier = Modifier.size(LoanMasterTheme.components.logoSize)) {
                     val canvasWidth = size.width
                     val canvasHeight = size.height
                     val center = Offset(canvasWidth / 2, canvasHeight / 2)
@@ -306,12 +308,12 @@ fun SplashScreen(
                     )
                     
                     // Bars
-                    val barWidth = 17.dp.toPx()
-                    val barSpacing = 10.dp.toPx()
+                    val barWidth = (size.width * 0.08f)
+                    val barSpacing = (size.width * 0.05f)
                     val startX = center.x - (barWidth * 2) - (barSpacing * 1.5f)
-                    val baseLine = center.y + 48.dp.toPx()
+                    val baseLine = center.y + (size.width * 0.25f)
                     
-                    val heights = listOf(36.dp.toPx(), 54.dp.toPx(), 78.dp.toPx(), 102.dp.toPx())
+                    val heights = listOf((size.width * 0.18f), (size.width * 0.28f), (size.width * 0.40f), (size.width * 0.52f))
                     
                     for (i in 0..3) {
                         val h = heights[i]
@@ -323,20 +325,20 @@ fun SplashScreen(
                             ),
                             topLeft = Offset(startX + (i * (barWidth + barSpacing)), baseLine - h),
                             size = Size(barWidth, h),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx(), 4.dp.toPx())
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius((size.width * 0.02f), (size.width * 0.02f))
                         )
                     }
                     
                     // Upward Curved Arrow
                     val arrowPath = androidx.compose.ui.graphics.Path().apply {
-                        val startArrowX = startX - 12.dp.toPx()
-                        val startArrowY = baseLine + 12.dp.toPx()
-                        val endArrowX = startX + (4 * (barWidth + barSpacing)) + 12.dp.toPx()
-                        val endArrowY = baseLine - 109.dp.toPx()
+                        val startArrowX = startX - (size.width * 0.06f)
+                        val startArrowY = baseLine + (size.width * 0.06f)
+                        val endArrowX = startX + (4 * (barWidth + barSpacing)) + (size.width * 0.06f)
+                        val endArrowY = baseLine - (size.width * 0.55f)
                         
                         moveTo(startArrowX, startArrowY)
                         quadraticTo(
-                            center.x + 12.dp.toPx(), baseLine + 12.dp.toPx(),
+                            center.x + (size.width * 0.06f), baseLine + (size.width * 0.06f),
                             endArrowX, endArrowY
                         )
                     }
@@ -346,16 +348,16 @@ fun SplashScreen(
                         brush = Brush.linearGradient(
                             colors = listOf(premiumGold, goldAccent)
                         ),
-                        style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = (size.width * 0.05f), cap = StrokeCap.Round)
                     )
                     
                     // Arrow Head
                     val headPath = androidx.compose.ui.graphics.Path().apply {
-                        val tipX = startX + (4 * (barWidth + barSpacing)) + 14.dp.toPx()
-                        val tipY = baseLine - 111.dp.toPx()
+                        val tipX = startX + (4 * (barWidth + barSpacing)) + (size.width * 0.07f)
+                        val tipY = baseLine - (size.width * 0.56f)
                         moveTo(tipX, tipY)
-                        lineTo(tipX - 30.dp.toPx(), tipY + 6.dp.toPx())
-                        lineTo(tipX - 14.dp.toPx(), tipY + 26.dp.toPx())
+                        lineTo(tipX - (size.width * 0.15f), tipY + (size.width * 0.03f))
+                        lineTo(tipX - (size.width * 0.07f), tipY + (size.width * 0.13f))
                         close()
                     }
                     
@@ -377,7 +379,7 @@ fun SplashScreen(
                 )
             }
             
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.xl))
             
             // Title
             Text(
@@ -397,7 +399,7 @@ fun SplashScreen(
                 }
             )
             
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
             
             // Divider with glowing dot
             Row(
@@ -428,7 +430,7 @@ fun SplashScreen(
                 Box(modifier = Modifier.width(66.dp).height(1.dp).background(premiumGold.copy(alpha = 0.5f)))
             }
             
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
             
             // Subtitle
             Text(
@@ -439,7 +441,7 @@ fun SplashScreen(
                 modifier = Modifier.alpha(subtitleAlpha.value)
             )
             
-            Spacer(modifier = Modifier.height(72.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.components.bottomNavHeight))
             
             // Premium Loader
             Box(

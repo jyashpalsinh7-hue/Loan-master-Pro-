@@ -62,14 +62,14 @@ fun LoadingState(
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.4f)),
                                 shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.fillMaxWidth().height(280.dp)
+                                modifier = Modifier.fillMaxWidth().height(LoanMasterTheme.components.chartHeight)
                             ) {
                                 Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = shimmerAlpha * 0.1f)))
                             }
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.25f)),
                                 shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.fillMaxWidth().height(140.dp)
+                                modifier = Modifier.fillMaxWidth().height(LoanMasterTheme.components.bannerHeight)
                             ) {
                                 Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = shimmerAlpha * 0.1f)))
                             }

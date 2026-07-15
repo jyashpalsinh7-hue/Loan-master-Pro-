@@ -63,13 +63,13 @@ fun LoanNotEligibleCard(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                                     modifier = Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(24.dp), spotColor = dangerRed)
                                 ) {
-                                    Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                                    Column(modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.lg)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Rounded.Warning, contentDescription = null, tint = dangerRed, modifier = Modifier.size(24.dp))
                                             Spacer(modifier = Modifier.width(12.dp))
                                             Text("Loan Not Eligible", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                         }
-                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                                         val reasons = mutableListOf<String>()
                                         val dynamicSuggestions = mutableSetOf<String>()
                                         if (totalIncome < 15000.0) {
@@ -110,7 +110,7 @@ fun LoanNotEligibleCard(
                                         }
                                         
                                         if (dynamicSuggestions.isNotEmpty()) {
-                                            Spacer(modifier = Modifier.height(24.dp))
+                                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                                             Text("Suggestions", color = textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                             Spacer(modifier = Modifier.height(8.dp))
                                             dynamicSuggestions.forEach { sug ->
@@ -121,7 +121,7 @@ fun LoanNotEligibleCard(
                                                 }
                                             }
                                         }
-                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                                         
                                         val btnSource = remember { MutableInteractionSource() }
                                         val isBtnPressed by btnSource.collectIsPressedAsState()

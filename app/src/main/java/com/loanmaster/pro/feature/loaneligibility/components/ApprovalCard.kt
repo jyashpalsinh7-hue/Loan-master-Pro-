@@ -53,7 +53,7 @@ fun ApprovalCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left: Gauge (reduced to 42dp)
@@ -93,7 +93,7 @@ fun ApprovalCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Insights, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Confidence", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Confidence", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     Text(conf, color = stateColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
@@ -101,7 +101,7 @@ fun ApprovalCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Grade, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Credit Grade", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Credit Grade", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     Text(gradeRaw, color = gradeColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }

@@ -60,7 +60,12 @@ data class AppComponents(
     val bottomNavHeight: Dp = 72.dp,
     val dialogMaxWidth: Dp = 400.dp,
     val calculatorCardHeight: Dp = 100.dp,
-    val featuredCardHeight: Dp = 120.dp
+    val featuredCardHeight: Dp = 120.dp,
+    val bannerHeight: Dp = 140.dp,
+    val heroHeight: Dp = 200.dp,
+    val chartHeight: Dp = 220.dp,
+    val logoSize: Dp = 120.dp,
+    val cardPadding: Dp = 16.dp
 )
 
 @Immutable
@@ -73,7 +78,7 @@ data class AppTypographyTokens(
 
 @Immutable
 data class AppGrids(
-    val calculatorColumns: Int = 1,
+    val calculatorColumns: Int = 2,
     val scheduleColumns: Int = 1
 )
 
@@ -138,17 +143,20 @@ fun LoanMasterTheme(
     val components = if (isExpanded) {
         AppComponents(
             iconSmall = 24.dp, iconMedium = 32.dp, iconLarge = 48.dp,
-            calculatorCardHeight = 150.dp, featuredCardHeight = 180.dp
+            calculatorCardHeight = 150.dp, featuredCardHeight = 180.dp,
+            bannerHeight = 200.dp, heroHeight = 280.dp, chartHeight = 320.dp, logoSize = 180.dp, cardPadding = 24.dp
         )
     } else if (isMedium) {
         AppComponents(
             iconSmall = 22.dp, iconMedium = 28.dp, iconLarge = 40.dp,
-            calculatorCardHeight = 135.dp, featuredCardHeight = 160.dp
+            calculatorCardHeight = 135.dp, featuredCardHeight = 160.dp,
+            bannerHeight = 160.dp, heroHeight = 240.dp, chartHeight = 280.dp, logoSize = 150.dp, cardPadding = 20.dp
         )
     } else {
         AppComponents(
             iconSmall = 18.dp, iconMedium = 24.dp, iconLarge = 32.dp,
-            calculatorCardHeight = 100.dp, featuredCardHeight = 120.dp
+            calculatorCardHeight = 100.dp, featuredCardHeight = 120.dp,
+            bannerHeight = 140.dp, heroHeight = 200.dp, chartHeight = 220.dp, logoSize = 120.dp, cardPadding = 16.dp
         )
     }
 
@@ -182,7 +190,7 @@ fun LoanMasterTheme(
         )
     } else if (isMedium) {
         AppGrids(
-            calculatorColumns = 2,
+            calculatorColumns = 3,
             scheduleColumns = 1
         )
     } else {

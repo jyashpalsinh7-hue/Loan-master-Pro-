@@ -240,7 +240,7 @@ fun LoanInputColumn(
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(AccentBlue)
                     ) { inner ->
                         Box {
-                            if (state.yearsText.isEmpty()) Text("Years", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            if (state.yearsText.isEmpty()) Text("Years", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             inner()
                         }
                     }
@@ -267,7 +267,7 @@ fun LoanInputColumn(
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(AccentBlue)
                     ) { inner ->
                         Box {
-                            if (state.monthsText.isEmpty()) Text("Months", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            if (state.monthsText.isEmpty()) Text("Months", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             inner()
                         }
                     }
@@ -777,7 +777,7 @@ fun LoanCard(loan: LoanOffer, onEdit: () -> Unit, modifier: Modifier = Modifier)
                         Icon(Icons.Rounded.AccountBalance, contentDescription = "Bank", tint = loanColor, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     }
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                    Text(loan.bankName, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text(loan.bankName, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
                 Icon(Icons.Rounded.Edit, contentDescription = "Edit", tint = TextSecondary.copy(alpha=0.5f), modifier = Modifier.size(LoanMasterTheme.spacing.md))
             }
@@ -836,10 +836,10 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                     modifier = Modifier.fillMaxWidth().background(Color(0xFF020B1F)).padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Comparison", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text("Comparison", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.5f), minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     loans.forEach { loan ->
                         val loanColor = if(loan.id == "A") Color(0xFF3B82F6) else Color(0xFF10B981)
-                        Text(loan.bankName, color = loanColor, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(loan.bankName, color = loanColor, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
                 HorizontalDivider(color = CardStroke)
@@ -872,7 +872,7 @@ fun ComparisonTable(loans: List<LoanOffer>) {
                                 Icon(icon, contentDescription = title, tint = AccentBlue, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                             }
                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.gridGutter))
-                            Text(title, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Medium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            Text(title, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Medium, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             if (title == "Effective APR") {
                                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                                 Icon(Icons.Rounded.Info, contentDescription = "Info", tint = TextSecondary, modifier = Modifier.size(LoanMasterTheme.spacing.md))
@@ -1140,7 +1140,7 @@ fun WhatYouWillUnlockSection(isPremiumUnlocked: Boolean, onToolClick: (String) -
                                     }
                                 }
                                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
-                                Text(title, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text(title, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                                 Text(desc, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }

@@ -553,7 +553,7 @@ fun PremiumChartSection(viewModel: CurrencyViewModel, exchangeRate: Double, base
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 200.dp, max = 300.dp)
+                .heightIn(min = LoanMasterTheme.components.chartHeight, max = LoanMasterTheme.components.chartHeight + 50.dp)
         ) {
             if (dataPoints.size > 1) {
                 Canvas(modifier = Modifier.fillMaxSize()) {

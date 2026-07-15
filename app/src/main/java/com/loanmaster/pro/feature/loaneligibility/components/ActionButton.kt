@@ -68,12 +68,12 @@ fun ActionButton(
                 color = contentColor.copy(alpha = 0.15f),
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
-                Box(modifier = Modifier.padding(10.dp), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.padding(LoanMasterTheme.spacing.sm), contentAlignment = Alignment.Center) {
                     Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(22.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(text, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis, letterSpacing = 0.3.sp)
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.sm))
+            Text(text, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis, letterSpacing = 0.3.sp)
         }
     }
 }

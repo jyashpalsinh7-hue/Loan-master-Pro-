@@ -295,7 +295,7 @@ private fun CustomInput(label: String, value: String, onValueChange: (String) ->
     val borderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = targetBorderWidth, label = "borderWidth")
 
     Column {
-        Text(label, color = if (isFocused) AccentGreen else TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, color = if (isFocused) AccentGreen else TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
         Box(
             modifier = Modifier.fillMaxWidth().heightIn(min = LoanMasterTheme.components.buttonHeight).background(Color.Transparent).border(borderWidth, borderColor, RoundedCornerShape(LoanMasterTheme.spacing.sm)),
@@ -328,7 +328,7 @@ private fun CustomInput(label: String, value: String, onValueChange: (String) ->
 private fun HeroStat(label: String, value: String, color: Color = Color.White, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.Top) {
-            Text(label, color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Text(label, color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
             Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(LoanMasterTheme.spacing.md).padding(top = LoanMasterTheme.spacing.xs))
         }
@@ -370,7 +370,7 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Estimated Maturity Value", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Estimated Maturity Value", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                         Icon(Icons.Rounded.Info, contentDescription = null, tint = TextSec, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     }
@@ -425,7 +425,7 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
 
 @Composable
 private fun GrowthVisualizationCard(yearlyDataList: List<YearlyData>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.heightIn(min = 280.dp).clip(RoundedCornerShape(LoanMasterTheme.spacing.md)).background(Color(0xFF0C162C)).border(1.dp, Color(0xFF1E3A8A).copy(alpha=0.5f), RoundedCornerShape(LoanMasterTheme.spacing.md)).padding(LoanMasterTheme.spacing.md)) {
+    Column(modifier = modifier.heightIn(min = LoanMasterTheme.components.chartHeight).clip(RoundedCornerShape(LoanMasterTheme.spacing.md)).background(Color(0xFF0C162C)).border(1.dp, Color(0xFF1E3A8A).copy(alpha=0.5f), RoundedCornerShape(LoanMasterTheme.spacing.md)).padding(LoanMasterTheme.spacing.md)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Investment Growth", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold)
             Icon(Icons.Rounded.MoreVert, contentDescription = null, tint = TextSec, modifier = Modifier.size(LoanMasterTheme.spacing.md))
@@ -544,15 +544,19 @@ private fun LifestyleFundsSection(isWide: Boolean, maturityValue: Double, years:
         if (maturityValue > 5000000) {
             items.add(FutureGoal("Premium Apartment", 15000000.0, Icons.Rounded.Home))
             items.add(FutureGoal("Luxury SUV", 7500000.0, Icons.Rounded.DirectionsCar))
+            items.add(FutureGoal("Emergency Fund", 2500000.0, Icons.Rounded.AccountBalanceWallet))
+            items.add(FutureGoal("Child Education", 5000000.0, Icons.Rounded.School))
         } else if (maturityValue > 1500000) {
             items.add(FutureGoal("Home Downpayment", 2500000.0, Icons.Rounded.Home))
             items.add(FutureGoal("Mahindra XUV700", 2200000.0, Icons.Rounded.DirectionsCar))
+            items.add(FutureGoal("Emergency Fund", 1000000.0, Icons.Rounded.AccountBalanceWallet))
+            items.add(FutureGoal("Child Education", 2000000.0, Icons.Rounded.School))
         } else {
             items.add(FutureGoal("Honda City", 1200000.0, Icons.Rounded.DirectionsCar))
             items.add(FutureGoal("International Travel", 600000.0, Icons.Rounded.FlightTakeoff))
+            items.add(FutureGoal("Emergency Fund", 500000.0, Icons.Rounded.AccountBalanceWallet))
+            items.add(FutureGoal("Child Education", 1000000.0, Icons.Rounded.School))
         }
-        items.add(FutureGoal("Emergency Fund", Math.max(500000.0, maturityValue * 1.5), Icons.Rounded.AccountBalanceWallet))
-        items.add(FutureGoal("Child Education", Math.max(1000000.0, maturityValue * 2.0), Icons.Rounded.School))
         
         val columns = if (isWide) 4 else 2
         val chunked = items.chunked(columns)
@@ -597,11 +601,11 @@ private fun LifeCard(title: String, targetAmount: Double, maturityValue: Double,
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = BluePrimary, modifier = Modifier.size(LoanMasterTheme.spacing.md))
             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-            Text(title, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
         
-        Text("$percent% Achieved", color = if (percent >= 100) GreenSuccess else GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text("$percent% Achieved", color = if (percent >= 100) GreenSuccess else GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         Box(modifier = Modifier.fillMaxWidth().heightIn(min = LoanMasterTheme.spacing.xs).clip(CircleShape).background(Color.White.copy(alpha=0.1f))) {
             Box(modifier = Modifier.fillMaxWidth(progress.toFloat()).heightIn(min = LoanMasterTheme.spacing.xs).clip(CircleShape).background(if (percent >= 100) GreenSuccess else BluePrimary))
@@ -609,9 +613,9 @@ private fun LifeCard(title: String, targetAmount: Double, maturityValue: Double,
         
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         if (shortAmount > 0) {
-            Text("${com.loanmaster.pro.core.formatter.formatMoney(shortAmount)} Short", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("${com.loanmaster.pro.core.formatter.formatMoney(shortAmount)} Short", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         } else {
-            Text("Goal Reached", color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Goal Reached", color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -630,17 +634,17 @@ private fun InflationAdjustedCard(maturityValue: Double, years: Int, uiState: Si
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
         
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Future Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Future Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
             AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Inflation Adjusted", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Inflation Adjusted", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
             AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(adjustedValue), color = GoldAccent, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Value Lost", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Value Lost", color = TextSec, fontSize = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
             AutoSizeText("- " + com.loanmaster.pro.core.formatter.formatMoney(valueLost), color = Color(0xFFF87171), maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         
@@ -682,13 +686,13 @@ private fun WealthOpportunityCard(maturityValue: Double, uiState: SipUiState, on
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Current Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("Current Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 AutoSizeText(com.loanmaster.pro.core.formatter.formatMoney(maturityValue), color = Color.White, maxTextSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)
             }
             Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(StrokeNavy))
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1.3f)) {
-                Text("Potential Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("Potential Corpus", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!uiState.isPremiumUnlocked) Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
@@ -704,7 +708,7 @@ private fun WealthOpportunityCard(maturityValue: Double, uiState: SipUiState, on
             }
             Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(StrokeNavy))
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
-                Text("Potential Gain", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("Potential Gain", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!uiState.isPremiumUnlocked) Icon(Icons.Rounded.Lock, contentDescription = null, tint = GreenSuccess, modifier = Modifier.size(LoanMasterTheme.spacing.md))
@@ -768,8 +772,8 @@ private fun WealthOpportunityCard(maturityValue: Double, uiState: SipUiState, on
                     Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                       Text("Watch Ad", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                       Text("Unlock AI Insight", fontSize = 9.sp, color = TextSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                       Text("Watch Ad", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                       Text("Unlock AI Insight", fontSize = 9.sp, color = TextSec, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 Button(
@@ -781,8 +785,8 @@ private fun WealthOpportunityCard(maturityValue: Double, uiState: SipUiState, on
                     Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                       Text("Premium", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                       Text("Unlimited AI Insights", fontSize = 9.sp, color = NavyBg.copy(alpha=0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                       Text("Premium", fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                       Text("Unlimited AI Insights", fontSize = 9.sp, color = NavyBg.copy(alpha=0.8f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -800,11 +804,11 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>, uiState: SipUiStat
         }
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.lg))
         Row(modifier = Modifier.fillMaxWidth().padding(start = LoanMasterTheme.spacing.lg, end = LoanMasterTheme.spacing.lg, bottom = LoanMasterTheme.spacing.md)) {
-            Text("Yr", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Invested", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Total", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Returns", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Corpus", color = BluePrimary, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Yr", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("Invested", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("Total", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("Returns", color = TextSec, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("Corpus", color = BluePrimary, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         
         val rowsToDisplay = if (uiState.isPremiumUnlocked) {
@@ -816,11 +820,11 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>, uiState: SipUiStat
         }
         rowsToDisplay.forEach { data ->
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.lg, vertical = LoanMasterTheme.spacing.md)) {
-                Text(data.year.toString(), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(com.loanmaster.pro.core.formatter.formatMoney(data.investedForYear), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(com.loanmaster.pro.core.formatter.formatMoney(data.totalInvested), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(com.loanmaster.pro.core.formatter.formatMoney(data.returns), color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(com.loanmaster.pro.core.formatter.formatMoney(data.maturity), color = GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(data.year.toString(), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(0.5f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.investedForYear), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.3f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.totalInvested), color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.returns), color = GreenSuccess, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(com.loanmaster.pro.core.formatter.formatMoney(data.maturity), color = GoldAccent, fontSize = LoanMasterTheme.typography.label.fontSize, lineHeight = LoanMasterTheme.typography.body.fontSize, modifier = Modifier.weight(1.2f), textAlign = TextAlign.End, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             HorizontalDivider(color = StrokeNavy)
         }
@@ -831,7 +835,7 @@ private fun SipScheduleCard(yearlyDataList: List<YearlyData>, uiState: SipUiStat
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.lg).clip(RoundedCornerShape(LoanMasterTheme.spacing.sm)).background(Color.White.copy(alpha=0.05f)).padding(LoanMasterTheme.spacing.md), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Icon(Icons.Rounded.Lock, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                Text("$remainingYears More Hidden", color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text("$remainingYears More Hidden", color = Color.White, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.SemiBold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                 androidx.compose.material3.Button(onClick = { onUnlockPremium() }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = GoldAccent), contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = 0.dp), modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl)) {
                     Text("Unlock", color = Color.Black, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold, maxLines = 1)

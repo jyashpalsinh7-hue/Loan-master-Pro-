@@ -436,9 +436,9 @@ fun EmiScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Calculate, contentDescription = null, tint = Color(0xFF2D7DFF), modifier = Modifier.size(24.dp))
                             Spacer(Modifier.widthIn(min = 8.dp))
-                            Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
-                        Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 },
                 actions = {},
@@ -650,7 +650,7 @@ fun EmiScreen(
                                 contentPadding = PaddingValues(end = LoanMasterTheme.spacing.md)
                             ) {
                                 items(uiState.recommendations, key = { it.id }) { rec ->
-                                    val cardWidth = if (isExpanded) 220.dp else LoanMasterTheme.components.featuredCardHeight
+                                    val cardWidth = if (isExpanded) LoanMasterTheme.components.bannerHeight else LoanMasterTheme.components.featuredCardHeight
                                     Column(
                                         modifier = Modifier
                                             .widthIn(min = cardWidth)

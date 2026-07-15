@@ -62,7 +62,7 @@ fun SummaryCard(
             modifier = Modifier.fillMaxWidth().heightIn(max = 120.dp).clickable { onEditClick() }
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.md),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -79,7 +79,7 @@ fun SummaryCard(
                         Spacer(modifier = Modifier.width(2.dp))
                         Text("$interestRate%", color = textSecondary, fontSize = 12.sp)
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))

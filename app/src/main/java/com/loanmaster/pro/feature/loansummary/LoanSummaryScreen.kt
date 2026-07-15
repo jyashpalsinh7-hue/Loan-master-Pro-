@@ -149,8 +149,8 @@ fun LoanSummaryScreen(
                         }
                         Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
                         Column {
-                            Text("Loan Summary", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text("All your loans at a glance", color = textGray, fontSize = LoanMasterTheme.typography.body.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Loan Summary", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text("All your loans at a glance", color = textGray, fontSize = LoanMasterTheme.typography.body.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     
@@ -180,9 +180,9 @@ fun LoanSummaryScreen(
                 ) {
                     // Left: Outstanding
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Total Outstanding", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(com.loanmaster.pro.core.formatter.formatMoney(totalOutstanding), color = accentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("across $totalLoansCount loan${if(totalLoansCount != 1) "s" else ""}", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Total Outstanding", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(com.loanmaster.pro.core.formatter.formatMoney(totalOutstanding), color = accentYellow, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text("across $totalLoansCount loan${if(totalLoansCount != 1) "s" else ""}", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     
                     // Middle: Circle
@@ -222,13 +222,13 @@ fun LoanSummaryScreen(
                     // Right: Paid stats
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                         Column(horizontalAlignment = Alignment.Start) {
-                            Text("Total Principal Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalPrincipalPaid), color = accentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Total Principal Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalPrincipalPaid), color = accentGreen, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             
                             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                             
-                            Text("Total Interest Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalInterestPaid), color = accentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Total Interest Paid", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(com.loanmaster.pro.core.formatter.formatMoney(totalInterestPaid), color = accentBlue, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -318,9 +318,9 @@ fun RowScope.StatItem(label: String, value: String, icon: androidx.compose.ui.gr
             Icon(icon, contentDescription = null, tint = Color(0xFF60A5FA), modifier = Modifier.size(LoanMasterTheme.components.iconSmall))
         }
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
-        Text(label, color = Color(0xFF94A3B8), fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+        Text(label, color = Color(0xFF94A3B8), fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-        Text(value, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(value, color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -427,22 +427,22 @@ fun ActiveLoanPremiumCard(loan: ActiveLoan, onDelete: () -> Unit) {
             // Stats Row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Loan Amount", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Loan Amount", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                    Text(com.loanmaster.pro.core.formatter.formatMoney(originalAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(com.loanmaster.pro.core.formatter.formatMoney(originalAmount), color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Interest Rate", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Interest Rate", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                    Text("${loan.interestRate}% p.a.", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("${loan.interestRate}% p.a.", color = Color.White, fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 Box(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xl).widthIn(min = 1.dp).background(cardBorder))
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Next EMI Due", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Next EMI Due", color = textGray, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("26 Jul", color = Color(0xFFFBBF24), fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) // Mock
+                        Text("26 Jul", color = Color(0xFFFBBF24), fontSize = LoanMasterTheme.typography.body.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis) // Mock
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = textGray, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                     }
                 }

@@ -35,7 +35,7 @@ fun PremiumLockCard(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(14.dp)
+            modifier = Modifier.fillMaxWidth().background(gradientBrush).padding(LoanMasterTheme.spacing.md)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -50,7 +50,7 @@ fun PremiumLockCard(
                     Text("Personalized recommendations to improve approval.", color = TextSecondary, fontSize = 11.sp)
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onWatchAdClick,
