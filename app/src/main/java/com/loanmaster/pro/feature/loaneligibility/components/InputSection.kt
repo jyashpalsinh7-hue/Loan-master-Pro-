@@ -219,12 +219,12 @@ fun InputSection(
                                         OutlinedTextField(
                                             value = selectedLoanProfile,
                                             onValueChange = {},
-                                            label = { Text("Loan Type", maxLines = 1, fontSize = 12.sp, fontWeight = FontWeight.Normal) },
+                                            label = { Text("Loan Type", maxLines = 1, fontWeight = FontWeight.Normal) },
                                             leadingIcon = { Icon(getLoanTypeIcon(selectedLoanProfile), contentDescription = null, tint = brightBlue, modifier = Modifier.size(20.dp)) },
                                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = loanDropdownExpanded) },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(64.dp)
+                                                .heightIn(min = 56.dp)
                                                 .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true),
                                             readOnly = true,
                                             colors = OutlinedTextFieldDefaults.colors(

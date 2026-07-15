@@ -79,6 +79,7 @@ data class AppTypographyTokens(
 @Immutable
 data class AppGrids(
     val calculatorColumns: Int = 2,
+    val inputColumns: Int = 1,
     val scheduleColumns: Int = 1
 )
 
@@ -186,16 +187,19 @@ fun LoanMasterTheme(
     val grids = if (isExpanded) {
         AppGrids(
             calculatorColumns = 4,
+            inputColumns = 3,
             scheduleColumns = 2
         )
     } else if (isMedium) {
         AppGrids(
             calculatorColumns = 3,
+            inputColumns = 2,
             scheduleColumns = 1
         )
     } else {
         AppGrids(
             calculatorColumns = 2,
+            inputColumns = 1,
             scheduleColumns = 1
         )
     }

@@ -334,7 +334,7 @@ fun HeroBanner() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = screenHeight * 0.22f)
+            .aspectRatio(2.5f)
             .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(
                 brush = Brush.horizontalGradient(
@@ -441,7 +441,7 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = LoanMasterTheme.components.featuredCardHeight)
+            .aspectRatio(2.8f)
             .shadow(elevation = LoanMasterTheme.spacing.md, shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius), spotColor = AccentYellow.copy(alpha = 0.4f))
             .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(
@@ -506,8 +506,8 @@ fun EmiCalculatorCard(onClick: () -> Unit) {
                     text = "Calculate EMI for Home, Car, Personal & more",
                     color = Color.White.copy(alpha = 0.7f),
                     style = LoanMasterTheme.typography.label,
-                    lineHeight = LoanMasterTheme.typography.label.fontSize,
-                    maxLines = 1,
+                    lineHeight = LoanMasterTheme.typography.label.fontSize * 1.3f,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -558,7 +558,7 @@ fun StandardCalculatorCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = LoanMasterTheme.components.calculatorCardHeight)
+            .aspectRatio(1.6f)
             .shadow(elevation = LoanMasterTheme.spacing.xs, shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(SurfaceDark)
@@ -589,8 +589,7 @@ fun StandardCalculatorCard(
                 style = LoanMasterTheme.typography.label,
                 lineHeight = LoanMasterTheme.typography.label.fontSize,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = LoanMasterTheme.spacing.md)
+                overflow = TextOverflow.Ellipsis
             )
         }
         

@@ -465,7 +465,7 @@ fun EmiScreen(
                     ) {
                         Column(modifier = Modifier.padding(LoanMasterTheme.spacing.sm), verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm)) {
                             AdaptiveRowCol(
-                                columns = LoanMasterTheme.grids.calculatorColumns,
+                                columns = LoanMasterTheme.grids.inputColumns,
                                 content1 = { modifier ->
                                     PremiumInputField(
                                         label = "Loan Amount", value = uiState.loanAmountText, onValueChange = { viewModel.updateInputs(loanAmount = it) },
@@ -483,7 +483,7 @@ fun EmiScreen(
                                 }
                             )
                             AdaptiveRowCol(
-                                columns = LoanMasterTheme.grids.calculatorColumns,
+                                columns = LoanMasterTheme.grids.inputColumns,
                                 content1 = { modifier ->
                                     TenureInputField(
                                         label = "Tenure", value = uiState.tenureInputText, onValueChange = { viewModel.updateInputs(tenureInput = it) },

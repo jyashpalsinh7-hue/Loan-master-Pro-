@@ -85,7 +85,7 @@ fun ResponsiveScreenWrapper(
 @Composable
 fun AdaptiveRowCol(
     modifier: Modifier = Modifier,
-    columns: Int = LoanMasterTheme.grids.calculatorColumns,
+    columns: Int = LoanMasterTheme.grids.inputColumns,
     content1: @Composable (Modifier) -> Unit,
     content2: @Composable (Modifier) -> Unit
 ) {
@@ -111,7 +111,7 @@ fun AdaptiveRowCol(
 @Composable
 fun AdaptiveRowCol3(
     modifier: Modifier = Modifier,
-    columns: Int = LoanMasterTheme.grids.calculatorColumns,
+    columns: Int = LoanMasterTheme.grids.inputColumns,
     content1: @Composable (Modifier) -> Unit,
     content2: @Composable (Modifier) -> Unit,
     content3: @Composable (Modifier) -> Unit
