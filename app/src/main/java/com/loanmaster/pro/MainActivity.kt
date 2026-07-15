@@ -157,7 +157,6 @@ val LocalLanguage = compositionLocalOf { "English" }
 
 val LocalCurrency = compositionLocalOf { "INR (₹)" }
 
-
 val LocalCurrencySymbol = compositionLocalOf { "₹" }
 
 val LocalNotificationsEnabled = compositionLocalOf { true }
@@ -207,13 +206,8 @@ class MainActivity : ComponentActivity() {
             
             val notificationsEnabled = uiState.notificationsEnabled
             val keepHistoryEnabled = uiState.keepHistoryEnabled
-            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-            
-            val windowSizeClass = when {
-                configuration.screenWidthDp < 600 -> androidx.window.core.layout.WindowWidthSizeClass.COMPACT
-                configuration.screenWidthDp < 840 -> androidx.window.core.layout.WindowWidthSizeClass.MEDIUM
-                else -> androidx.window.core.layout.WindowWidthSizeClass.EXPANDED
-            }
+            val adaptiveInfo = currentWindowAdaptiveInfo()
+            val windowSizeClass = adaptiveInfo.windowSizeClass.windowWidthSizeClass
             
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalLanguage provides language,
@@ -254,7 +248,6 @@ val context = androidx.compose.ui.platform.LocalContext.current
                     val mainViewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                                                             
                     
-                    val adaptiveInfo = currentWindowAdaptiveInfo()
                     
                     
                     
