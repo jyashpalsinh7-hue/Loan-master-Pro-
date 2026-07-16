@@ -27,6 +27,8 @@ import com.loanmaster.pro.feature.loaneligibility.*
 import com.loanmaster.pro.feature.home.*
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.background
 import androidx.window.core.layout.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -98,9 +100,20 @@ fun AdaptiveRowCol(
         val minWidthForTwoColumns = 356.dp
         val effectiveColumns = if (maxWidth >= minWidthForTwoColumns) 2 else 1
 
+        // TEMPORARY DIAGNOSTIC — remove after reading the value on-device
+        androidx.compose.material3.Text(
+            text = "DEBUG maxWidth=$maxWidth cols=$columns effCols=$effectiveColumns",
+            color = androidx.compose.ui.graphics.Color.Red,
+            fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
+            modifier = Modifier
+                .align(androidx.compose.ui.Alignment.TopStart)
+                .background(androidx.compose.ui.graphics.Color.Yellow)
+                .zIndex(10f)
+        )
+
         if (effectiveColumns == 1) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
             ) {
                 content1(Modifier.fillMaxWidth())
