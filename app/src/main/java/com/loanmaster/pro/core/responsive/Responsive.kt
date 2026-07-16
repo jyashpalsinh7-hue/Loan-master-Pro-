@@ -95,8 +95,8 @@ fun AdaptiveRowCol(
         // clipping (e.g. "Monthly Income", "Home Loan"). At or above it, keep the
         // existing side-by-side layout exactly as before (this is what already
         // works correctly on wider phones like Redmi 13 at ~412dp).
-        val minWidthForTwoColumns = 380.dp
-        val effectiveColumns = if (columns >= 2 && maxWidth >= minWidthForTwoColumns) 2 else 1
+        val minWidthForTwoColumns = 356.dp
+        val effectiveColumns = if (maxWidth >= minWidthForTwoColumns) 2 else 1
 
         if (effectiveColumns == 1) {
             Column(
@@ -128,7 +128,7 @@ fun AdaptiveRowCol3(
 ) {
     BoxWithConstraints(modifier = modifier) {
         val minWidthForThreeColumns = 560.dp
-        val effectiveColumns = if (columns >= 3 && maxWidth >= minWidthForThreeColumns) 3 else columns
+        val effectiveColumns = if (maxWidth >= minWidthForThreeColumns) 3 else columns
 
         if (effectiveColumns < 3) {
             Column(
