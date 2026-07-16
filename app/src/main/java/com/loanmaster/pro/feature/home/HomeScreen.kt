@@ -334,7 +334,7 @@ fun HeroBanner() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(2.5f)
+            .heightIn(min = screenHeight * 0.24f)
             .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
             .background(
                 brush = Brush.horizontalGradient(
@@ -350,11 +350,17 @@ fun HeroBanner() {
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+            ) {
                 Column(
                     modifier = Modifier
                         .weight(0.6f)
-                        .padding(LoanMasterTheme.spacing.lg)
+                        .fillMaxHeight()
+                        .padding(LoanMasterTheme.spacing.lg),
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = buildAnnotatedString {
@@ -371,7 +377,7 @@ fun HeroBanner() {
                         text = if (page == 0) "All-in-One Finance Calculator\nfor a Better Financial Future" else if (page == 1) "Upgrade to Premium for an\nuninterrupted ad-free experience" else "Unlock advanced financial\nanalytics and reporting tools",
                         color = TextSecondary,
                         style = LoanMasterTheme.typography.body,
-                        lineHeight = LoanMasterTheme.typography.title.fontSize
+                        lineHeight = LoanMasterTheme.typography.body.fontSize * 1.3f
                     )
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                     val context = androidx.compose.ui.platform.LocalContext.current
