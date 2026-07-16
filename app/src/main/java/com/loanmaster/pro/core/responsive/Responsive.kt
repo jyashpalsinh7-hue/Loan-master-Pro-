@@ -89,21 +89,31 @@ fun AdaptiveRowCol(
     content1: @Composable (Modifier) -> Unit,
     content2: @Composable (Modifier) -> Unit
 ) {
-    if (columns == 1) {
-        Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
-        ) {
-            content1(Modifier.fillMaxWidth())
-            content2(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
-        ) {
-            content1(Modifier.weight(1f))
-            content2(Modifier.weight(1f))
+    BoxWithConstraints(modifier = modifier) {
+        // Below this local width, two OutlinedTextFields with leading icons and
+        // floating labels don't have enough room to show full label text without
+        // clipping (e.g. "Monthly Income", "Home Loan"). At or above it, keep the
+        // existing side-by-side layout exactly as before (this is what already
+        // works correctly on wider phones like Redmi 13 at ~412dp).
+        val minWidthForTwoColumns = 380.dp
+        val effectiveColumns = if (columns >= 2 && maxWidth >= minWidthForTwoColumns) 2 else 1
+
+        if (effectiveColumns == 1) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
+            ) {
+                content1(Modifier.fillMaxWidth())
+                content2(Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
+            ) {
+                content1(Modifier.weight(1f))
+                content2(Modifier.weight(1f))
+            }
         }
     }
 }
@@ -116,28 +126,33 @@ fun AdaptiveRowCol3(
     content2: @Composable (Modifier) -> Unit,
     content3: @Composable (Modifier) -> Unit
 ) {
-    if (columns < 3) {
-        Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
-        ) {
-            content1(Modifier.fillMaxWidth())
+    BoxWithConstraints(modifier = modifier) {
+        val minWidthForThreeColumns = 560.dp
+        val effectiveColumns = if (columns >= 3 && maxWidth >= minWidthForThreeColumns) 3 else columns
+
+        if (effectiveColumns < 3) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)
+            ) {
+                content1(Modifier.fillMaxWidth())
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
+                ) {
+                    content2(Modifier.weight(1f))
+                    content3(Modifier.weight(1f))
+                }
+            }
+        } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
             ) {
+                content1(Modifier.weight(1f))
                 content2(Modifier.weight(1f))
                 content3(Modifier.weight(1f))
             }
-        }
-    } else {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
-        ) {
-            content1(Modifier.weight(1f))
-            content2(Modifier.weight(1f))
-            content3(Modifier.weight(1f))
         }
     }
 }
