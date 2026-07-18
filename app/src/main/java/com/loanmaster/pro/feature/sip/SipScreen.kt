@@ -273,14 +273,16 @@ private fun InputsSection(
         }
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
-                Box(Modifier.weight(1f)) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = com.loanmaster.pro.core.formatter.currentCurrencySymbol) }
-                Box(Modifier.weight(1f)) { CustomInput("Return Rate", returnRate, onRate, Icons.Rounded.Edit, suffix = "%") }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
-                Box(Modifier.weight(1f)) { CustomInput("Period", years, onYears, Icons.Rounded.KeyboardArrowDown, suffix = " Yr") }
-                Box(Modifier.weight(1f)) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.Edit, suffix = "%") }
-            }
+            com.loanmaster.pro.core.responsive.AdaptiveRowCol(
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod -> Box(mod) { CustomInput("Monthly SIP", amount, onAmount, Icons.Rounded.Edit, prefix = com.loanmaster.pro.core.formatter.currentCurrencySymbol) } },
+                content2 = { mod -> Box(mod) { CustomInput("Return Rate", returnRate, onRate, Icons.Rounded.Edit, suffix = "%") } }
+            )
+            com.loanmaster.pro.core.responsive.AdaptiveRowCol(
+                modifier = Modifier.fillMaxWidth(),
+                content1 = { mod -> Box(mod) { CustomInput("Period", years, onYears, Icons.Rounded.KeyboardArrowDown, suffix = " Yr") } },
+                content2 = { mod -> Box(mod) { CustomInput("Step-Up", stepUp, onStepUp, Icons.Rounded.Edit, suffix = "%") } }
+            )
         }
     }
 }

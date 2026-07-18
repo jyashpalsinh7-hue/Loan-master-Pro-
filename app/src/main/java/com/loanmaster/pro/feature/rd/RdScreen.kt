@@ -287,8 +287,10 @@ fun RdScreen(
                         }
                     }
                 } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md), modifier = Modifier.fillMaxWidth()) {
-                        Box(modifier = Modifier.weight(1f)) {
+                    FinancialDisclaimer()
+                    Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
+                    com.loanmaster.pro.core.responsive.AdaptiveRowCol(
+                        content1 = { mod ->
                             if (selectedTab == "Standard") {
                                 PremiumInputField(
                                     label = "Monthly Deposit", value = monthlyDepositText, onValueChange = { viewModel.updateInputs(monthlyDeposit = it) },
@@ -300,47 +302,48 @@ fun RdScreen(
                                     icon = Icons.Rounded.Flag, iconTint = AccentBlue
                                 )
                             }
-                        }
-                    // FIX: Added Financial Disclaimer
-                    FinancialDisclaimer()
-                        Box(modifier = Modifier.weight(1f)) {
+                        },
+                        content2 = { mod ->
                             PremiumInputField(
                                 label = "Interest Rate (p.a.)", value = interestRatePaText, onValueChange = { viewModel.updateInputs(interestRate = it) },
                                 icon = Icons.Rounded.Percent, iconTint = Color(0xFF7C4DFF)
                             )
                         }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md), modifier = Modifier.fillMaxWidth()) {
-                        Box(modifier = Modifier.weight(1f)) {
+                    )
+                    Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
+                    com.loanmaster.pro.core.responsive.AdaptiveRowCol(
+                        content1 = { mod ->
                             PremiumInputField(
                                 label = "Tenure", value = tenureYearsText, onValueChange = { viewModel.updateInputs(tenureYears = it) },
                                 icon = Icons.Rounded.DateRange, iconTint = AccentGreen, trailingIcon = Icons.Rounded.KeyboardArrowDown, suffix = " Yrs"
                             )
-                        }
-                        Box(modifier = Modifier.weight(1f)) {
-                            PremiumInputField(
-                                isNumeric = false,
-                                label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
-                                icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
-                                infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
-                            )
-                            DropdownMenu(
-                                expanded = showCompoundingDropdown,
-                                onDismissRequest = { showCompoundingDropdown = false },
-                                modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
-                            ) {
-                                listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option, color = TextPrimary) },
-                                        onClick = {
-                                            viewModel.updateInputs(frequency = option)
-                                            showCompoundingDropdown = false
-                                        }
-                                    )
+                        },
+                        content2 = { mod ->
+                            Box {
+                                PremiumInputField(
+                                    isNumeric = false,
+                                    label = "Compounding", value = compoundingFrequency, onValueChange = {}, readOnly = true, onClick = { showCompoundingDropdown = true },
+                                    icon = Icons.Rounded.BarChart, iconTint = AccentBlue, trailingIcon = Icons.Rounded.KeyboardArrowDown,
+                                    infoText = "How often interest is calculated and added to your principal. Banks usually compound RD interest quarterly."
+                                )
+                                DropdownMenu(
+                                    expanded = showCompoundingDropdown,
+                                    onDismissRequest = { showCompoundingDropdown = false },
+                                    modifier = Modifier.background(SurfaceDark).fillMaxWidth(0.9f)
+                                ) {
+                                    listOf("Yearly", "Half-Yearly", "Quarterly", "Monthly").forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option, color = TextPrimary) },
+                                            onClick = {
+                                                viewModel.updateInputs(frequency = option)
+                                                showCompoundingDropdown = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
+                    )
                 }
             }
         },

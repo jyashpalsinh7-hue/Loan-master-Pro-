@@ -171,7 +171,7 @@ fun getDatabase(context: android.content.Context): LoanMasterDatabase {
             context.applicationContext,
             LoanMasterDatabase::class.java,
             "loan_master_database"
-        ).fallbackToDestructiveMigration().addMigrations(com.loanmaster.pro.data.local.room.MIGRATION_3_4, com.loanmaster.pro.data.local.room.MIGRATION_4_5).build().also { APP_DATABASE_INSTANCE = it }
+        ).addMigrations(com.loanmaster.pro.data.local.room.MIGRATION_3_4, com.loanmaster.pro.data.local.room.MIGRATION_4_5, com.loanmaster.pro.data.local.room.MIGRATION_5_6).build().also { APP_DATABASE_INSTANCE = it }
     }
 }
 
