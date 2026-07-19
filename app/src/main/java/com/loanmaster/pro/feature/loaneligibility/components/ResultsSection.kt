@@ -63,7 +63,7 @@ fun ResultsSection(
     val textSecondary = TextSecondary
     val bgColor = BackgroundDark
 
-                    AnimatedVisibility(
+    AnimatedVisibility(
                         visible = isResultVisible && !isInputExpanded && !isCalculating,
                         enter = slideInVertically(initialOffsetY = { 150 }, animationSpec = tween(800, easing = FastOutSlowInEasing)) + fadeIn(animationSpec = tween(800)),
                         exit = slideOutVertically(targetOffsetY = { 150 }, animationSpec = tween(500)) + fadeOut(animationSpec = tween(500))

@@ -56,7 +56,7 @@ fun LoanNotEligibleCard(
     val textColor = TextPrimary
     val textSecondary = TextSecondary
 
-                                Card(
+    Card(
                                     colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.25f)),
                                     shape = RoundedCornerShape(24.dp),
                                     border = BorderStroke(1.dp, dangerRed.copy(alpha = 0.5f)),

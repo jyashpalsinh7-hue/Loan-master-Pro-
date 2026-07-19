@@ -45,27 +45,27 @@ fun EmptyState(
     val textSecondary = TextSecondary
     val textColor = TextPrimary
 
-                    AnimatedVisibility(
-                        visible = !isResultVisible && !isCalculating && isInputExpanded,
-                        enter = fadeIn(animationSpec = tween(500)),
-                        exit = fadeOut(animationSpec = tween(300))
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier.size(88.dp).background(brightBlue.copy(alpha = 0.1f), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(44.dp))
-                            }
-                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
-                            Text("Check Your Loan Eligibility", color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
-                            Text("Enter your income and loan details to calculate the maximum amount you can borrow instantly.", color = textSecondary, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp), fontWeight = FontWeight.Normal)
-                        }
-                    }
-                }
+    AnimatedVisibility(
+        visible = !isResultVisible && !isCalculating && isInputExpanded,
+        enter = fadeIn(animationSpec = tween(500)),
+        exit = fadeOut(animationSpec = tween(300))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier.size(88.dp).background(brightBlue.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = brightBlue, modifier = Modifier.size(44.dp))
+            }
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
+            Text("Check Your Loan Eligibility", color = textColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
+            Text("Enter your income and loan details to calculate the maximum amount you can borrow instantly.", color = textSecondary, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 24.dp), fontWeight = FontWeight.Normal)
+        }
+    }
+}
 
 

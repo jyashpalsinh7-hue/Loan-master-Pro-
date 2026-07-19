@@ -43,7 +43,7 @@ fun LoadingState(
     val textSecondary = TextSecondary
     val textColor = TextPrimary
 
-                    AnimatedVisibility(
+    AnimatedVisibility(
                         visible = isCalculating,
                         enter = fadeIn(animationSpec = tween(400)),
                         exit = fadeOut(animationSpec = tween(400))

@@ -66,7 +66,7 @@ fun InputSection(
     val textSecondary = TextSecondary
     val textColor = TextPrimary
 
-                    AnimatedVisibility(
+    AnimatedVisibility(
                         visible = isInputExpanded,
                         enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
                         exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
@@ -178,7 +178,7 @@ fun InputSection(
                             }
 
                             // 4. Co-Borrower Inputs
-                            AnimatedVisibility(
+    AnimatedVisibility(
                                 visible = isCoBorrowerEnabled,
                                 enter = expandVertically(animationSpec = tween(250)) + fadeIn(animationSpec = tween(250)),
                                 exit = shrinkVertically(animationSpec = tween(250)) + fadeOut(animationSpec = tween(250))
