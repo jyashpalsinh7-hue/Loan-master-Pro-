@@ -76,6 +76,9 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
+    val premiumStateContext = androidx.compose.ui.platform.LocalContext.current
+    val premiumStateManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumStateContext.applicationContext) }
+    val isPremiumUnlocked by premiumStateManager.isPremium.collectAsStateWithLifecycle(initialValue = false)
     val language = uiState.language
     val currency = uiState.currency
     val notificationsEnabled = uiState.notificationsEnabled
@@ -102,9 +105,9 @@ fun SettingsScreen(
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
             item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }
             item { DataBackupSection(onClearHistory = onClearHistory) }
-            item { SupportAppSection(onPremiumClick = { showUnlockDialog = true }) }
+            item { SupportAppSection(onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true }) }
             item { AboutSupportSection() }
-            item { AccountSyncSection(onPremiumClick = { showUnlockDialog = true }) }
+            item { AccountSyncSection(onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true }) }
 
             item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }
         }
@@ -113,7 +116,7 @@ fun SettingsScreen(
             com.loanmaster.pro.core.ui.PremiumUnlockDialog(
                 onDismiss = { showUnlockDialog = false },
                 onUnlockSuccessful = {
-                    com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
+                    premiumStateManager.unlockPermanent()
                 }
             )
         }

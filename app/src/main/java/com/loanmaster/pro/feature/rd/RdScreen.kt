@@ -660,7 +660,7 @@ fun RdScreen(
                 Box(modifier = Modifier.matchParentSize().background(BackgroundDark.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clip(RoundedCornerShape(LoanMasterTheme.spacing.md)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.md)).padding(LoanMasterTheme.spacing.lg).clickable { showUnlockDialog = true }
+                        modifier = Modifier.clip(RoundedCornerShape(LoanMasterTheme.spacing.md)).background(SurfaceDark).border(1.dp, CardStroke, RoundedCornerShape(LoanMasterTheme.spacing.md)).padding(LoanMasterTheme.spacing.lg).clickable { if (!isPremiumUnlocked) showUnlockDialog = true }
                     ) {
                         Box(modifier = Modifier.size(LoanMasterTheme.components.buttonHeight).clip(CircleShape).background(AccentYellow.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Rounded.Lock, contentDescription = "Premium", tint = AccentYellow, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
@@ -671,7 +671,7 @@ fun RdScreen(
                         Text("Calculate exactly how much to invest.", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
                         Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                         Button(
-                            onClick = { showUnlockDialog = true },
+                            onClick = { if (!isPremiumUnlocked) showUnlockDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = Color(0xFF020B1F))
                         ) {
                             Text("Unlock Premium", fontWeight = FontWeight.Bold)

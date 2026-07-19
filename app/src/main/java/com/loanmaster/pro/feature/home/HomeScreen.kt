@@ -81,6 +81,9 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
     var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
+    val premiumStateContext = androidx.compose.ui.platform.LocalContext.current
+    val premiumStateManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumStateContext.applicationContext) }
+    val isPremiumUnlocked by premiumStateManager.isPremium.collectAsStateWithLifecycle(initialValue = false)
     val searchQuery = uiState.searchQuery
     val isQuickToolsExpanded = uiState.isQuickToolsExpanded
     val activeBottomNavItem = uiState.activeBottomNavItem
@@ -91,7 +94,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
         com.loanmaster.pro.core.ui.PremiumUnlockDialog(
             onDismiss = { showUnlockDialog = false },
             onUnlockSuccessful = {
-                com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
+                premiumStateManager.unlockPermanent()
             }
         )
     }
@@ -117,11 +120,11 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                 horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onPremiumClick = { showUnlockDialog = true })
+                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true })
                 }
                 if (searchQuery.isBlank()) {
                     item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                        HeroBanner(onPremiumClick = { showUnlockDialog = true })
+                        HeroBanner(onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true })
                     }
                 }
                 

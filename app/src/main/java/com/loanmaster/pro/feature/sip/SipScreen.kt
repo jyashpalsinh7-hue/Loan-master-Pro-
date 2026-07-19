@@ -186,21 +186,27 @@ fun SipScreen(
             if (hasValidInput) {
                 HeroCard(totalInvested, totalGain, maturityValue, returnRate, years, isWide, uiState)
                 
+                val requestPremiumUnlock: () -> Unit = {
+                    if (!uiState.isPremiumUnlocked) {
+                        showPremiumDialog = true
+                    }
+                }
+
                 if (isWide) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)) {
                         GrowthVisualizationCard(yearlyDataList, modifier = Modifier.weight(1.5f))
-                        Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { showPremiumDialog = true }) }
+                        Box(modifier = Modifier.weight(1f)) { InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = requestPremiumUnlock) }
                     }
                 } else {
                     GrowthVisualizationCard(yearlyDataList, modifier = Modifier.fillMaxWidth())
-                    InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = { showPremiumDialog = true })
+                    InflationAdjustedCard(maturityValue, years, uiState, onUnlockPremium = requestPremiumUnlock)
                 }
                 
                 LifestyleFundsSection(isWide, maturityValue, years)
                 
-                WealthOpportunityCard(maturityValue, uiState, onUnlockPremium = { showPremiumDialog = true })
+                WealthOpportunityCard(maturityValue, uiState, onUnlockPremium = requestPremiumUnlock)
                 
-                SipScheduleCard(yearlyDataList, uiState, onUnlockPremium = { showPremiumDialog = true })
+                SipScheduleCard(yearlyDataList, uiState, onUnlockPremium = requestPremiumUnlock)
             } else {
                 EmptyStateUi()
             }
