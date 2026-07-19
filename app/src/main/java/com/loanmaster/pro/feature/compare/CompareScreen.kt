@@ -304,7 +304,9 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
     val hasValidInput = uiState.hasValidInput
 
     var showUnlockDialog by remember { mutableStateOf(false) }
-    var isPremiumUnlocked by remember { mutableStateOf(false) }
+    val premiumManagerContext = androidx.compose.ui.platform.LocalContext.current
+    val premiumManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumManagerContext.applicationContext) }
+    val isPremiumUnlocked by premiumManager.isPremium.collectAsStateWithLifecycle()
     var selectedPremiumTool by remember { mutableStateOf<String?>(null) }
     val bestLoan = processedLoans.find { it.isBest }
 
@@ -445,9 +447,12 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
     }
 
     if (showUnlockDialog) {
+        val dialogContext = androidx.compose.ui.platform.LocalContext.current
         com.loanmaster.pro.core.ui.PremiumUnlockDialog(
             onDismiss = { showUnlockDialog = false },
-            onUnlockSuccessful = { isPremiumUnlocked = true }
+            onUnlockSuccessful = { 
+                premiumManager.unlockPermanent()
+            }
         )
     }
 
@@ -892,7 +897,8 @@ fun ComparisonTable(loans: List<LoanOffer>) {
 
 @Composable
 fun LoanAdvisorSection(loans: List<LoanOffer>, bestLoan: LoanOffer?, isPremiumUnlocked: Boolean = false, onUnlockRequested: () -> Unit = {}) {
-    val advice = remember(loans, bestLoan) { generateFinancialAdvice(loans, bestLoan) }
+    val symbol = com.loanmaster.pro.LocalCurrencySymbol.current
+    val advice = remember(loans, bestLoan, symbol) { generateFinancialAdvice(loans, bestLoan, symbol) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -1008,12 +1014,12 @@ data class FinancialAdvice(
     val showPremium: Boolean = false
 )
 
-private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?): FinancialAdvice {
+private fun generateFinancialAdvice(loans: List<LoanOffer>, bestLoan: LoanOffer?, symbol: String): FinancialAdvice {
     if (loans.isEmpty()) {
         return FinancialAdvice(
             title = "No loans available.",
             subtitle = "Please add at least one loan to get insights.",
-            savingsText = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}0",
+            savingsText = "${symbol}0",
             showPremium = false
         )
     }

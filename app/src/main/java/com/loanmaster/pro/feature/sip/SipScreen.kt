@@ -120,13 +120,14 @@ fun SipScreen(
         }
     }
     
-    LaunchedEffect(amountText, returnRateText, yearsText, stepUpText) {
+    val currencySymbol = com.loanmaster.pro.LocalCurrencySymbol.current
+    LaunchedEffect(amountText, currencySymbol, returnRateText, yearsText, stepUpText) {
         kotlinx.coroutines.delay(2000)
         if (historyViewModel != null && hasValidInput) {
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "SIP",
-                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$amountText for $yearsText Yrs at $returnRateText%",
+                title = "${currencySymbol}$amountText for $yearsText Yrs at $returnRateText%",
                 param1 = amountText,
                 param2 = returnRateText,
                 param3 = yearsText,
@@ -205,7 +206,8 @@ fun SipScreen(
             }
             
             if (showPremiumDialog) {
-                com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+                val dialogContext = androidx.compose.ui.platform.LocalContext.current
+        com.loanmaster.pro.core.ui.PremiumUnlockDialog(
                     onDismiss = { showPremiumDialog = false },
                     onUnlockSuccessful = { viewModel.unlockPremium() }
                 )

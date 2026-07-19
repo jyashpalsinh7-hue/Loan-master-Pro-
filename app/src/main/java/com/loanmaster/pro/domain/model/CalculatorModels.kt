@@ -58,7 +58,7 @@ data class MonthlyAmortization(
 )
 
 data class FdYearBreakdown(
-    val year: Int,
+    val year: Double,
     val openingBalance: Double,
     val interestEarned: Double,
     val closingBalance: Double

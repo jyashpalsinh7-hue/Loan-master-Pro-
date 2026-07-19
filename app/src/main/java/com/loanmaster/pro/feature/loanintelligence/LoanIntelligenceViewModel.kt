@@ -1,6 +1,7 @@
 package com.loanmaster.pro.feature.loanintelligence
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,8 +12,8 @@ import com.loanmaster.pro.core.managers.PremiumManager
 import com.loanmaster.pro.feature.loanintelligence.engine.LoanIntelligenceEngine
 import com.loanmaster.pro.feature.loanintelligence.model.LoanIntelligenceState
 
-class LoanIntelligenceViewModel : ViewModel() {
-    private val premiumManager = PremiumManager()
+class LoanIntelligenceViewModel(application: Application) : AndroidViewModel(application) {
+    private val premiumManager = PremiumManager(application.applicationContext)
     private val engine = LoanIntelligenceEngine()
     
     private val _state = MutableStateFlow(LoanIntelligenceState())

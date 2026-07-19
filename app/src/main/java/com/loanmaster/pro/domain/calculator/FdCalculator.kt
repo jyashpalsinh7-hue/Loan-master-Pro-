@@ -1,30 +1,6 @@
 package com.loanmaster.pro.domain.calculator
 
-import com.loanmaster.pro.domain.model.*
-import com.loanmaster.pro.feature.gst.*
-import com.loanmaster.pro.feature.sip.*
-import com.loanmaster.pro.core.ui.*
-import com.loanmaster.pro.feature.history.*
-import com.loanmaster.pro.core.theme.*
-import com.loanmaster.pro.data.datastore.*
-import com.loanmaster.pro.feature.settings.*
-import com.loanmaster.pro.feature.rd.*
-import com.loanmaster.pro.data.local.entity.*
-import com.loanmaster.pro.core.utils.*
-import com.loanmaster.pro.data.local.dao.*
-import com.loanmaster.pro.data.local.room.*
-import com.loanmaster.pro.feature.emi.*
-import com.loanmaster.pro.feature.loansummary.*
-import com.loanmaster.pro.feature.prepayment.*
-import com.loanmaster.pro.core.formatter.*
-import com.loanmaster.pro.feature.fd.*
-import com.loanmaster.pro.data.repository.*
-import com.loanmaster.pro.feature.currency.*
-import com.loanmaster.pro.core.navigation.*
-import com.loanmaster.pro.feature.compare.*
-import com.loanmaster.pro.feature.loaneligibility.*
-import com.loanmaster.pro.core.responsive.*
-import com.loanmaster.pro.feature.home.*
+import com.loanmaster.pro.domain.model.FdYearBreakdown
 import kotlin.math.ceil
 import kotlin.math.pow
 
@@ -38,7 +14,7 @@ enum class CompoundingFrequency(val displayName: String, val periods: Int) {
 data class FdResult(
     val maturityValue: Double = 0.0,
     val totalInvested: Double = 0.0,
-    val totalReturns: Double = 0.0,
+    val totalInterest: Double = 0.0,
     val wealthGain: Double = 0.0,
     val breakdown: List<FdYearBreakdown> = emptyList(),
     val isValid: Boolean = false
@@ -51,28 +27,38 @@ class FdCalculator {
         tenureYears: String,
         frequency: CompoundingFrequency
     ): FdResult {
-        val p = deposit.toDoubleOrNull() ?: 0.0
-        val r = rate.toDoubleOrNull() ?: 0.0
-        val t = tenureYears.toDoubleOrNull() ?: 0.0
+        val parsedP = deposit.toDoubleOrNull()
+        val parsedR = rate.toDoubleOrNull()
+        val parsedT = tenureYears.toDoubleOrNull()
 
-        if (p <= 0 || r <= 0 || t <= 0) {
+        if (parsedP == null || parsedR == null || parsedT == null) {
             return FdResult(isValid = false)
         }
 
-        val ratePerPeriod = r / 100
+        if (parsedP <= 0.0 || parsedR <= 0.0 || parsedT <= 0.0) {
+            return FdResult(isValid = false)
+        }
+
+        val p: Double = parsedP
+        val r: Double = parsedR
+        val t: Double = parsedT
+
+        val annualRate = r / 100.0
         val n = frequency.periods.toDouble()
-        val maturity = p * (1 + ratePerPeriod / n).pow(n * t)
-        val returns = maturity - p
-        val wealthGain = if (p > 0) (returns / p) * 100 else 0.0
+
+        val maturity = p * (1 + annualRate / n).pow(n * t)
+        val totalInterest = maturity - p
+        val wealthGain = if (p > 0) (totalInterest / p) * 100 else 0.0
 
         val maxYears = ceil(t).toInt()
         var currentBal = p
         val breakdown = (1..maxYears).map { y ->
             val actualYears = if (y > t && y - 1 < t) t else y.toDouble()
-            val tMat = p * (1 + ratePerPeriod / n).pow(n * actualYears)
+            val tMat = p * (1 + annualRate / n).pow(n * actualYears)
             val interestEarned = tMat - currentBal
+            val displayYear = minOf(y.toDouble(), t)
             val breakdownRow = FdYearBreakdown(
-                year = y,
+                year = displayYear,
                 openingBalance = currentBal,
                 interestEarned = interestEarned,
                 closingBalance = tMat
@@ -81,10 +67,18 @@ class FdCalculator {
             breakdownRow
         }
 
+        if (breakdown.isNotEmpty()) {
+            require(
+                kotlin.math.abs(
+                    breakdown.last().closingBalance - maturity
+                ) < 0.01
+            )
+        }
+
         return FdResult(
             maturityValue = maturity,
             totalInvested = p,
-            totalReturns = returns,
+            totalInterest = totalInterest,
             wealthGain = wealthGain,
             breakdown = breakdown,
             isValid = true

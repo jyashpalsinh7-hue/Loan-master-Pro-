@@ -45,6 +45,9 @@ import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,10 +80,21 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
     onNavigateToCalculator: (CalculationHistory) -> Unit = {}, onNavigateToLoanSummary: () -> Unit = {}, historyItems: List<CalculationHistory> = emptyList(), viewModel: HomeViewModel, activeLoans: List<ActiveLoan> = emptyList()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
+    var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
     val searchQuery = uiState.searchQuery
     val isQuickToolsExpanded = uiState.isQuickToolsExpanded
     val activeBottomNavItem = uiState.activeBottomNavItem
     
+
+    if (showUnlockDialog) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+            onDismiss = { showUnlockDialog = false },
+            onUnlockSuccessful = {
+                com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
+            }
+        )
+    }
     Scaffold(
         topBar = { AppTopBar(onNavigateToSettings) },
         containerColor = BackgroundDark
@@ -103,11 +117,11 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                 horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) })
+                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onPremiumClick = { showUnlockDialog = true })
                 }
                 if (searchQuery.isBlank()) {
                     item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                        HeroBanner()
+                        HeroBanner(onPremiumClick = { showUnlockDialog = true })
                     }
                 }
                 
@@ -235,7 +249,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
 }
 
 @Composable
-fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
+fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit, onPremiumClick: () -> Unit = {}) {
     var isFocused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = if (isFocused) AccentBlue else CardStroke)
     val borderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = if (isFocused) 2.dp else 1.dp)
@@ -291,9 +305,7 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
         val context = androidx.compose.ui.platform.LocalContext.current
         // Premium Button
         OutlinedButton(
-            onClick = {
-                android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
-            },
+            onClick = onPremiumClick,
             modifier = Modifier
                 .heightIn(min = LoanMasterTheme.components.buttonHeight)
                 .testTag("premium_button"),
@@ -317,7 +329,7 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
 }
 
 @Composable
-fun HeroBanner() {
+fun HeroBanner(onPremiumClick: () -> Unit = {}) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     
@@ -382,9 +394,7 @@ fun HeroBanner() {
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                     val context = androidx.compose.ui.platform.LocalContext.current
                     Button(
-                        onClick = { 
-                            android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()
-                        },
+                        onClick = onPremiumClick,
                         colors = ButtonDefaults.buttonColors(containerColor = AccentYellow, contentColor = BackgroundDark),
                         shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
                         contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),

@@ -202,7 +202,8 @@ class MainActivity : ComponentActivity() {
             
             // Extract the symbol from format "USD ($)" and update globally
             val symbol = currency.substringAfter("(").substringBefore(")")
-            com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol = symbol
+            // Currency symbol is now managed via LocalCurrencySymbol CompositionLocal.
+            // We no longer mutate the global CurrencyHelper object.
             
             val notificationsEnabled = uiState.notificationsEnabled
             val keepHistoryEnabled = uiState.keepHistoryEnabled

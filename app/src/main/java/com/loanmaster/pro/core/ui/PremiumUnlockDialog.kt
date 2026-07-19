@@ -80,7 +80,8 @@ fun PremiumUnlockDialog(
                 // Option 1: Buy Premium
                 Button(
                     onClick = {
-                        android.widget.Toast.makeText(context, "Premium purchase coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                        onUnlockSuccessful()
+                        onDismiss()
                     },
                     modifier = Modifier
                         .fillMaxWidth()

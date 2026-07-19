@@ -126,7 +126,9 @@ fun PrepaymentScreen(
     val hasValidInput = uiState.hasValidInput
     
     var showAmortization by rememberSaveable { mutableStateOf(false) }
-    var isAiUnlocked by rememberSaveable { mutableStateOf(false) }
+    val premiumManagerContext = androidx.compose.ui.platform.LocalContext.current
+    val premiumManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumManagerContext.applicationContext) }
+    val isAiUnlocked by premiumManager.isPremium.collectAsStateWithLifecycle()
     var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(initialHistory) {
@@ -136,13 +138,14 @@ fun PrepaymentScreen(
         }
     }
     
-    LaunchedEffect(loanAmount, interestRate, tenureYears, prepaymentAmount, strategy, monthlyPrepayment, annualPrepayment) {
+    val currencySymbol = com.loanmaster.pro.LocalCurrencySymbol.current
+    LaunchedEffect(loanAmount, currencySymbol, interestRate, tenureYears, prepaymentAmount, strategy, monthlyPrepayment, annualPrepayment) {
         kotlinx.coroutines.delay(2000)
         if (historyViewModel != null && hasValidInput) {
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "Prepayment",
-                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$loanAmount - Strategy: $strategy",
+                title = "${currencySymbol}$loanAmount - Strategy: $strategy",
                 param1 = loanAmount,
                 param2 = interestRate,
                 param3 = tenureYears,
@@ -208,14 +211,14 @@ fun PrepaymentScreen(
                 ) {
                     Text("Loan Details", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
                     
-                    PremiumInputField("Outstanding Loan Amount", com.loanmaster.pro.core.formatter.currentCurrencySymbol, loanAmount) { viewModel.updateInputs(loanAmount = it) }
+                    PrepaymentInputField("Outstanding Loan Amount", com.loanmaster.pro.core.formatter.currentCurrencySymbol, loanAmount) { viewModel.updateInputs(loanAmount = it) }
                     
                     Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
                         Box(modifier = Modifier.weight(1f)) {
-                            PremiumInputField("Interest Rate", "%", interestRate) { viewModel.updateInputs(interestRate = it) }
+                            PrepaymentInputField("Interest Rate", "%", interestRate) { viewModel.updateInputs(interestRate = it) }
                         }
                         Box(modifier = Modifier.weight(1f)) {
-                            PremiumInputField("Remaining Tenure", "Yrs", tenureYears) { viewModel.updateInputs(tenureYears = it) }
+                            PrepaymentInputField("Remaining Tenure", "Yrs", tenureYears) { viewModel.updateInputs(tenureYears = it) }
                         }
                     }
                     
@@ -252,7 +255,7 @@ fun PrepaymentScreen(
                         }
                     }
 
-                    PremiumInputField("Lump Sum Prepayment", com.loanmaster.pro.core.formatter.currentCurrencySymbol, prepaymentAmount) { viewModel.updateInputs(prepaymentAmount = it) }
+                    PrepaymentInputField("Lump Sum Prepayment", com.loanmaster.pro.core.formatter.currentCurrencySymbol, prepaymentAmount) { viewModel.updateInputs(prepaymentAmount = it) }
                     
                     // Slider for Lump Sum
                     val maxSliderValue = if (p > 0) p.toFloat() else 10000000f
@@ -271,10 +274,10 @@ fun PrepaymentScreen(
                     if (strategy == "Tenure") {
                         Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md)) {
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Monthly Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, monthlyPrepayment) { viewModel.updateInputs(monthlyPrepayment = it) }
+                                PrepaymentInputField("Monthly Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, monthlyPrepayment) { viewModel.updateInputs(monthlyPrepayment = it) }
                             }
                             Box(modifier = Modifier.weight(1f)) {
-                                PremiumInputField("Annual Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, annualPrepayment) { viewModel.updateInputs(annualPrepayment = it) }
+                                PrepaymentInputField("Annual Extra", com.loanmaster.pro.core.formatter.currentCurrencySymbol, annualPrepayment) { viewModel.updateInputs(annualPrepayment = it) }
                             }
                         }
                     }
@@ -416,46 +419,12 @@ fun PrepaymentScreen(
     }
 
     if (showUnlockDialog) {
-        AlertDialog(
-            onDismissRequest = { showUnlockDialog = false },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color.Yellow)
-                    Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
-                    Text("Unlock Premium Features", color = Color.White, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
-                }
-            },
-            text = { Text("Watch a short ad or upgrade to Premium to unlock AI Smart Strategy and PDF Export of the Amortization schedule.", color = TextSecondary, fontSize = LoanMasterTheme.typography.body.fontSize) },
-            confirmButton = {
-                Button(
-                    onClick = { 
-                        isAiUnlocked = true 
-                        showUnlockDialog = false 
-                    }, 
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC084FC)),
-                    shape = RoundedCornerShape(LoanMasterTheme.spacing.md)
-                ) {
-                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(LoanMasterTheme.spacing.md))
-                    Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                    Text("Watch Ad", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = { 
-                        isAiUnlocked = true 
-                        showUnlockDialog = false 
-                    },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFC084FC)),
-                    border = BorderStroke(1.dp, Color(0xFFC084FC)),
-                    shape = RoundedCornerShape(LoanMasterTheme.spacing.md)
-                ) {
-                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color(0xFFC084FC), modifier = Modifier.size(LoanMasterTheme.spacing.md))
-                    Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                    Text("Buy Premium")
-                }
-            },
-            containerColor = SurfaceDark
+        val dialogContext = androidx.compose.ui.platform.LocalContext.current
+        com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+            onDismiss = { showUnlockDialog = false },
+            onUnlockSuccessful = { 
+                premiumManager.unlockPermanent()
+            }
         )
     }
 }
@@ -536,7 +505,7 @@ fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, col
 }
 
 @Composable
-fun PremiumInputField(label: String, symbol: String, value: String, onValueChange: (String) -> Unit) {
+private fun PrepaymentInputField(label: String, symbol: String, value: String, onValueChange: (String) -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
     

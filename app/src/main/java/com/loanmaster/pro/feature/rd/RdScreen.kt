@@ -107,7 +107,9 @@ fun RdScreen(
     val hasValidInput = uiState.hasValidInput
 
     var showCompoundingDropdown by rememberSaveable { mutableStateOf(false) }
-    var isPremiumUnlocked by rememberSaveable { mutableStateOf(false) }
+    val premiumManagerContext = androidx.compose.ui.platform.LocalContext.current
+    val premiumManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumManagerContext.applicationContext) }
+    val isPremiumUnlocked by premiumManager.isPremium.collectAsStateWithLifecycle()
     var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
     
     LaunchedEffect(initialHistory) {
@@ -139,13 +141,14 @@ fun RdScreen(
     val annualRate = interestRatePaText.safeToDouble() / 100
     val t = tenureYearsText.safeToDouble().coerceIn(0.0, 100.0)
     
-    LaunchedEffect(selectedTab, monthlyDepositText, interestRatePaText, tenureYearsText, compoundingFrequency, targetAmountText) {
+    val currencySymbol = com.loanmaster.pro.LocalCurrencySymbol.current
+    LaunchedEffect(selectedTab, currencySymbol, monthlyDepositText, interestRatePaText, tenureYearsText, compoundingFrequency, targetAmountText) {
         kotlinx.coroutines.delay(2000)
         if (historyViewModel != null && hasValidInput) {
             val history = CalculationHistory(
                 id = currentHistoryId,
                 calculatorType = "RD",
-                title = "${com.loanmaster.pro.core.formatter.currentCurrencySymbol}$monthlyDepositText at $interestRatePaText%",
+                title = "${currencySymbol}$monthlyDepositText at $interestRatePaText%",
                 param1 = monthlyDepositText,
                 param2 = interestRatePaText,
                 param3 = tenureYearsText,
@@ -681,9 +684,13 @@ fun RdScreen(
     )
     
     if (showUnlockDialog) {
+        val dialogContext = androidx.compose.ui.platform.LocalContext.current
         com.loanmaster.pro.core.ui.PremiumUnlockDialog(
             onDismiss = { showUnlockDialog = false },
-            onUnlockSuccessful = { isPremiumUnlocked = true }
+            onUnlockSuccessful = { 
+                 
+                com.loanmaster.pro.core.managers.PremiumManager(dialogContext).unlockPermanent()
+            }
         )
     }
   }

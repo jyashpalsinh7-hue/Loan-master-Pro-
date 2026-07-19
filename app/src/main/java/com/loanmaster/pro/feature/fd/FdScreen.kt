@@ -113,7 +113,7 @@ fun FdScreen(
     
     val maturityValue = uiState.maturityValue
     val totalInvested = uiState.totalInvested
-    val totalReturns = uiState.totalReturns
+    val totalInterest = uiState.totalInterest
     val wealthGain = uiState.wealthGain
     val hasValidInput = uiState.hasValidInput
     val yearBreakdown = uiState.breakdown
@@ -186,7 +186,7 @@ fun FdScreen(
                                 "Interest Rate" to "$interestRatePaText%",
                                 "Time Period" to "$tenureYearsText Years",
                                 "" to "",
-                                "Total Interest" to formatInr(totalReturns),
+                                "Total Interest" to formatInr(totalInterest),
                                 "Maturity Value" to formatInr(maturityValue)
                             )
                         )
@@ -335,10 +335,10 @@ fun FdScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val parsedTenure = tenureYearsText.toDoubleOrNull() ?: 0.0
-                                val effectiveYield = if (totalInvested > 0 && parsedTenure > 0) (totalReturns / totalInvested) / parsedTenure * 100 else 0.0
+                                val effectiveYield = if (totalInvested > 0 && parsedTenure > 0) (totalInterest / totalInvested) / parsedTenure * 100 else 0.0
                                 Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(LoanMasterTheme.spacing.md))
                                 Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                                Text("Total Returns: ${formatDec((totalReturns / totalInvested) * 100)}%", color = AccentGreen, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold)
+                                Text("Total Returns: ${formatDec((totalInterest / totalInvested) * 100)}%", color = AccentGreen, fontSize = LoanMasterTheme.typography.label.fontSize, fontWeight = FontWeight.Bold)
                             }
                         }
                         Box(
@@ -373,7 +373,7 @@ fun FdScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Total Interest", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
                             Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.xs))
-                            Text(formatInr(totalReturns), color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize)
+                            Text(formatInr(totalInterest), color = TextPrimary, fontSize = LoanMasterTheme.typography.body.fontSize)
                         }
                         Box(modifier = Modifier.widthIn(min = 1.dp).heightIn(min = LoanMasterTheme.spacing.xl).background(CardStroke))
                         Column(horizontalAlignment = Alignment.End) {
@@ -519,7 +519,7 @@ fun FdScreen(
                     Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                     Column(modifier = Modifier.fillMaxWidth()) {
                         val invPctStr = String.format(Locale.US, "%.1f%%", if (maturityValue > 0) (totalInvested/maturityValue)*100 else 100f)
-                        val retPctStr = String.format(Locale.US, "%.1f%%", if (maturityValue > 0) (totalReturns/maturityValue)*100 else 0f)
+                        val retPctStr = String.format(Locale.US, "%.1f%%", if (maturityValue > 0) (totalInterest/maturityValue)*100 else 0f)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(LoanMasterTheme.spacing.sm).clip(CircleShape).background(AccentBlue))
@@ -535,7 +535,7 @@ fun FdScreen(
                                 Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                 Text("Interest Earned", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
                             }
-                            Text("${formatInr(totalReturns)} ($retPctStr)", color = TextPrimary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                            Text("${formatInr(totalInterest)} ($retPctStr)", color = TextPrimary, fontSize = LoanMasterTheme.typography.label.fontSize)
                         }
                     }
                 }
@@ -589,7 +589,7 @@ fun FdScreen(
                     }
                     
                     yearBreakdown.forEachIndexed { index, bd ->
-                        val y = bd.year.toDouble()
+                        val y = bd.year
                         val p = bd.openingBalance
                         val tMat = bd.closingBalance
                         val tRet = bd.interestEarned
@@ -598,7 +598,8 @@ fun FdScreen(
                         val formatInrNum = { value: Double -> com.loanmaster.pro.core.formatter.formatMoney(value) }
                         
                         Row(modifier = Modifier.defaultMinSize(minWidth = 380.dp).fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.md, horizontal = LoanMasterTheme.spacing.md)) {
-                            Text("${y.toInt()}", color = color, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1f).padding(horizontal = LoanMasterTheme.spacing.xs))
+                            val yDisplay = if (y % 1.0 == 0.0) y.toInt().toString() else y.toString()
+                            Text(yDisplay, color = color, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1f).padding(horizontal = LoanMasterTheme.spacing.xs))
                             Text(formatInrNum(p), color = color, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.Center)
                             Text(formatInrNum(tRet), color = color, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)
                             Text(formatInrNum(tMat), color = color, fontSize = LoanMasterTheme.typography.label.fontSize, modifier = Modifier.weight(1.5f).padding(horizontal = LoanMasterTheme.spacing.xs), textAlign = TextAlign.End)

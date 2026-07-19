@@ -31,7 +31,7 @@ class LoanIntelligenceEngine {
                     description = "Consolidate or close existing loans to lower your fixed obligations.",
                     estimatedImpact = "Approval Prob +25%",
                     priority = 1,
-                    icon = Icons.Rounded.TrendingDown,
+                    icon = Icons.AutoMirrored.Rounded.TrendingDown,
                     color = AccentGreen
                 )
             )

@@ -256,7 +256,7 @@ fun EmptyHistoryIllustration(modifier: Modifier = Modifier) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Article,
+                    imageVector = Icons.AutoMirrored.Rounded.Article,
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
                     tint = AccentYellow.copy(alpha = 0.8f)

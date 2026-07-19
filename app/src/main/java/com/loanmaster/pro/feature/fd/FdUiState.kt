@@ -35,7 +35,7 @@ data class FdUiState(
     
     val maturityValue: Double = 0.0,
     val totalInvested: Double = 0.0,
-    val totalReturns: Double = 0.0,
+    val totalInterest: Double = 0.0,
     val wealthGain: Double = 0.0,
     val breakdown: List<FdYearBreakdown> = emptyList(),
     

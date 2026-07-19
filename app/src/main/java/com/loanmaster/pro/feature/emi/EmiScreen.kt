@@ -603,7 +603,7 @@ fun EmiScreen(
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
+                                            Icon(Icons.AutoMirrored.Rounded.TrendingUp, contentDescription = null, tint = secondaryText, modifier = Modifier.size(14.dp))
                                             Spacer(Modifier.widthIn(min = 4.dp))
                                             Text("Total Interest", color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize.value.sp * 0.8f)
                                         }
@@ -676,7 +676,7 @@ fun EmiScreen(
                                                 modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.sm)
                                             )
                                         }
-                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
+                                        Icon(imageVector = when(rec.id) { "best_savings" -> Icons.Rounded.Savings; "fastest_closure" -> Icons.Rounded.Speed; "lowest_emi" -> Icons.AutoMirrored.Rounded.TrendingDown; "ai_recommended" -> Icons.Rounded.AutoAwesome; else -> Icons.Rounded.Info }, contentDescription = null, tint = when(rec.id) { "best_savings" -> Color(0xFF22C55E); "fastest_closure" -> Color(0xFF3B82F6); "lowest_emi" -> Color(0xFFA855F7); "ai_recommended" -> Color(0xFFF59E0B); else -> Color.Gray }, modifier = Modifier.size(LoanMasterTheme.components.iconMedium))
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
                                         Text(rec.title, color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize)
                                         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.xs))

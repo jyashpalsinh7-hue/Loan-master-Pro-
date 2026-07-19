@@ -128,7 +128,7 @@ class FdViewModel(
         return state.copy(
             maturityValue = result.maturityValue,
             totalInvested = result.totalInvested,
-            totalReturns = result.totalReturns,
+            totalInterest = result.totalInterest,
             wealthGain = result.wealthGain,
             breakdown = result.breakdown,
             hasValidInput = result.isValid,

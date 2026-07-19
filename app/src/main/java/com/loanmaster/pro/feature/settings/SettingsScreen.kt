@@ -48,6 +48,9 @@ import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +75,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val dummyCurrency = com.loanmaster.pro.LocalCurrency.current
+    var showUnlockDialog by rememberSaveable { mutableStateOf(false) }
     val language = uiState.language
     val currency = uiState.currency
     val notificationsEnabled = uiState.notificationsEnabled
@@ -98,11 +102,22 @@ fun SettingsScreen(
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
             item { RemindersSection(remindersEnabled, viewModel::setRemindersEnabled, emiDueDay, viewModel::setEmiDueDay, emiReminderHour, emiReminderMinute, viewModel::setEmiReminderTime, emiReminderDays, viewModel::setEmiReminderDays) }
             item { DataBackupSection(onClearHistory = onClearHistory) }
-            item { SupportAppSection() }
+            item { SupportAppSection(onPremiumClick = { showUnlockDialog = true }) }
             item { AboutSupportSection() }
-            item { AccountSyncSection() }
+            item { AccountSyncSection(onPremiumClick = { showUnlockDialog = true }) }
+
             item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }
         }
+        if (showUnlockDialog) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            com.loanmaster.pro.core.ui.PremiumUnlockDialog(
+                onDismiss = { showUnlockDialog = false },
+                onUnlockSuccessful = {
+                    com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
+                }
+            )
+        }
+
     }
 }
 
@@ -598,7 +613,7 @@ private fun AboutSupportSection() {
 }
 
 @Composable
-private fun AccountSyncSection() {
+private fun AccountSyncSection(onPremiumClick: () -> Unit = {}) {
     SectionCard(title = "Account & Sync") {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.sm),
@@ -625,7 +640,7 @@ private fun AccountSyncSection() {
 
 
 @Composable
-private fun SupportAppSection() {
+private fun SupportAppSection(onPremiumClick: () -> Unit = {}) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var isAdPlaying by remember { mutableStateOf(false) }
 
@@ -655,9 +670,7 @@ private fun SupportAppSection() {
                     )
                 }
                 Button(
-                    onClick = {
-                        android.widget.Toast.makeText(context, "Premium coming soon!", android.widget.Toast.LENGTH_SHORT).show()
-                    },
+                    onClick = onPremiumClick,
                     colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = BackgroundDark)
                 ) {
                     Text("Buy Premium")
@@ -704,3 +717,4 @@ private fun SupportAppSection() {
         }
     }
 }
+

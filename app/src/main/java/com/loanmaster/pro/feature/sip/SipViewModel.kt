@@ -1,6 +1,7 @@
 package com.loanmaster.pro.feature.sip
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.loanmaster.pro.domain.calculator.SipCalculator
 import com.loanmaster.pro.data.local.entity.CalculationHistory
@@ -8,11 +9,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 
-class SipViewModel : ViewModel() {
+class SipViewModel(application: Application) : AndroidViewModel(application) {
+    private val premiumManager = com.loanmaster.pro.core.managers.PremiumManager(application.applicationContext)
+    
     private val _uiState = MutableStateFlow(SipUiState())
     val uiState: StateFlow<SipUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            premiumManager.isPremium.collect { isPremium ->
+                _uiState.update { it.copy(isPremiumUnlocked = isPremium) }
+            }
+        }
+    }
 
     private val calculator = SipCalculator()
 
@@ -49,7 +61,7 @@ class SipViewModel : ViewModel() {
     }
 
     fun unlockPremium() {
-        _uiState.update { it.copy(isPremiumUnlocked = true) }
+        premiumManager.unlockPermanent()
     }
 
     private fun updateState(update: (SipUiState) -> SipUiState) {
