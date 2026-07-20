@@ -28,7 +28,6 @@ jobs:
       run: chmod +x gradlew
 
     # 4. Google Play Environment Check: Validate Target SDK Requirement
-    # Google Play automatically rejects apps targeting old SDK versions (Minimum target is usually updated yearly)
     - name: Verify Play Store SDK Compliance
       run: |
         TARGET_SDK=$(grep -oP 'targetSdk\s*=\s*\K[0-9]+' app/build.gradle* || echo "0")
@@ -39,7 +38,6 @@ jobs:
         fi
 
     # 5. Google Play Environment Check: Block Manifest Debug Flags
-    # The Play Store console instantly rejects pre-production/production APKs with hardcoded debuggable flags
     - name: Block Hardcoded Debug Flags
       run: |
         if grep -q 'android:debuggable="true"' app/src/main/AndroidManifest.xml 2>/dev/null; then
@@ -48,25 +46,22 @@ jobs:
         fi
 
     # 6. Static Application Security Testing (SAST)
-    # Replicates Play Store App Security Improvement scans for hardcoded keys, vulnerable algorithms, and leak hazards
+    # CORRECTED ACTION PATH: Pointing to the official MobSF repo
     - name: Run MobSF Static Security Scan
-      uses: MobSF/mobsfscan-github-action@v1
+      uses: MobSF/mobsfscan@v1
       with:
         args: '. --severity ERROR'
 
     # 7. Compile Release Bundle (AAB) & Run Contextual Linting
-    # We pass properties to override and ignore standard style Linting warnings (-x lint),
-    # while forcing compilation of a Play Store compliant release bundle asset.
     - name: Build Release App Bundle (AAB)
       run: ./gradlew bundleRelease -Pandroid.experimental.lint.cms=false -Dlint.baselines=lint-baseline.xml
       env:
-        # Prevents standard formatting/translation lint errors from aborting the runner execution
         GRADLE_OPTS: "-Dorg.gradle.project.android.bundle.enableUncompressedNativeLibs=false"
 
     # 8. Archive the production-ready artifact
-    # If the build and security scans pass, your bundle is ready to be uploaded to Google Play
+    # CORRECTED ACTION PATH: Pointing to standard upload-artifact
     - name: Upload Bundle to Artifacts
-      uses: actions/artifacts-upload@v4
+      uses: actions/upload-artifact@v4
       with:
         name: play-store-release-bundle
         path: app/build/outputs/bundle/release/*.aab
