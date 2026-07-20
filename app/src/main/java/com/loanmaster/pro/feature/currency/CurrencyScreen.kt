@@ -112,15 +112,10 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
     val allCurrencies = listOf(baseCurrency, targetCurrency) + uiState.rates.keys.toList()
     val distinctCurrencies = allCurrencies.distinct()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CurrBgColor)
-            .safeDrawingPadding()
-    ) {
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.background(CurrBgColor)) {
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(CurrBgColor).statusBarsPadding()) {
+                // FIX: Remove old offline banner, error handled in body
                 if (uiState.error != null && uiState.rates.isNotEmpty()) {
                     Row(
                         modifier = Modifier
@@ -163,11 +158,14 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
                     }
                 }
             }
+        },
+        containerColor = CurrBgColor
+    ) { innerPadding ->
         // FIX: Show full error card if rates are empty and error is present
         if (uiState.rates.isEmpty() && uiState.error != null) {
             Column(
                 modifier = Modifier
-                    
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .padding(LoanMasterTheme.spacing.screenPadding),
                 verticalArrangement = Arrangement.Center,
@@ -197,7 +195,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
         } else {
         LazyColumn(
             modifier = Modifier
-                
+                .padding(innerPadding)
                 .fillMaxSize(),
             contentPadding = PaddingValues(
                 horizontal = LoanMasterTheme.spacing.screenPadding,
@@ -312,8 +310,6 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
                 onCurrencySelected = { code -> viewModel.updateInputs(targetCurrency = code) }
             )
         }
-    }
-    }
     }
 }
 
@@ -722,5 +718,5 @@ fun CurrencySelectorSheet(
             }
         }
     }
-         }
+        }
 

@@ -37,8 +37,8 @@ import com.loanmaster.pro.domain.model.LoanProfile
 
 
 val formatCompact = { amount: Double ->
-    if (amount >= 10000000) "₹${String.format(java.util.Locale.US, "%.1f", amount / 10000000)}Cr"
-    else if (amount >= 100000) "₹${String.format(java.util.Locale.US, "%.1f", amount / 100000)}L"
-    else if (amount >= 1000) "₹${String.format(java.util.Locale.US, "%.0f", amount / 1000)}K"
+    if (amount >= 10000000) "₹${String.format("%.1f", amount / 10000000)}Cr"
+    else if (amount >= 100000) "₹${String.format("%.1f", amount / 100000)}L"
+    else if (amount >= 1000) "₹${String.format("%.0f", amount / 1000)}K"
     else formatMoney(amount)
 }

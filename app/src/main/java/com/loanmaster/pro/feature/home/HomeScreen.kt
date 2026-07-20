@@ -86,6 +86,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
     val isPremiumUnlocked by premiumStateManager.isPremium.collectAsStateWithLifecycle(initialValue = false)
     val searchQuery = uiState.searchQuery
     val isQuickToolsExpanded = uiState.isQuickToolsExpanded
+    val activeBottomNavItem = uiState.activeBottomNavItem
     
 
     if (showUnlockDialog) {
@@ -119,9 +120,9 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
                 horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.gridGutter)
             ) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true }, isPremiumUnlocked = isPremiumUnlocked)
+                    SearchAndPremiumRow(searchQuery, onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true })
                 }
-                if (searchQuery.isBlank() && !isPremiumUnlocked) {
+                if (searchQuery.isBlank()) {
                     item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                         HeroBanner(onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true })
                     }
@@ -251,7 +252,7 @@ fun AppTopBar(onNavigateToSettings: () -> Unit = {}) {
 }
 
 @Composable
-fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit, onPremiumClick: () -> Unit = {}, isPremiumUnlocked: Boolean = false) {
+fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Unit, onPremiumClick: () -> Unit = {}) {
     var isFocused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = if (isFocused) AccentBlue else CardStroke)
     val borderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = if (isFocused) 2.dp else 1.dp)
@@ -306,47 +307,26 @@ fun SearchAndPremiumRow(searchQuery: String, onSearchQueryChange: (String) -> Un
 
         val context = androidx.compose.ui.platform.LocalContext.current
         // Premium Button
-        if (isPremiumUnlocked) {
-            Row(
-                modifier = Modifier
-                    .heightIn(min = LoanMasterTheme.components.buttonHeight)
-                    .clip(RoundedCornerShape(LoanMasterTheme.components.cardRadius))
-                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706))))
-                    .padding(horizontal = LoanMasterTheme.spacing.md),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.WorkspacePremium,
-                    contentDescription = "Premium User",
-                    tint = Color.White,
-                    modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
-                )
-                Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                Text(text = "Premium User", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-        } else {
-            OutlinedButton(
-                onClick = onPremiumClick,
-                modifier = Modifier
-                    .heightIn(min = LoanMasterTheme.components.buttonHeight)
-                    .testTag("premium_button"),
-                shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = AccentYellow.copy(alpha = 0.1f),
-                    contentColor = AccentYellow
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow),
-                contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.WorkspacePremium,
-                    contentDescription = null,
-                    modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
-                )
-                Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
-                Text(text = "Premium", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
-            }
+        OutlinedButton(
+            onClick = onPremiumClick,
+            modifier = Modifier
+                .heightIn(min = LoanMasterTheme.components.buttonHeight)
+                .testTag("premium_button"),
+            shape = RoundedCornerShape(LoanMasterTheme.components.cardRadius),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = AccentYellow.copy(alpha = 0.1f),
+                contentColor = AccentYellow
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow),
+            contentPadding = PaddingValues(horizontal = LoanMasterTheme.spacing.md)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.WorkspacePremium,
+                contentDescription = null,
+                modifier = Modifier.size(LoanMasterTheme.components.iconSmall)
+            )
+            Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.xs))
+            Text(text = "Premium", style = LoanMasterTheme.typography.label, fontWeight = FontWeight.Bold)
         }
     }
 }

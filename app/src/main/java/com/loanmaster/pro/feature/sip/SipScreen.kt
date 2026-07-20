@@ -140,41 +140,41 @@ fun SipScreen(
     }
 
     val context = androidx.compose.ui.platform.LocalContext.current
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NavyBg)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { focusManager.clearFocus() }
-    ) {
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = if (isWide) LoanMasterTheme.spacing.xl else LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
-            ) {
-                SipTopBar(
-                    onNavigateBack = onNavigateBack,
-                    onExportClick = {
-                        ExportUtils.exportToPdf(
-                            context,
-                            "SIP Calculator Report",
-                            listOf(
-                                "Monthly Investment" to amountText,
-                                "Expected Return Rate" to "$returnRateText%",
-                                "Time Period" to "$yearsText Years",
-                                "Annual Step-Up" to "$stepUpText%",
-                                "" to "",
-                                "Total Invested" to com.loanmaster.pro.core.formatter.formatMoney(totalInvested),
-                                "Est. Returns" to com.loanmaster.pro.core.formatter.formatMoney(totalGain),
-                                "Total Value" to com.loanmaster.pro.core.formatter.formatMoney(maturityValue)
-                            )
+    Scaffold(
+        containerColor = NavyBg,
+        topBar = {
+            SipTopBar(
+                onNavigateBack = onNavigateBack,
+                onExportClick = {
+                    ExportUtils.exportToPdf(
+                        context,
+                        "SIP Calculator Report",
+                        listOf(
+                            "Monthly Investment" to amountText,
+                            "Expected Return Rate" to "$returnRateText%",
+                            "Time Period" to "$yearsText Years",
+                            "Annual Step-Up" to "$stepUpText%",
+                            "" to "",
+                            "Total Invested" to com.loanmaster.pro.core.formatter.formatMoney(totalInvested),
+                            "Est. Returns" to com.loanmaster.pro.core.formatter.formatMoney(totalGain),
+                            "Total Value" to com.loanmaster.pro.core.formatter.formatMoney(maturityValue)
                         )
-                    }
-                )
+                    )
+                }
+            )
+        },
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() }, indication = null
+        ) { focusManager.clearFocus() }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = if (isWide) LoanMasterTheme.spacing.xl else LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
+        ) {
             InputsSection(
                 uiState = uiState, 
                 updateInputs = { amount, rate, years, stepUp ->
@@ -226,14 +226,13 @@ fun SipScreen(
 
 
 
-        }
 @Composable
 private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(NavyBg)
-            
+            .statusBarsPadding()
             .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -298,7 +297,7 @@ private fun InputsSection(
 
 @Composable
 private fun CustomInput(label: String, value: String, onValueChange: (String) -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, prefix: String = "", suffix: String = "") {
-    var isFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
     
     val targetBorderColor = if (isFocused) AccentGreen else StrokeNavy
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = targetBorderColor, label = "borderColor")
@@ -424,10 +423,10 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
                 HeroStat("Total Invested", com.loanmaster.pro.core.formatter.formatMoney(invested), modifier = Modifier.weight(1f))
                 HeroStat("Total Returns", com.loanmaster.pro.core.formatter.formatMoney(gain), color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                 if (isWide) {
-                    HeroStat("Wealth Multiplier", "${String.format(java.util.Locale.US, "%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
+                    HeroStat("Wealth Multiplier", "${String.format("%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                     HeroStat("Avg. Return", "${ret.toInt()}%", modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                 } else {
-                    HeroStat("Multiplier", "${String.format(java.util.Locale.US, "%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(0.7f).padding(start = LoanMasterTheme.spacing.sm))
+                    HeroStat("Multiplier", "${String.format("%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(0.7f).padding(start = LoanMasterTheme.spacing.sm))
                 }
             }
         }
@@ -940,4 +939,4 @@ private fun EmptyStateUi() {
             lineHeight = LoanMasterTheme.typography.title.fontSize
         )
     }
- }
+}

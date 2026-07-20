@@ -32,7 +32,7 @@ fun LoanIntelligenceCard(
     onWatchAdClick: () -> Unit,
     onPremiumClick: () -> Unit
 ) {
-    var isExpanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth().animateContentSize()) {
         Row(
@@ -48,7 +48,7 @@ fun LoanIntelligenceCard(
             ) {
                 Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = Color(0xFF6C63FF))
             }
-            Spacer(modifier = Modifier.widthIn(min = 12.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
                     "Loan Intelligence",
@@ -86,7 +86,7 @@ fun LoanIntelligenceCard(
                     ) {
                         Row(modifier = Modifier.padding(LoanMasterTheme.spacing.md), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = AccentGreen, modifier = Modifier.size(32.dp))
-                            Spacer(modifier = Modifier.widthIn(min = 16.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text("Everything looks excellent!", color = AccentGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Text("You're already near the maximum loan eligibility.", color = TextPrimary.copy(alpha=0.8f), fontSize = 13.sp)
@@ -114,7 +114,7 @@ fun LoanIntelligenceCard(
                                         color = AccentBlue,
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Spacer(modifier = Modifier.widthIn(min = 4.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Icon(
                                         if (isExpanded) androidx.compose.material.icons.Icons.Rounded.KeyboardArrowUp else androidx.compose.material.icons.Icons.Rounded.KeyboardArrowDown,
                                         contentDescription = null,

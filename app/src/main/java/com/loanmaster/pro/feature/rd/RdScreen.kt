@@ -163,50 +163,54 @@ fun RdScreen(
 
 
 
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundDark).statusBarsPadding()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        tint = TextPrimary,
+                        modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable { onNavigateBack() }
+                    )
+                    Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("RD Calculator", color = TextPrimary, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
+                        Text("Plan your Recurring Deposit", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                    }
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "RD Calculator Report",
+                            listOf(
+                                "Monthly Deposit" to formatInr(calculatedMonthlyDeposit),
+                                "Interest Rate" to "$interestRatePaText%",
+                                "Time Period" to "$tenureYearsText Years",
+                                "" to "",
+                                "Total Invested" to formatInr(totalInvested),
+                                "Total Returns" to formatInr(totalReturns),
+                                "Maturity Value" to formatInr(maturityValue)
+                            )
+                        )
+                    })
+                }
+            }
+        },
+        containerColor = BackgroundDark
+    ) { innerPadding ->
         Box(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(BackgroundDark)
         ) {
             CalculatorScreenLayout(
                 widthSizeClass = sizeClass,
                 animationTriggerState = maturityValue,
-                headerSection = {
-                    Column(modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                contentDescription = "Back",
-                                tint = TextPrimary,
-                                modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable { onNavigateBack() }
-                            )
-                            Spacer(modifier = Modifier.widthIn(min = LoanMasterTheme.spacing.md))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("RD Calculator", color = TextPrimary, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold)
-                                Text("Plan your Recurring Deposit", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
-                            }
-                            val context = androidx.compose.ui.platform.LocalContext.current
-                            Icon(imageVector = Icons.Rounded.PictureAsPdf, contentDescription = "Export PDF", tint = TextPrimary, modifier = Modifier.size(LoanMasterTheme.spacing.lg).clickable {
-                                ExportUtils.exportToPdf(
-                                    context,
-                                    "RD Calculator Report",
-                                    listOf(
-                                        "Monthly Deposit" to formatInr(calculatedMonthlyDeposit),
-                                        "Interest Rate" to "$interestRatePaText%",
-                                        "Time Period" to "$tenureYearsText Years",
-                                        "" to "",
-                                        "Total Invested" to formatInr(totalInvested),
-                                        "Total Returns" to formatInr(totalReturns),
-                                        "Maturity Value" to formatInr(maturityValue)
-                                    )
-                                )
-                            })
-                        }
-                    }
-                },
+                headerSection = { },
                 inputControlsSection = {
                     Column(verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.screenPadding), modifier = Modifier.fillMaxWidth()) {
                         
@@ -678,7 +682,6 @@ fun RdScreen(
           }
         }
     )
-    }
     
     if (showUnlockDialog) {
         val dialogContext = androidx.compose.ui.platform.LocalContext.current
@@ -690,6 +693,8 @@ fun RdScreen(
             }
         )
     }
+  }
+ }
 }
 
 @Composable
@@ -749,5 +754,4 @@ fun RdActionButton(title: String, subtitle: String, icon: ImageVector, color: Co
             ScrollingTitleText(subtitle, color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
         }
     }
-
 }

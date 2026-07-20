@@ -39,8 +39,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.lazy.itemsIndexed
 
-
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HistoryScreen(
@@ -60,9 +58,9 @@ fun HistoryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val historyItems = uiState.historyList
     
-    var selectedFilter by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("All") }
-    var searchQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
-    var isSearchActive by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("All") }
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
     
     val selectedItems = remember { mutableStateListOf<Int>() }
     val isMultiSelectMode = selectedItems.isNotEmpty()
@@ -111,7 +109,7 @@ fun HistoryScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(BackgroundDark).statusBarsPadding()) {
+            Column(modifier = Modifier.background(BackgroundDark)) {
                 TopAppBar(
                     title = { 
                         if (isMultiSelectMode) {
@@ -200,17 +198,14 @@ fun HistoryScreen(
         if (groupedItems.isEmpty()) {
             EmptyHistoryIllustration(modifier = Modifier.fillMaxSize().padding(innerPadding))
         } else {
-            com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    horizontal = LoanMasterTheme.spacing.screenPadding,
+                    vertical = LoanMasterTheme.spacing.md
+                ),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
                 modifier = Modifier.fillMaxSize().padding(innerPadding)
             ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        horizontal = LoanMasterTheme.spacing.screenPadding,
-                        vertical = LoanMasterTheme.spacing.md
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.md),
-                    modifier = Modifier.fillMaxSize()
-                ) {
                 groupedItems.forEach { (groupName, items) ->
                     item {
                         Text(
@@ -246,7 +241,6 @@ fun HistoryScreen(
                 }
             }
         }
-        }
     }
 }
 
@@ -281,7 +275,7 @@ fun EmptyHistoryIllustration(modifier: Modifier = Modifier) {
                 fontSize = LoanMasterTheme.typography.title.fontSize,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.heightIn(min = 8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Your saved calculations will appear here.",
                 color = TextSecondary,
@@ -546,7 +540,7 @@ fun HistoryItemCard(
                         fontSize = LoanMasterTheme.typography.body.fontSize,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.heightIn(min = 4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = cardData.dateString,
                         color = TextSecondary,
@@ -615,4 +609,3 @@ fun ParamRow(label: String, value: String) {
         )
     }
 }
-

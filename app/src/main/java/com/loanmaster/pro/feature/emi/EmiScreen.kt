@@ -116,7 +116,7 @@ fun TenureInputField(
         modifier = modifier,
         trailingContent = {
             // Compact Toggle Button
-        Box(
+            Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))
                     .background(Color(0xFF2D7DFF).copy(alpha = 0.15f))
@@ -426,25 +426,35 @@ fun EmiScreen(
     val prinPct = uiState.principalPercentage
     val intPct = uiState.interestPercentage
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgColor)
-    ) {
-            CalculatorScreenLayout(
-                widthSizeClass = sizeClass,
-                animationTriggerState = uiState.monthlyEmi,
-                headerSection = { 
-                    Column(modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md)) {
+    Scaffold(
+        containerColor = bgColor,
+        topBar = {
+            @OptIn(ExperimentalMaterial3Api::class)
+            TopAppBar(
+                title = { 
+                    Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Calculate, contentDescription = null, tint = Color(0xFF2D7DFF), modifier = Modifier.size(24.dp))
                             Spacer(Modifier.widthIn(min = 8.dp))
                             Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
-                        Spacer(Modifier.heightIn(min = 4.dp))
                         Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 },
+                actions = {},
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
+            )
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            CalculatorScreenLayout(
+                widthSizeClass = sizeClass,
+                animationTriggerState = uiState.monthlyEmi,
+                headerSection = { },
                 inputControlsSection = {
                     // INPUT SECTION
                     Card(
@@ -526,7 +536,7 @@ fun EmiScreen(
                         shape = RoundedCornerShape(LoanMasterTheme.components.iconSmall),
                         border = BorderStroke(1.dp, borderColor)
                     ) {
-                    Box(modifier = Modifier.background(Brush.linearGradient(listOf(inputBg, Color(0xFF0A2150))))) {
+                        Box(modifier = Modifier.background(Brush.linearGradient(listOf(inputBg, Color(0xFF0A2150))))) {
                             Column(modifier = Modifier.padding(if (isExpanded) LoanMasterTheme.spacing.xl else LoanMasterTheme.components.iconSmall)) {
                                 // EMI Header
                                 Row(
@@ -560,10 +570,10 @@ fun EmiScreen(
                                     val intPctFloat = if (intPct.isNaN() || intPct.isInfinite()) 0f else intPct.toFloat()
                                     Row(modifier = Modifier.fillMaxWidth().heightIn(min = LoanMasterTheme.spacing.md).clip(RoundedCornerShape(LoanMasterTheme.spacing.sm))) {
                                         if (prinPctFloat > 0) {
-                                        Box(modifier = Modifier.weight(prinPctFloat).fillMaxHeight().background(blueAccent))
+                                            Box(modifier = Modifier.weight(prinPctFloat).fillMaxHeight().background(blueAccent))
                                         }
                                         if (intPctFloat > 0) {
-                                        Box(modifier = Modifier.weight(intPctFloat).fillMaxHeight().background(goldAccent))
+                                            Box(modifier = Modifier.weight(intPctFloat).fillMaxHeight().background(goldAccent))
                                         }
                                     }
                                     Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md))
@@ -573,12 +583,12 @@ fun EmiScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                        Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(blueAccent, CircleShape))
+                                            Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(blueAccent, CircleShape))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                             AutoResizedText(text = "Principal ${prinPct.toInt()}%", color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-                                        Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(goldAccent, CircleShape))
+                                            Box(Modifier.size(LoanMasterTheme.spacing.gridGutter).background(goldAccent, CircleShape))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                             AutoResizedText(text = "Interest ${intPct.toInt()}%", color = primaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
@@ -795,7 +805,7 @@ fun EmiScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(androidx.compose.foundation.shape.CircleShape).background(blueAccent))
+                                            Box(modifier = Modifier.size(LoanMasterTheme.spacing.sm).clip(androidx.compose.foundation.shape.CircleShape).background(blueAccent))
                                             Spacer(Modifier.widthIn(min = LoanMasterTheme.spacing.sm))
                                             Text(pair.first, color = secondaryText, fontSize = LoanMasterTheme.typography.body.fontSize)
                                         }
@@ -858,6 +868,7 @@ fun EmiScreen(
             } // closes resultsSection lambda
             ) // closes ResponsiveScreenWrapper
         } // closes Box
+    } // closes Scaffold
 
     // FULL SCHEDULE DIALOG
     if (showFullSchedule && uiState.hasValidInput) {

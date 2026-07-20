@@ -69,15 +69,14 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
     var showEmptyError by rememberSaveable { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgColor)
-            .safeDrawingPadding()
-    ) {
+    Scaffold(
+        containerColor = bgColor
+    ) { paddingValues ->
         ResponsiveScreenWrapper(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(bgColor)
+                .padding(paddingValues),
             showDiagnostics = false
         ) {
             LazyColumn(
@@ -96,7 +95,7 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Rounded.Calculate, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 12.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Loan Eligibility",
                             color = textColor,

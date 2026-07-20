@@ -142,25 +142,11 @@ fun GstScreen(
     }
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { focusManager.clearFocus() }
-    ) {
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(LoanMasterTheme.spacing.md),
-                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
-            ) {
-                // Top Bar content
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundDark).statusBarsPadding()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = LoanMasterTheme.spacing.md),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onNavigateBack) {
@@ -199,7 +185,26 @@ fun GstScreen(
                         Icon(Icons.Rounded.Refresh, contentDescription = "Reset", tint = TextSecondary)
                     }
                 }
-
+            }
+        },
+        containerColor = BackgroundDark,
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+        ) { focusManager.clearFocus() }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(LoanMasterTheme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
+            ) {
                 // Segmented Switch for Mode
                 GstModeSelector(mode = mode, onModeSelected = { viewModel.updateInputs(mode = it) })
 

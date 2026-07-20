@@ -66,7 +66,7 @@ fun LoanNotEligibleCard(
                                     Column(modifier = Modifier.fillMaxWidth().padding(LoanMasterTheme.spacing.lg)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Rounded.Warning, contentDescription = null, tint = dangerRed, modifier = Modifier.size(24.dp))
-                                            Spacer(modifier = Modifier.widthIn(min = 12.dp))
+                                            Spacer(modifier = Modifier.width(12.dp))
                                             Text("Loan Not Eligible", color = textColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                         }
                                         Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
@@ -100,11 +100,11 @@ fun LoanNotEligibleCard(
                                         }
                                         
                                         Text("Reasons", color = textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                        Spacer(modifier = Modifier.heightIn(min = 8.dp))
+                                        Spacer(modifier = Modifier.height(8.dp))
                                         reasons.forEach { rsn ->
                                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
                                                 Icon(Icons.Rounded.Circle, contentDescription = null, tint = dangerRed, modifier = Modifier.size(6.dp))
-                                                Spacer(modifier = Modifier.widthIn(min = 8.dp))
+                                                Spacer(modifier = Modifier.width(8.dp))
                                                 Text(rsn, color = textColor, fontSize = 14.sp)
                                             }
                                         }
@@ -112,11 +112,11 @@ fun LoanNotEligibleCard(
                                         if (dynamicSuggestions.isNotEmpty()) {
                                             Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.lg))
                                             Text("Suggestions", color = textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                            Spacer(modifier = Modifier.heightIn(min = 8.dp))
+                                            Spacer(modifier = Modifier.height(8.dp))
                                             dynamicSuggestions.forEach { sug ->
                                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
                                                     Icon(Icons.Rounded.Check, contentDescription = null, tint = neonGreen, modifier = Modifier.size(16.dp))
-                                                    Spacer(modifier = Modifier.widthIn(min = 8.dp))
+                                                    Spacer(modifier = Modifier.width(8.dp))
                                                     Text(sug, color = textColor, fontSize = 14.sp)
                                                 }
                                             }
@@ -132,7 +132,7 @@ fun LoanNotEligibleCard(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .heightIn(min = 64.dp)
+                                                .height(64.dp)
                                                 .graphicsLayer { scaleX = modBtnScale; scaleY = modBtnScale }
                                                 .shadow(btnElevation, RoundedCornerShape(24.dp), spotColor = brightBlue)
                                                 .clip(RoundedCornerShape(24.dp))

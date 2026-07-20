@@ -68,26 +68,26 @@ fun SummaryCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(getLoanTypeIcon(selectedLoanProfile), contentDescription = null, tint = brightBlue, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 4.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(selectedLoanProfile, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         Text(" • ", color = textSecondary)
                         Icon(Icons.Rounded.Event, contentDescription = null, tint = textSecondary, modifier = Modifier.size(12.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 2.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
                         Text("$tenureYears Yrs", color = textSecondary, fontSize = 12.sp)
                         Text(" • ", color = textSecondary)
                         Icon(Icons.Rounded.Percent, contentDescription = null, tint = textSecondary, modifier = Modifier.size(12.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 2.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
                         Text("$interestRate%", color = textSecondary, fontSize = 12.sp)
                     }
                     Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 4.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("Income: ", color = textSecondary, fontSize = 12.sp)
                         Text(formatMoney(totalIncome), color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.widthIn(min = 16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Icon(Icons.Rounded.CreditCard, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 4.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("EMI: ", color = textSecondary, fontSize = 12.sp)
                         Text(formatMoney(totalExistingEmi), color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }

@@ -43,7 +43,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -177,7 +176,7 @@ fun PremiumInputField(
     isNumeric: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var showInfoDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
     val colors = androidx.compose.material3.MaterialTheme.colorScheme
 
     if (showInfoDialog && infoText != null) {
@@ -210,7 +209,7 @@ fun PremiumInputField(
         }
     }
 
-    var isFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
 
     val hasError = finalErrorMessage != null
     val targetStrokeColor = if (hasError) colors.error else if (isFocused) colors.primary else colors.outlineVariant
@@ -342,7 +341,7 @@ fun CalculatorScreenLayout(
     }
 
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         androidx.compose.foundation.layout.Column(

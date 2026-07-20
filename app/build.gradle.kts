@@ -18,7 +18,7 @@ android {
     applicationId = "com.loanmaster.pro"
     minSdk = 26
     // FIX: targetSdk from 36 to 35
-        targetSdk = 36
+        targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 
@@ -111,11 +111,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.test.manifest)
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
-}
-
-android {
-    lint {
-        abortOnError = false
-        checkReleaseBuilds = false
-    }
 }

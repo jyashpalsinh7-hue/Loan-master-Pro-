@@ -105,14 +105,21 @@ fun LoanSummaryScreen(
     val accentGreen = Color(0xFF22C55E)
     val accentBlue = Color(0xFF3B82F6)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgDark)
-            .safeDrawingPadding()
-    ) {
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
+        containerColor = bgDark,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddLoanDialog = true },
+                containerColor = accentYellow,
+                contentColor = bgDark,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = "Add")
+            }
+        }
+        ) { padding ->
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 modifier = Modifier
                     .widthIn(max = 840.dp)
@@ -286,20 +293,7 @@ fun LoanSummaryScreen(
                 }
             }
         }        }
-        
-        FloatingActionButton(
-            onClick = { showAddLoanDialog = true },
-            containerColor = accentYellow,
-            contentColor = bgDark,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(LoanMasterTheme.spacing.lg)
-        ) {
-            Icon(Icons.Rounded.Add, contentDescription = "Add")
-        }
-        } // closes ResponsiveScreenWrapper
-    } // closes Box
+    }
 
     if (showAddLoanDialog) {
         AddLoanDialog(
@@ -311,7 +305,6 @@ fun LoanSummaryScreen(
         )
     }
 }
-
 
 @Composable
 fun RowScope.StatItem(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -660,5 +653,4 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
             }
         }
     }
- }
-
+}

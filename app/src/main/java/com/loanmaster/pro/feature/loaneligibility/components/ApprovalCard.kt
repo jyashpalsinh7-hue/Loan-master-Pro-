@@ -76,14 +76,14 @@ fun ApprovalCard(
                     Text("${(animatedApproval * 100).toInt()}%", color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(modifier = Modifier.widthIn(min = 20.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             
             // Right: Details (Perfectly aligned)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.DataUsage, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("FOIR", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                     val foirColor = if (currentFoir < 0.4) neonGreen else if (currentFoir < 0.6) warningYellow else dangerRed
@@ -92,7 +92,7 @@ fun ApprovalCard(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Insights, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("Confidence", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     Text(conf, color = stateColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
@@ -100,7 +100,7 @@ fun ApprovalCard(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Grade, contentDescription = null, tint = textSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.widthIn(min = 6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("Credit Grade", color = textSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     Text(gradeRaw, color = gradeColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)

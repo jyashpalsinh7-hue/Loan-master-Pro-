@@ -63,7 +63,38 @@ import java.util.Locale
 
 
 
+class LoanInputState(
+    initialAmount: String = "",
+    initialInterest: String = "",
+    initialYears: String = "",
+    initialMonths: String = ""
+) {
+    var amount by mutableStateOf(initialAmount)
+    var interest by mutableStateOf(initialInterest)
+    var years by mutableStateOf(initialYears)
+    var months by mutableStateOf(initialMonths)
+    
+    fun toLoanOffer(id: String, bankName: String): LoanOffer {
+        return LoanOffer(
+            id = id,
+            bankName = bankName,
+            interestRate = interest.toDoubleOrNull() ?: 0.0,
+            tenureYears = years.toIntOrNull() ?: 0,
+            tenureMonths = months.toIntOrNull() ?: 0,
+            loanAmount = amount.toDoubleOrNull() ?: 0.0,
+            processingFee = 0.0,
+            prepaymentCharges = 0.0,
 
+        )
+    }
+    
+    fun clear() {
+        amount = ""
+        interest = ""
+        years = ""
+        months = ""
+    }
+}
 
 @Composable
 fun SideBySideLoanInputs(
@@ -189,7 +220,7 @@ fun LoanInputColumn(
         Text("Tenure", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
         Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.sm))
         Row(horizontalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.sm)) {
-            var yearsFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+            var yearsFocused by remember { mutableStateOf(false) }
             val yearsBorderColor by androidx.compose.animation.animateColorAsState(targetValue = if (yearsFocused) AccentBlue else CardStroke)
             val yearsBorderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = if (yearsFocused) 2.dp else 1.dp)
 
@@ -216,7 +247,7 @@ fun LoanInputColumn(
                 }
             }
 
-            var monthsFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+            var monthsFocused by remember { mutableStateOf(false) }
             val monthsBorderColor by androidx.compose.animation.animateColorAsState(targetValue = if (monthsFocused) AccentBlue else CardStroke)
             val monthsBorderWidth by androidx.compose.animation.core.animateDpAsState(targetValue = if (monthsFocused) 2.dp else 1.dp)
 
@@ -272,38 +303,38 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
     )
     val hasValidInput = uiState.hasValidInput
 
-    var showUnlockDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
     val premiumManagerContext = androidx.compose.ui.platform.LocalContext.current
     val premiumManager = remember { com.loanmaster.pro.core.managers.PremiumManager(premiumManagerContext.applicationContext) }
     val isPremiumUnlocked by premiumManager.isPremium.collectAsStateWithLifecycle()
-    var selectedPremiumTool by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedPremiumTool by remember { mutableStateOf<String?>(null) }
     val bestLoan = processedLoans.find { it.isBest }
 
     Scaffold(
         containerColor = bgColor,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(bgColor)
-                    .statusBarsPadding()
-                    .padding(horizontal = LoanMasterTheme.spacing.sm, vertical = LoanMasterTheme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = textColor)
-                }
-                Column(modifier = Modifier.weight(1f).padding(horizontal = LoanMasterTheme.spacing.xs)) {
-                    Text("Compare Loans", color = textColor, fontWeight = FontWeight.Bold, fontSize = LoanMasterTheme.typography.title.fontSize)
-                    Text("Compare up to 3 loan options side by side", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
-                }
-                IconButton(onClick = { }) {
-                    Icon(Icons.Rounded.Info, contentDescription = "Info", tint = textColor)
-                }
-            }
+            TopAppBar(
+                title = { 
+                    Column {
+                        Text("Compare Loans", color = textColor, fontWeight = FontWeight.Bold)
+                        Text("Compare up to 3 loan options side by side", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = textColor)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Rounded.Info, contentDescription = "Info", tint = textColor)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
+            )
         }
     ) { padding ->
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
+        Box(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
@@ -461,7 +492,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text("Stated: ${loan.interestRate}%", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
-                                        Text("True APR: ${String.format(java.util.Locale.US, "%.2f", apr)}%", color = AccentYellow, fontWeight = FontWeight.Bold)
+                                        Text("True APR: ${String.format("%.2f", apr)}%", color = AccentYellow, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -557,8 +588,8 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                         if (lowestInterestBank != null && processedLoans.size > 1) {
                             val otherBank = processedLoans.firstOrNull { it.id != lowestInterestBank.id && it.interestRate > lowestInterestBank.interestRate }
                             if (otherBank != null) {
-                                val rateDiff = String.format(java.util.Locale.US, "%.2f", otherBank.interestRate - lowestInterestBank.interestRate)
-                                scripts.add(Pair("Match ${lowestInterestBank.bankName}'s Lower Rate", "\"I prefer banking with ${otherBank.bankName}, but ${lowestInterestBank.bankName} has pre-approved me at ${String.format(java.util.Locale.US, "%.2f", lowestInterestBank.interestRate)}% (which is $rateDiff% lower). If you can match their rate, I will sign the agreement today.\""))
+                                val rateDiff = String.format("%.2f", otherBank.interestRate - lowestInterestBank.interestRate)
+                                scripts.add(Pair("Match ${lowestInterestBank.bankName}'s Lower Rate", "\"I prefer banking with ${otherBank.bankName}, but ${lowestInterestBank.bankName} has pre-approved me at ${String.format("%.2f", lowestInterestBank.interestRate)}% (which is $rateDiff% lower). If you can match their rate, I will sign the agreement today.\""))
                             }
                         }
                         
@@ -601,13 +632,13 @@ fun LoanEditBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
-    var bankName by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(loan.bankName) }
-    var loanAmount by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(if (loan.loanAmount <= 0.0) "" else loan.loanAmount.toString().replace(".0", "")) }
-    var interestRate by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(if (loan.interestRate <= 0.0) "" else loan.interestRate.toString()) }
-    var tenure by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(if (loan.tenureYears <= 0) "" else loan.tenureYears.toString()) }
-    var processingFee by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(if (loan.processingFee <= 0.0) "" else loan.processingFee.toString().replace(".0", "")) }
+    var bankName by remember { mutableStateOf(loan.bankName) }
+    var loanAmount by remember { mutableStateOf(if (loan.loanAmount <= 0.0) "" else loan.loanAmount.toString().replace(".0", "")) }
+    var interestRate by remember { mutableStateOf(if (loan.interestRate <= 0.0) "" else loan.interestRate.toString()) }
+    var tenure by remember { mutableStateOf(if (loan.tenureYears <= 0) "" else loan.tenureYears.toString()) }
+    var processingFee by remember { mutableStateOf(if (loan.processingFee <= 0.0) "" else loan.processingFee.toString().replace(".0", "")) }
 
-    var errorMessage by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

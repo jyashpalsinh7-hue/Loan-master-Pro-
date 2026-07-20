@@ -158,23 +158,11 @@ fun PrepaymentScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgColor)
-    ) {
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = LoanMasterTheme.spacing.screenPadding),
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
-        ) {
-            item {
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(bgColor).statusBarsPadding()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.md),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -193,6 +181,16 @@ fun PrepaymentScreen(
                     )
                 }
             }
+        },
+        containerColor = bgColor
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = LoanMasterTheme.spacing.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
+        ) {
             item { Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm)) }
 
             // Hero Card: Interest Saved
@@ -430,8 +428,6 @@ fun PrepaymentScreen(
         )
     }
 }
-    }
-
 
 @Composable
 fun PrepaymentHeroCard(interestSaved: Double, tenureReducedMonths: Double, emiReduced: Double, strategy: String, accentColor: Color, surfaceColor: Color) {
@@ -511,7 +507,7 @@ fun ComparisonCard(modifier: Modifier, title: String, totalInterest: Double, col
 @Composable
 private fun PrepaymentInputField(label: String, symbol: String, value: String, onValueChange: (String) -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
-    var isFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
     
     val targetBorderColor = if (isFocused) AccentBlue else CardStroke
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = targetBorderColor, label = "borderColor")
@@ -652,7 +648,7 @@ fun PrepaymentChartCard(
 @Composable
 fun AmortizationBottomSheet(standardSchedule: List<com.loanmaster.pro.domain.calculator.PrepaymentAmortizationRow>, prepaySchedule: List<com.loanmaster.pro.domain.calculator.PrepaymentAmortizationRow>, isUnlocked: Boolean = false, onUnlockClick: () -> Unit = {}, onDismiss: () -> Unit
 ) {
-    var isStandard by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(true) }
+    var isStandard by remember { mutableStateOf(true) }
     val schedule = if (isStandard) standardSchedule else prepaySchedule
 
     ModalBottomSheet(
@@ -778,4 +774,3 @@ fun AmortizationBottomSheet(standardSchedule: List<com.loanmaster.pro.domain.cal
         }
     }
 }
-
