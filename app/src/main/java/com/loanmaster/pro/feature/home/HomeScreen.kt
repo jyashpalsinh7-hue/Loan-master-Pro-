@@ -110,7 +110,7 @@ fun HomeScreen(onNavigateToEmi: () -> Unit, onNavigateToCompare: () -> Unit, onN
             val columns = LoanMasterTheme.grids.calculatorColumns
 
             androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(minSize = 160.dp),
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(columns),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = LoanMasterTheme.spacing.screenPadding, vertical = LoanMasterTheme.spacing.sm)
