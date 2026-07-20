@@ -193,7 +193,7 @@ fun GstScreen(
             indication = null
         ) { focusManager.clearFocus() }
     ) { paddingValues ->
-        Box(
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()

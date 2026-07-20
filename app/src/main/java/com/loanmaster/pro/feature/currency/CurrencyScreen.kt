@@ -161,6 +161,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
         },
         containerColor = CurrBgColor
     ) { innerPadding ->
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
         // FIX: Show full error card if rates are empty and error is present
         if (uiState.rates.isEmpty() && uiState.error != null) {
             Column(
@@ -313,6 +314,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
     }
 }
 
+        }
 @Composable
 fun PremiumConversionCard(
     baseAmount: String,
@@ -718,5 +720,4 @@ fun CurrencySelectorSheet(
             }
         }
     }
-        }
-
+         }

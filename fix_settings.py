@@ -1,34 +1,39 @@
-import re
+import sys
 
-with open("app/src/main/java/com/loanmaster/pro/feature/settings/SettingsScreen.kt", "r") as f:
+filename = 'app/src/main/java/com/loanmaster/pro/feature/settings/SettingsScreen.kt'
+with open(filename, 'r') as f:
     content = f.read()
 
-content = content.replace(
-    'val language by viewModel.language.collectAsStateWithLifecycle()',
-    'var showUnlockDialog by rememberSaveable { mutableStateOf(false) }\n    val language by viewModel.language.collectAsStateWithLifecycle()'
-)
+target = """    Scaffold(
+        topBar = { SettingsTopBar(onNavigateBack) },
+        containerColor = BackgroundDark
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
+        ) {"""
 
-content = content.replace(
-    'android.widget.Toast.makeText(context, "Premium coming soon!", android.widget.Toast.LENGTH_SHORT).show()',
-    'showUnlockDialog = true'
-)
+replacement = """    Scaffold(
+        topBar = { SettingsTopBar(onNavigateBack) },
+        containerColor = BackgroundDark
+    ) { innerPadding ->
+        ResponsiveScreenWrapper(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
+            ) {"""
 
-# Add the dialog at the end of the Scaffold
-dialog_code = """
-        if (showUnlockDialog) {
-            val context = androidx.compose.ui.platform.LocalContext.current
-            com.loanmaster.pro.core.ui.PremiumUnlockDialog(
-                onDismiss = { showUnlockDialog = false },
-                onUnlockSuccessful = {
-                    com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
-                }
-            )
-        }
-    }
-}
-"""
+content = content.replace(target, replacement)
+content = content.replace("            item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }\n        }\n        if (showUnlockDialog)", "            item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }\n            }\n        }\n        if (showUnlockDialog)")
 
-content = re.sub(r'    \}\n\}$', dialog_code, content)
-
-with open("app/src/main/java/com/loanmaster/pro/feature/settings/SettingsScreen.kt", "w") as f:
+with open(filename, 'w') as f:
     f.write(content)
+print("Done")

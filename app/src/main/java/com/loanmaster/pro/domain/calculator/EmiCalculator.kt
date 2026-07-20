@@ -285,7 +285,7 @@ fun generateSmartAlerts(loanType: String, loanAmount: Double, interestRate: Doub
         else -> 0.5
     }
     if (interestBurdenRatio > criticalRatio) list.add(SmartAlert(AlertType.CRITICAL, "Interest burden is critically high for this loan type."))
-    if (totalInterest > 1_000_000 && loanType != "Home Loan" && loanType != "Business Loan") list.add(SmartAlert(AlertType.CRITICAL, "Total interest exceeds ${com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol}10 lakh."))
+    if (totalInterest > 1_000_000 && loanType != "Home Loan" && loanType != "Business Loan") list.add(SmartAlert(AlertType.CRITICAL, "Total interest exceeds 10 lakh."))
 
     // Warning based on Loan Type
     when (loanType) {
@@ -322,7 +322,7 @@ fun generateSmartAlerts(loanType: String, loanAmount: Double, interestRate: Doub
         list.add(SmartAlert(AlertType.WARNING, "Interest burden is high for this type of loan."))
     }
     if (tenureYears > 15 && totalInterest > loanAmount * 0.5 && loanType != "Home Loan") list.add(SmartAlert(AlertType.WARNING, "Long tenure is increasing total borrowing cost."))
-    if (totalInterest > 500_000 && totalInterest <= 1_000_000 && loanType != "Home Loan" && loanType != "Business Loan") list.add(SmartAlert(AlertType.WARNING, "Interest exceeds ${com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol}5 lakh."))
+    if (totalInterest > 500_000 && totalInterest <= 1_000_000 && loanType != "Home Loan" && loanType != "Business Loan") list.add(SmartAlert(AlertType.WARNING, "Interest exceeds 5 lakh."))
 
     // Positive
     val positiveRatio = when (loanType) {
@@ -371,7 +371,7 @@ fun generateSmartOpportunities(loanAmount: Double, interestRate: Double, tenureY
             val monthsSaved = totalMonths - month1k
             if (monthsSaved > 0) {
                 list.add(SmartOpportunity(
-                    "Increase EMI by ${com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol}1,000",
+                    "Increase EMI by 1,000",
                     "Potential Saving: ${formatMoney(totalInterest - int1k)}",
                     "Potential Closure: $monthsSaved Months Earlier"
                 ))
@@ -383,7 +383,7 @@ fun generateSmartOpportunities(loanAmount: Double, interestRate: Double, tenureY
             val monthsSaved = totalMonths - month2k
             if (monthsSaved > 0) {
                 list.add(SmartOpportunity(
-                    "Increase EMI by ${com.loanmaster.pro.core.formatter.CurrencyHelper.currencySymbol}2,000",
+                    "Increase EMI by 2,000",
                     "Potential Saving: ${formatMoney(totalInterest - int2k)}",
                     "Potential Closure: $monthsSaved Months Earlier"
                 ))

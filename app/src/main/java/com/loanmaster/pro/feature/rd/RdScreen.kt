@@ -202,7 +202,7 @@ fun RdScreen(
         },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        Box(
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()

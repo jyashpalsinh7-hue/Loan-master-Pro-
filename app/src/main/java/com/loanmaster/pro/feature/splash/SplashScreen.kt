@@ -406,8 +406,8 @@ fun SplashScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.alpha(subtitleAlpha.value)
             ) {
-                Box(modifier = Modifier.width(66.dp).height(1.dp).background(premiumGold.copy(alpha = 0.5f)))
-                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.widthIn(min = 66.dp).heightIn(min = 1.dp).background(premiumGold.copy(alpha = 0.5f)))
+                Spacer(modifier = Modifier.widthIn(min = 8.dp))
                 Box(
                     modifier = Modifier
                         .size(6.dp)
@@ -426,8 +426,8 @@ fun SplashScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(modifier = Modifier.width(66.dp).height(1.dp).background(premiumGold.copy(alpha = 0.5f)))
+                Spacer(modifier = Modifier.widthIn(min = 8.dp))
+                Box(modifier = Modifier.widthIn(min = 66.dp).heightIn(min = 1.dp).background(premiumGold.copy(alpha = 0.5f)))
             }
             
             Spacer(modifier = Modifier.height(LoanMasterTheme.spacing.md))

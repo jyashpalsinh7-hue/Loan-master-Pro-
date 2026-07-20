@@ -40,7 +40,7 @@ fun IntelligenceSuggestionCard(suggestion: IntelligenceSuggestion) {
                 ) {
                     Icon(imageVector = suggestion.icon, contentDescription = null, tint = suggestion.color, modifier = Modifier.size(16.dp))
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.widthIn(min = 12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(text = suggestion.title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -50,7 +50,7 @@ fun IntelligenceSuggestionCard(suggestion: IntelligenceSuggestion) {
                             Text(suggestion.estimatedImpact, color = suggestion.color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.heightIn(min = 2.dp))
                     Text(text = suggestion.description, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 }
             }
@@ -87,9 +87,9 @@ fun BadgeLabel(label: String, value: String, icon: androidx.compose.ui.graphics.
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(12.dp))
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.widthIn(min = 4.dp))
         Text(label, color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.widthIn(min = 4.dp))
         Text(value, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold)
     }
 }

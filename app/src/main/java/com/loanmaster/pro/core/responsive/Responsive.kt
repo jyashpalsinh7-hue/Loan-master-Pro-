@@ -76,10 +76,12 @@ fun ResponsiveScreenWrapper(
     showDiagnostics: Boolean = false,
     content: @Composable BoxWithConstraintsScope.() -> Unit
 ) {
-    BoxWithConstraints(modifier = modifier) {
-        content()
-        if (showDiagnostics) {
-            GridDiagnosticOverlay()
+    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
+        BoxWithConstraints(modifier = modifier.widthIn(max = 840.dp)) {
+            content()
+            if (showDiagnostics) {
+                GridDiagnosticOverlay()
+            }
         }
     }
 }
@@ -162,17 +164,6 @@ fun AdaptiveRowCol3(
     BoxWithConstraints(modifier = modifier) {
         val minWidthForThreeColumns = 560.dp
         val effectiveColumns = if (maxWidth >= minWidthForThreeColumns) 3 else columns
-
-        // TEMPORARY DIAGNOSTIC — remove after reading the value on-device
-        androidx.compose.material3.Text(
-            text = "DEBUG3 maxWidth=$maxWidth cols=$columns effCols=$effectiveColumns",
-            color = androidx.compose.ui.graphics.Color.Red,
-            fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
-            modifier = Modifier
-                .align(androidx.compose.ui.Alignment.TopStart)
-                .background(androidx.compose.ui.graphics.Color.Yellow)
-                .zIndex(10f)
-        )
 
         if (effectiveColumns < 3) {
             Column(

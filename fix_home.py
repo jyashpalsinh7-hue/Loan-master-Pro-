@@ -1,34 +1,23 @@
-import re
+import sys
 
-with open("app/src/main/java/com/loanmaster/pro/feature/home/HomeScreen.kt", "r") as f:
+filename = 'app/src/main/java/com/loanmaster/pro/feature/home/HomeScreen.kt'
+with open(filename, 'r') as f:
     content = f.read()
 
-content = content.replace(
-    'val searchQuery = uiState.searchQuery',
-    'var showUnlockDialog by rememberSaveable { mutableStateOf(false) }\n    val searchQuery = uiState.searchQuery'
-)
+target = """            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(columns),
+                modifier = Modifier"""
 
-content = content.replace(
-    'android.widget.Toast.makeText(context, "Premium Features Coming Soon!", android.widget.Toast.LENGTH_SHORT).show()',
-    'showUnlockDialog = true'
-)
+replacement = """            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(minSize = 160.dp),
+                modifier = Modifier"""
 
-# Add the dialog at the end of the Scaffold
-dialog_code = """
-        if (showUnlockDialog) {
-            val context = androidx.compose.ui.platform.LocalContext.current
-            com.loanmaster.pro.core.ui.PremiumUnlockDialog(
-                onDismiss = { showUnlockDialog = false },
-                onUnlockSuccessful = {
-                    com.loanmaster.pro.core.managers.PremiumManager(context).unlockPermanent()
-                }
-            )
-        }
-    }
-}
-"""
+content = content.replace(target, replacement)
 
-content = re.sub(r'    \}\n\}$', dialog_code, content)
+# Fix dp values
+content = content.replace("width(300.dp)", "widthIn(max=300.dp)")
+content = content.replace("height(500.dp)", "heightIn(max=500.dp)")
+content = content.replace(".offset(x = LoanMasterTheme.spacing.xl, y = (-40).dp)", ".offset(x = LoanMasterTheme.spacing.xl, y = (-40).dp)") # this is probably fine
 
-with open("app/src/main/java/com/loanmaster/pro/feature/home/HomeScreen.kt", "w") as f:
+with open(filename, 'w') as f:
     f.write(content)

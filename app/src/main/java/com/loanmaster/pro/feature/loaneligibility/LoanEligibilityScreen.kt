@@ -95,7 +95,7 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Rounded.Calculate, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.widthIn(min = 12.dp))
                         Text(
                             text = "Loan Eligibility",
                             color = textColor,

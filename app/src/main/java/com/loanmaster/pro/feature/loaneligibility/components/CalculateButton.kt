@@ -57,7 +57,7 @@ fun CalculateButton(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .heightIn(min = 56.dp)
                             .graphicsLayer { scaleX = btnScale; scaleY = btnScale }
                             .shadow(elevation, RoundedCornerShape(24.dp), spotColor = brightBlue)
                             .clip(RoundedCornerShape(24.dp))
@@ -72,7 +72,7 @@ onCalculateClick()
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(if (isInputExpanded) Icons.Rounded.Calculate else Icons.Rounded.Update, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.widthIn(min = 8.dp))
                                 Text(
                                     text = if (isInputExpanded) "Calculate Eligibility" else "Update Calculation",
                                     color = Color.White,

@@ -167,6 +167,11 @@ fun SipScreen(
             interactionSource = remember { MutableInteractionSource() }, indication = null
         ) { focusManager.clearFocus() }
     ) { paddingValues ->
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -226,6 +231,7 @@ fun SipScreen(
 
 
 
+        }
 @Composable
 private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
     Row(
@@ -297,7 +303,7 @@ private fun InputsSection(
 
 @Composable
 private fun CustomInput(label: String, value: String, onValueChange: (String) -> Unit, icon: androidx.compose.ui.graphics.vector.ImageVector, prefix: String = "", suffix: String = "") {
-    var isFocused by remember { mutableStateOf(false) }
+    var isFocused by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     
     val targetBorderColor = if (isFocused) AccentGreen else StrokeNavy
     val borderColor by androidx.compose.animation.animateColorAsState(targetValue = targetBorderColor, label = "borderColor")
@@ -939,4 +945,4 @@ private fun EmptyStateUi() {
             lineHeight = LoanMasterTheme.typography.title.fontSize
         )
     }
-}
+ }

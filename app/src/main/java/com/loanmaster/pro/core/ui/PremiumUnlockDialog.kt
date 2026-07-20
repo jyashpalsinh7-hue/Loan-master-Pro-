@@ -33,7 +33,7 @@ fun PremiumUnlockDialog(
     onUnlockSuccessful: () -> Unit
 ) {
     val context = LocalContext.current
-    var isAdLoading by remember { mutableStateOf(false) }
+    var isAdLoading by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -85,7 +85,7 @@ fun PremiumUnlockDialog(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = AccentGreen,
                         contentColor = BackgroundDark
@@ -93,7 +93,7 @@ fun PremiumUnlockDialog(
                     shape = RoundedCornerShape(LoanMasterTheme.spacing.md)
                 ) {
                     Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.widthIn(min = 8.dp))
                     Text("Buy Premium", fontWeight = FontWeight.Bold)
                 }
 
@@ -121,7 +121,7 @@ fun PremiumUnlockDialog(
                     enabled = !isAdLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = SurfaceDark,
                         contentColor = Color.White
@@ -132,7 +132,7 @@ fun PremiumUnlockDialog(
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), color = AccentGreen, strokeWidth = 2.dp)
                     } else {
                         Icon(Icons.Rounded.PlayCircle, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.widthIn(min = 8.dp))
                         Text("Watch Ad to Unlock", fontWeight = FontWeight.Bold)
                     }
                 }

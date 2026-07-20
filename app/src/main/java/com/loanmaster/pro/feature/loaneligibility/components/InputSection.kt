@@ -76,7 +76,7 @@ fun InputSection(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(64.dp)
+                                    .heightIn(min = 64.dp)
                                     .clip(RoundedCornerShape(24.dp))
                                     .border(1.dp, surfaceColor, RoundedCornerShape(24.dp))
                             ) {
@@ -90,7 +90,7 @@ fun InputSection(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Rounded.BusinessCenter, contentDescription = null, tint = if (isSalaried) brightBlue else textSecondary, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.widthIn(min = 6.dp))
                                         Text(
                                             text = "Salaried",
                                             color = if (isSalaried) brightBlue else textSecondary,
@@ -110,7 +110,7 @@ fun InputSection(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Rounded.Storefront, contentDescription = null, tint = if (!isSalaried) brightBlue else textSecondary, modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Spacer(modifier = Modifier.widthIn(min = 6.dp))
                                         Text(
                                             text = "Self-Employed",
                                             color = if (!isSalaried) brightBlue else textSecondary,
@@ -152,7 +152,7 @@ fun InputSection(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(64.dp)
+                                    .heightIn(min = 64.dp)
                                     .clip(RoundedCornerShape(24.dp))
                                     .background(surfaceColor.copy(alpha = 0.3f))
                                     .border(1.dp, surfaceColor, RoundedCornerShape(24.dp))
@@ -160,7 +160,7 @@ fun InputSection(
                                     .padding(horizontal = 16.dp)
                             ) {
                                 Icon(Icons.Rounded.GroupAdd, contentDescription = null, tint = brightBlue, modifier = Modifier.size(24.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.widthIn(min = 12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Add Co-Borrower",
@@ -207,7 +207,7 @@ fun InputSection(
                             }
 
                             // 5. Loan Details
-                            var loanDropdownExpanded by remember { mutableStateOf(false) }
+                            var loanDropdownExpanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
                             AdaptiveRowCol(
                                 modifier = Modifier.fillMaxWidth(),
                                 content1 = { mod ->
@@ -284,7 +284,7 @@ fun InputSection(
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
                                     Icon(Icons.Rounded.Speed, contentDescription = null, tint = textSecondary, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Spacer(modifier = Modifier.widthIn(min = 6.dp))
                                     Text(
                                         "Credit Score",
                                         color = textSecondary,
@@ -309,7 +309,7 @@ fun InputSection(
                                             label = {
                                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
                                                     Text(title, fontWeight = FontWeight.Bold, maxLines = 1, fontSize = 13.sp)
-                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Spacer(modifier = Modifier.heightIn(min = 2.dp))
                                                     Text(range, fontSize = 11.sp, maxLines = 1, color = if (isSelected) Color.White.copy(alpha = 0.9f) else textSecondary, fontWeight = FontWeight.Normal)
                                                 }
                                             },

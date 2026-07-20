@@ -119,7 +119,8 @@ fun LoanSummaryScreen(
             }
         }
         ) { padding ->
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.padding(padding)) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 modifier = Modifier
                     .widthIn(max = 840.dp)
@@ -305,6 +306,8 @@ fun LoanSummaryScreen(
         )
     }
 }
+    }
+
 
 @Composable
 fun RowScope.StatItem(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -653,4 +656,5 @@ fun AddLoanDialog(onDismiss: () -> Unit, onSave: (ActiveLoan) -> Unit) {
             }
         }
     }
-}
+ }
+

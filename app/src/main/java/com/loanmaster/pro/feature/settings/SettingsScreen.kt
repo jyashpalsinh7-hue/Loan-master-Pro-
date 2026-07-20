@@ -93,13 +93,16 @@ fun SettingsScreen(
         topBar = { SettingsTopBar(onNavigateBack) },
         containerColor = BackgroundDark
     ) { innerPadding ->
-        LazyColumn(
+        ResponsiveScreenWrapper(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
+                .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.sm)
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.components.iconSmall)
+            ) {
             // Language selector removed for this release
             item { DefaultCurrencySection(currency, viewModel::setCurrency) }
             item { PreferencesSection(notificationsEnabled, keepHistoryEnabled, viewModel::setNotificationsEnabled, viewModel::setKeepHistoryEnabled) }
@@ -110,6 +113,7 @@ fun SettingsScreen(
             item { AccountSyncSection(onPremiumClick = { if (!isPremiumUnlocked) showUnlockDialog = true }) }
 
             item { Spacer(Modifier.heightIn(min = LoanMasterTheme.spacing.md)) }
+            }
         }
         if (showUnlockDialog) {
             val context = androidx.compose.ui.platform.LocalContext.current
@@ -376,8 +380,8 @@ private fun RemindersSection(
     emiReminderDays: Set<String>,
     onEmiReminderDaysChange: (Set<String>) -> Unit
 ) {
-    var showDayPicker by remember { mutableStateOf(false) }
-    var showFrequencyPicker by remember { mutableStateOf(false) }
+    var showDayPicker by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var showFrequencyPicker by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
 
     fun showTimePicker() {
@@ -535,7 +539,7 @@ private fun RemindersSection(
 @Composable
 private fun DataBackupSection(onClearHistory: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
 
     if (showDialog) {
         AlertDialog(
@@ -645,7 +649,7 @@ private fun AccountSyncSection(onPremiumClick: () -> Unit = {}) {
 @Composable
 private fun SupportAppSection(onPremiumClick: () -> Unit = {}) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var isAdPlaying by remember { mutableStateOf(false) }
+    var isAdPlaying by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
 
     SectionCard(title = "Premium & Support") {
         Column(

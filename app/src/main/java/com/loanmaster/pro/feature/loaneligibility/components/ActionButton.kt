@@ -49,7 +49,7 @@ fun ActionButton(
     Button(
         onClick = onClick,
         modifier = modifier
-            .height(96.dp)
+            .heightIn(min = 96.dp)
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale

@@ -44,7 +44,7 @@ fun PremiumLockCard(
                 ) {
                     Icon(Icons.Rounded.Lock, contentDescription = "Locked", tint = AccentBlue, modifier = Modifier.size(18.dp))
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.widthIn(min = 12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Unlock Loan Intelligence", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text("Personalized recommendations to improve approval.", color = TextSecondary, fontSize = 11.sp)
@@ -54,7 +54,7 @@ fun PremiumLockCard(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onWatchAdClick,
-                    modifier = Modifier.weight(1f).height(40.dp),
+                    modifier = Modifier.weight(1f).heightIn(min = 40.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark.copy(alpha=0.8f), contentColor = TextPrimary),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha=0.05f)),
@@ -66,7 +66,7 @@ fun PremiumLockCard(
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.widthIn(min = 6.dp))
                             Text("Watch Ad", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                         }
                     }
@@ -75,14 +75,14 @@ fun PremiumLockCard(
                 Box(modifier = Modifier.weight(1f)) {
                     Button(
                         onClick = onPremiumClick,
-                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentBlue.copy(alpha=0.15f), contentColor = AccentBlue),
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Star, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.widthIn(min = 6.dp))
                             Text("Go Premium", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                     }

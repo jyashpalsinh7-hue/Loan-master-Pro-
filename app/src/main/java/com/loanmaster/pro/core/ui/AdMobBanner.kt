@@ -26,7 +26,7 @@ import com.google.android.gms.ads.LoadAdError
 
 @Composable
 fun AdMobBanner(modifier: Modifier = Modifier) {
-    var isAdFailedToLoad by remember { mutableStateOf(false) }
+    var isAdFailedToLoad by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     
     // Determine the adaptive ad size
