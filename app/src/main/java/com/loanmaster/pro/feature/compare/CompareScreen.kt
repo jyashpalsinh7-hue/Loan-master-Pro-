@@ -461,7 +461,7 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text("Stated: ${loan.interestRate}%", color = TextSecondary, fontSize = LoanMasterTheme.typography.label.fontSize, textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough)
-                                        Text("True APR: ${String.format("%.2f", apr)}%", color = AccentYellow, fontWeight = FontWeight.Bold)
+                                        Text("True APR: ${String.format(java.util.Locale.US, "%.2f", apr)}%", color = AccentYellow, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -557,8 +557,8 @@ fun CompareScreen(onNavigateBack: () -> Unit, viewModel: CompareViewModel = view
                         if (lowestInterestBank != null && processedLoans.size > 1) {
                             val otherBank = processedLoans.firstOrNull { it.id != lowestInterestBank.id && it.interestRate > lowestInterestBank.interestRate }
                             if (otherBank != null) {
-                                val rateDiff = String.format("%.2f", otherBank.interestRate - lowestInterestBank.interestRate)
-                                scripts.add(Pair("Match ${lowestInterestBank.bankName}'s Lower Rate", "\"I prefer banking with ${otherBank.bankName}, but ${lowestInterestBank.bankName} has pre-approved me at ${String.format("%.2f", lowestInterestBank.interestRate)}% (which is $rateDiff% lower). If you can match their rate, I will sign the agreement today.\""))
+                                val rateDiff = String.format(java.util.Locale.US, "%.2f", otherBank.interestRate - lowestInterestBank.interestRate)
+                                scripts.add(Pair("Match ${lowestInterestBank.bankName}'s Lower Rate", "\"I prefer banking with ${otherBank.bankName}, but ${lowestInterestBank.bankName} has pre-approved me at ${String.format(java.util.Locale.US, "%.2f", lowestInterestBank.interestRate)}% (which is $rateDiff% lower). If you can match their rate, I will sign the agreement today.\""))
                             }
                         }
                         

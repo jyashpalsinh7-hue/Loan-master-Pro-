@@ -398,7 +398,7 @@ fun generateSmartOpportunities(loanAmount: Double, interestRate: Double, tenureY
             val newTotalInt = (newEmi * totalMonths) - loanAmount
             if (totalInterest - newTotalInt > 0.0) {
                 list.add(SmartOpportunity(
-                    "Refinance at ${String.format("%.1f", newRate)}%",
+                    "Refinance at ${String.format(java.util.Locale.US, "%.1f", newRate)}%",
                     "Potential Saving: ${formatMoney(totalInterest - newTotalInt)}",
                     "Lower EMI by ${formatMoney(monthlyEmi - newEmi)}"
                 ))

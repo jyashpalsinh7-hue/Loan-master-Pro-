@@ -424,10 +424,10 @@ private fun HeroCard(invested: Double, gain: Double, maturity: Double, ret: Doub
                 HeroStat("Total Invested", com.loanmaster.pro.core.formatter.formatMoney(invested), modifier = Modifier.weight(1f))
                 HeroStat("Total Returns", com.loanmaster.pro.core.formatter.formatMoney(gain), color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                 if (isWide) {
-                    HeroStat("Wealth Multiplier", "${String.format("%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
+                    HeroStat("Wealth Multiplier", "${String.format(java.util.Locale.US, "%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                     HeroStat("Avg. Return", "${ret.toInt()}%", modifier = Modifier.weight(1f).padding(start = LoanMasterTheme.spacing.sm))
                 } else {
-                    HeroStat("Multiplier", "${String.format("%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(0.7f).padding(start = LoanMasterTheme.spacing.sm))
+                    HeroStat("Multiplier", "${String.format(java.util.Locale.US, "%.2f", maturity/invested)}x", color = GreenSuccess, modifier = Modifier.weight(0.7f).padding(start = LoanMasterTheme.spacing.sm))
                 }
             }
         }

@@ -16,11 +16,11 @@ object CurrencyHelper {
     var currencySymbol: String = "₹"
 }
 
-private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()).apply {
+private val currencyFormat = NumberFormat.getCurrencyInstance(java.util.Locale.US).apply {
     maximumFractionDigits = 0
 }
 
-private val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault()).apply {
+private val numberFormat = NumberFormat.getNumberInstance(java.util.Locale.US).apply {
     maximumFractionDigits = 0
 }
 
