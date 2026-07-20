@@ -140,46 +140,41 @@ fun SipScreen(
     }
 
     val context = androidx.compose.ui.platform.LocalContext.current
-    Scaffold(
-        containerColor = NavyBg,
-        topBar = {
-            SipTopBar(
-                onNavigateBack = onNavigateBack,
-                onExportClick = {
-                    ExportUtils.exportToPdf(
-                        context,
-                        "SIP Calculator Report",
-                        listOf(
-                            "Monthly Investment" to amountText,
-                            "Expected Return Rate" to "$returnRateText%",
-                            "Time Period" to "$yearsText Years",
-                            "Annual Step-Up" to "$stepUpText%",
-                            "" to "",
-                            "Total Invested" to com.loanmaster.pro.core.formatter.formatMoney(totalInvested),
-                            "Est. Returns" to com.loanmaster.pro.core.formatter.formatMoney(totalGain),
-                            "Total Value" to com.loanmaster.pro.core.formatter.formatMoney(maturityValue)
-                        )
-                    )
-                }
-            )
-        },
-        modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() }, indication = null
-        ) { focusManager.clearFocus() }
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NavyBg)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { focusManager.clearFocus() }
+    ) {
         com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = if (isWide) LoanMasterTheme.spacing.xl else LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
-        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = if (isWide) LoanMasterTheme.spacing.xl else LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
+            ) {
+                SipTopBar(
+                    onNavigateBack = onNavigateBack,
+                    onExportClick = {
+                        ExportUtils.exportToPdf(
+                            context,
+                            "SIP Calculator Report",
+                            listOf(
+                                "Monthly Investment" to amountText,
+                                "Expected Return Rate" to "$returnRateText%",
+                                "Time Period" to "$yearsText Years",
+                                "Annual Step-Up" to "$stepUpText%",
+                                "" to "",
+                                "Total Invested" to com.loanmaster.pro.core.formatter.formatMoney(totalInvested),
+                                "Est. Returns" to com.loanmaster.pro.core.formatter.formatMoney(totalGain),
+                                "Total Value" to com.loanmaster.pro.core.formatter.formatMoney(maturityValue)
+                            )
+                        )
+                    }
+                )
             InputsSection(
                 uiState = uiState, 
                 updateInputs = { amount, rate, years, stepUp ->
@@ -238,7 +233,7 @@ private fun SipTopBar(onNavigateBack: () -> Unit, onExportClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(NavyBg)
-            .statusBarsPadding()
+            
             .padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {

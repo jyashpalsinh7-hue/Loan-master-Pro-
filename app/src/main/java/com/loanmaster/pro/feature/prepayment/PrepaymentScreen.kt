@@ -158,11 +158,23 @@ fun PrepaymentScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column(modifier = Modifier.background(bgColor).statusBarsPadding()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor)
+    ) {
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = LoanMasterTheme.spacing.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
+        ) {
+            item {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = LoanMasterTheme.spacing.md, vertical = LoanMasterTheme.spacing.md),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = LoanMasterTheme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -181,20 +193,6 @@ fun PrepaymentScreen(
                     )
                 }
             }
-        },
-        containerColor = bgColor
-    ) { paddingValues ->
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = LoanMasterTheme.spacing.screenPadding),
-            verticalArrangement = Arrangement.spacedBy(LoanMasterTheme.spacing.lg)
-        ) {
             item { Spacer(modifier = Modifier.heightIn(min = LoanMasterTheme.spacing.sm)) }
 
             // Hero Card: Interest Saved

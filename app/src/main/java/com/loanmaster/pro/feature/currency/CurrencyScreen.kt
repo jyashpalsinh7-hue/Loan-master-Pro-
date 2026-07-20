@@ -112,10 +112,14 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
     val allCurrencies = listOf(baseCurrency, targetCurrency) + uiState.rates.keys.toList()
     val distinctCurrencies = allCurrencies.distinct()
 
-    Scaffold(
-        topBar = {
-            Column(modifier = Modifier.background(CurrBgColor).statusBarsPadding()) {
-                // FIX: Remove old offline banner, error handled in body
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(CurrBgColor)
+    ) {
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.background(CurrBgColor)) {
                 if (uiState.error != null && uiState.rates.isNotEmpty()) {
                     Row(
                         modifier = Modifier
@@ -158,15 +162,11 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
                     }
                 }
             }
-        },
-        containerColor = CurrBgColor
-    ) { innerPadding ->
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
         // FIX: Show full error card if rates are empty and error is present
         if (uiState.rates.isEmpty() && uiState.error != null) {
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
+                    
                     .fillMaxSize()
                     .padding(LoanMasterTheme.spacing.screenPadding),
                 verticalArrangement = Arrangement.Center,
@@ -196,7 +196,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
         } else {
         LazyColumn(
             modifier = Modifier
-                .padding(innerPadding)
+                
                 .fillMaxSize(),
             contentPadding = PaddingValues(
                 horizontal = LoanMasterTheme.spacing.screenPadding,
@@ -312,9 +312,10 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
             )
         }
     }
+    }
+    }
 }
 
-        }
 @Composable
 fun PremiumConversionCard(
     baseAmount: String,
@@ -721,3 +722,4 @@ fun CurrencySelectorSheet(
         }
     }
          }
+

@@ -111,7 +111,7 @@ fun HistoryScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(BackgroundDark)) {
+            Column(modifier = Modifier.background(BackgroundDark).statusBarsPadding()) {
                 TopAppBar(
                     title = { 
                         if (isMultiSelectMode) {

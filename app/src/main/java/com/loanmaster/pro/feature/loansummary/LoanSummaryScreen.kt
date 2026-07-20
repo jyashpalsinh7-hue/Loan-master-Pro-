@@ -105,21 +105,12 @@ fun LoanSummaryScreen(
     val accentGreen = Color(0xFF22C55E)
     val accentBlue = Color(0xFF3B82F6)
 
-    Scaffold(
-        modifier = Modifier.safeDrawingPadding(),
-        containerColor = bgDark,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddLoanDialog = true },
-                containerColor = accentYellow,
-                contentColor = bgDark,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Rounded.Add, contentDescription = "Add")
-            }
-        }
-        ) { padding ->
-        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.padding(padding)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgDark)
+    ) {
+        com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
                 modifier = Modifier
@@ -294,7 +285,20 @@ fun LoanSummaryScreen(
                 }
             }
         }        }
-    }
+        
+        FloatingActionButton(
+            onClick = { showAddLoanDialog = true },
+            containerColor = accentYellow,
+            contentColor = bgDark,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(LoanMasterTheme.spacing.lg)
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = "Add")
+        }
+        } // closes ResponsiveScreenWrapper
+    } // closes Box
 
     if (showAddLoanDialog) {
         AddLoanDialog(
@@ -306,7 +310,6 @@ fun LoanSummaryScreen(
         )
     }
 }
-    }
 
 
 @Composable

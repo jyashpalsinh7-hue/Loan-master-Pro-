@@ -426,35 +426,25 @@ fun EmiScreen(
     val prinPct = uiState.principalPercentage
     val intPct = uiState.interestPercentage
 
-    Scaffold(
-        containerColor = bgColor,
-        topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(
-                title = { 
-                    Column {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(bgColor)
+        ) {
+            CalculatorScreenLayout(
+                widthSizeClass = sizeClass,
+                animationTriggerState = uiState.monthlyEmi,
+                headerSection = { 
+                    Column(modifier = Modifier.padding(bottom = LoanMasterTheme.spacing.md)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Calculate, contentDescription = null, tint = Color(0xFF2D7DFF), modifier = Modifier.size(24.dp))
                             Spacer(Modifier.widthIn(min = 8.dp))
                             Text("EMI Calculator", color = primaryText, fontSize = LoanMasterTheme.typography.title.fontSize, fontWeight = FontWeight.Bold, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
+                        Spacer(Modifier.heightIn(min = 4.dp))
                         Text("Calculate your loan EMI and plan better", color = secondaryText, fontSize = LoanMasterTheme.typography.label.fontSize, minLines = 1, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 },
-                actions = {},
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
-            )
-        },
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            CalculatorScreenLayout(
-                widthSizeClass = sizeClass,
-                animationTriggerState = uiState.monthlyEmi,
-                headerSection = { },
                 inputControlsSection = {
                     // INPUT SECTION
                     Card(
@@ -868,7 +858,6 @@ fun EmiScreen(
             } // closes resultsSection lambda
             ) // closes ResponsiveScreenWrapper
         } // closes Box
-    } // closes Scaffold
 
     // FULL SCHEDULE DIALOG
     if (showFullSchedule && uiState.hasValidInput) {
