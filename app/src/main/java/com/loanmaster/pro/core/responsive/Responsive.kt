@@ -76,7 +76,7 @@ fun ResponsiveScreenWrapper(
     showDiagnostics: Boolean = false,
     content: @Composable BoxWithConstraintsScope.() -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
         BoxWithConstraints(modifier = modifier.widthIn(max = 840.dp)) {
             content()
             if (showDiagnostics) {

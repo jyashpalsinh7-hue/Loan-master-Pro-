@@ -109,6 +109,7 @@ fun LoanSummaryScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(bgDark)
+            .safeDrawingPadding()
     ) {
         com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {

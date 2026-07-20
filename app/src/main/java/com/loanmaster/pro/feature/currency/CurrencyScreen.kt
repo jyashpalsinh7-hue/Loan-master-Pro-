@@ -116,6 +116,7 @@ fun CurrencyScreen(onNavigateBack: () -> Unit, viewModel: CurrencyViewModel = vi
         modifier = Modifier
             .fillMaxSize()
             .background(CurrBgColor)
+            .safeDrawingPadding()
     ) {
         com.loanmaster.pro.core.responsive.ResponsiveScreenWrapper(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {

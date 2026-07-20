@@ -73,6 +73,7 @@ fun LoanEligibilityScreen(onNavigateBack: () -> Unit = {}, viewModel: LoanEligib
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
+            .safeDrawingPadding()
     ) {
         ResponsiveScreenWrapper(
             modifier = Modifier

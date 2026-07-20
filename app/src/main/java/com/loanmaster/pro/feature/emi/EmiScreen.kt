@@ -427,10 +427,10 @@ fun EmiScreen(
     val intPct = uiState.interestPercentage
 
     Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(bgColor)
-        ) {
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor)
+    ) {
             CalculatorScreenLayout(
                 widthSizeClass = sizeClass,
                 animationTriggerState = uiState.monthlyEmi,
