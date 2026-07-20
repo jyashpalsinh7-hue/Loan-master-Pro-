@@ -46,11 +46,11 @@ jobs:
         fi
 
     # 6. Static Application Security Testing (SAST)
-    # CORRECTED ACTION PATH: Pointing to the official MobSF repo
-    - name: Run MobSF Static Security Scan
-      uses: MobSF/mobsfscan@v1
-      with:
-        args: '. --severity ERROR'
+    # FIX: Using pip to run mobsfscan directly to bypass tag/version errors
+    - name: Set up Python & Run MobSF Static Security Scan
+      run: |
+        pip install mobsfscan
+        mobsfscan . --severity ERROR
 
     # 7. Compile Release Bundle (AAB) & Run Contextual Linting
     - name: Build Release App Bundle (AAB)
@@ -59,7 +59,6 @@ jobs:
         GRADLE_OPTS: "-Dorg.gradle.project.android.bundle.enableUncompressedNativeLibs=false"
 
     # 8. Archive the production-ready artifact
-    # CORRECTED ACTION PATH: Pointing to standard upload-artifact
     - name: Upload Bundle to Artifacts
       uses: actions/upload-artifact@v4
       with:
